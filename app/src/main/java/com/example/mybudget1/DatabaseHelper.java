@@ -79,13 +79,61 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         SQLiteDatabase db = this.getWritableDatabase();
+
+        // Проверяем, существует ли уже такая запись
+        Cursor getheredData = db.rawQuery(
+                "SELECT * FROM " + tableName +
+                        " WHERE " + COLUMN_DAY + " = ? AND " + COLUMN_NAME + " LIKE ?",
+                new String[]{String.valueOf(day), name + "%"} // Ищем совпадения по имени
+        );
+
+        int spentData = 0;
+        boolean exists = false;
+        int count = 0;
+        String newName = name;
+
+        if (getheredData.moveToFirst()) {
+            spentData = getheredData.getInt(getheredData.getColumnIndexOrThrow(COLUMN_SPENT));
+            exists = true;
+
+            // Проверяем, есть ли уже счетчик в имени (например, "name(3)")
+            do {
+                String existingName = getheredData.getString(getheredData.getColumnIndexOrThrow(COLUMN_NAME));
+                if (existingName.matches(name + "\\(\\d+\\)")) {
+                    // Извлекаем число из скобок
+                    String number = existingName.replaceAll("[^0-9]", "");
+                    count = Math.max(count, Integer.parseInt(number));
+                }
+            } while (getheredData.moveToNext());
+
+            count++; // Увеличиваем счетчик
+            newName = name + "(" + count + ")"; // Формируем новое имя
+        }
+        getheredData.close(); // Закрываем курсор
+
+        spent += spentData; // Обновляем сумму затрат
+
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_DAY, day);
-        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_NAME, newName);
         contentValues.put(COLUMN_SPENT, spent);
 
-        long result = db.insert(tableName, null, contentValues);
+        long result;
+        if (exists) {
+            // Если запись есть – обновляем
+            result = db.update(tableName, contentValues,
+                    COLUMN_DAY + " = ? AND " + COLUMN_NAME + " LIKE ?",
+                    new String[]{String.valueOf(day), name + "%"});
+        } else {
+            // Если записи нет – вставляем новую
+            result = db.insert(tableName, null, contentValues);
+        }
+
         return result != -1;
+    }
+
+    public void changeData(int day , int name , int spent){
+
     }
 
     // Метод для получения данных
@@ -105,10 +153,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void deleteData(String name, int day){
         String tableName = currentMonthTable;
-        SQLiteDatabase db = this.getWritableDatabase();String whereClause = "name = ? AND day = ?"; // Условие для удаления (по имени и дню)
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String whereClause = "name = ? AND day = ?";
         String[] whereArgs = new String[]{name, String.valueOf(day)};
         // Выполняем удаление
         db.delete(tableName, whereClause, whereArgs);
+
+
     }
 
 }
