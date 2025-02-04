@@ -5,14 +5,19 @@ import static androidx.core.content.ContextCompat.startActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.List;
 
@@ -45,9 +50,58 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
         // Обработчики для кнопок
         buttonEdit.setOnClickListener(v -> {
-            // Действие для кнопки "Изменить"
-            String item = items.get(position);
-            // Здесь можно вызвать диалог для изменения элемента
+            // Получаем текущий элемент
+            String itemData = items.get(position);
+            String[] parts = itemData.split(" - "); // Разделяем строку
+            String itemName = parts[0]; // "Coffee"
+            String spentString = parts[1].replace("₽", ""); // "100"
+
+            int itemSpent = Integer.parseInt(spentString); // Преобразуем строку в число
+
+            // Создаем всплывающее окно
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle("Редактирование");
+
+            // Создаем `EditText` для имени
+            EditText inputName = new EditText(context);
+            inputName.setInputType(InputType.TYPE_CLASS_TEXT);
+            inputName.setText(itemName);
+
+            // Создаем `EditText` для суммы
+            EditText inputSpent = new EditText(context);
+            inputSpent.setInputType(InputType.TYPE_CLASS_NUMBER);
+            inputSpent.setText(String.valueOf(itemSpent));
+
+            // Контейнер для `EditText`
+            LinearLayout layout = new LinearLayout(context);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.setPadding(50, 20, 50, 20);
+            layout.addView(inputName);
+            layout.addView(inputSpent);
+
+            builder.setView(layout);
+
+            // Кнопка "Сохранить"
+            builder.setPositiveButton("Сохранить", (dialog, which) -> {
+                String newName = inputName.getText().toString();
+                int newSpent = Integer.parseInt(inputSpent.getText().toString());
+
+                // Обновляем запись в базе данных
+                DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                databaseHelper.updateData(itemName, currentDay, newName, newSpent);
+
+                // Обновляем данные в списке и уведомляем адаптер
+                items.set(position, newName + " -  " + newSpent + "₽");
+                notifyDataSetChanged();
+
+                Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
+            });
+
+            // Кнопка "Отмена"
+            builder.setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());
+
+            // Показываем диалог
+            builder.show();
         });
 
         buttonDelete.setOnClickListener(v -> {

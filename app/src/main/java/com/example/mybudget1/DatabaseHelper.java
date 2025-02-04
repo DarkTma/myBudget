@@ -132,10 +132,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    public void changeData(int day , int name , int spent){
-
-    }
-
     // Метод для получения данных
     public Cursor getData(int day, int offset) {
         String tableName;
@@ -163,6 +159,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+    public boolean updateData(String itemName, int currentDay, String newName, int newSpent) {
+        String tableName = currentMonthTable;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        int day = currentDay;
+        String oldName = itemName;
+
+        contentValues.put(COLUMN_NAME, newName);
+        contentValues.put(COLUMN_SPENT, newSpent);
+
+        // Обновляем запись, где день и старое имя совпадают
+        int result = db.update(
+                tableName,
+                contentValues,
+                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
+                new String[]{String.valueOf(day), oldName}
+        );
+
+        return result > 0; // Если обновлено хотя бы 1 строка, вернет true
+    }
 }
 
 

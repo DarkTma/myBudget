@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
@@ -17,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,6 +31,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.navigation.NavigationView;
+
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
@@ -74,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void newSpent(MainActivity mainActivity) {
         // Создаем EditText для каждого поля
-        final EditText name = new EditText(this);
+        EditText name = new EditText(this);
+        name.setInputType(InputType.TYPE_CLASS_TEXT);
         final EditText spent = new EditText(this);
         final EditText day = new EditText(this);
 
