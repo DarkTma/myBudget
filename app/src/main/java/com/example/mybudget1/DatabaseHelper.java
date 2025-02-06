@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
 import java.util.Calendar;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -15,11 +17,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private String prevMonthTable;
     private String currentMonthTable;
     private String nextMonthTable;
+//    private String stabilSpents;
+//    private String income;
 
     // Колонки таблицы
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_DAY = "day";
     private static final String COLUMN_NAME = "name";
+//    private static final String COLUMN_INCOME = "income";
     private static final String COLUMN_SPENT = "spent";
 
     public DatabaseHelper(Context context) {
@@ -32,14 +37,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createTable(db, prevMonthTable);
         createTable(db, currentMonthTable);
         createTable(db, nextMonthTable);
+//        createTableForMonthSpent(db, stabilSpents);
+//        createTableForIncome(db , income);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        updateMonthTables(db);
+    }
+
+    private void updateMonthTables(SQLiteDatabase db) {
+        // Удаляем таблицу прошлого месяца
         db.execSQL("DROP TABLE IF EXISTS " + prevMonthTable);
-        db.execSQL("DROP TABLE IF EXISTS " + currentMonthTable);
-        db.execSQL("DROP TABLE IF EXISTS " + nextMonthTable);
-        onCreate(db);
+
+        // Переименовываем текущий месяц в прошлый
+        db.execSQL("ALTER TABLE " + currentMonthTable + " RENAME TO " + prevMonthTable);
+
+        // Переименовываем следующий месяц в текущий
+        db.execSQL("ALTER TABLE " + nextMonthTable + " RENAME TO " + currentMonthTable);
+
+        // Создаем новую таблицу для нового следующего месяца
+        createTable(db, nextMonthTable);
     }
 
     private void createTable(SQLiteDatabase db, String tableName) {
@@ -179,6 +197,101 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return result > 0; // Если обновлено хотя бы 1 строка, вернет true
     }
+
+
+
+    // Manth Spents
+
+//    private void createTableForMonthSpent(SQLiteDatabase db, String tableName){
+//        String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+//                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//                COLUMN_NAME + " TEXT, " +
+//                COLUMN_SPENT + " INTEGER)";
+//        db.execSQL(createTable);
+//    }
+//
+//    public boolean insertMonthlySpent(String name, int spent) {
+//        String tableName = stabilSpents;
+//        SQLiteDatabase db = this.getWritableDatabase();
+//
+//        ContentValues contentValues = new ContentValues();
+//        contentValues.put(COLUMN_NAME, name);
+//        contentValues.put(COLUMN_SPENT, spent);
+//
+//        long result;
+//        result = db.insert(tableName, null, contentValues);
+//
+//        return result != -1;
+//    }
+//
+//    private void createTableForIncome(SQLiteDatabase db, String tableName){
+//        String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
+//                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//                COLUMN_SPENT + " INTEGER)";
+//        db.execSQL(createTable);
+//    }
+//
+//    public boolean setIncome(int value){
+//        String tableName = income;
+//        SQLiteDatabase db = this.getWritableDatabase();
+//
+//        ContentValues contentValues = new ContentValues();
+//        contentValues.put(COLUMN_INCOME, value);
+//
+//        long result;
+//        result = db.insert(tableName, null, contentValues);
+//
+//        return result != -1;
+//    }
+//
+//    public int getIncome(){
+//        String tableName = income;
+//        SQLiteDatabase db = this.getWritableDatabase();
+//
+//        if (tableName != null && !tableName.isEmpty()) {
+//            Cursor cursor = db.rawQuery("SELECT * FROM " + tableName, null);
+//            int rowCount = cursor.getCount();
+//            cursor.close();
+//        } else {
+//            Log.e("DatabaseError", "tableNameforDay is null or empty");
+//        }
+//        int income = 0;
+//        Cursor incomeI;
+//        int rowCount = 0;
+//        for (int i = 0; i < rowCount; i++) {
+//            incomeI = db.rawQuery("SELECT " + COLUMN_INCOME + " FROM " + tableName + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(i)});
+//
+//            if (incomeI.moveToFirst()) {
+//                income += incomeI.getInt(0);
+//            }
+//
+//            incomeI.close();
+//        }
+//
+//        return income;
+//    }
+//
+//    // Global
+//
+    public int checkAllSpents(){
+        String tableNameforDay = currentMonthTable;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor spenti;
+        int sum = 0;
+        for (int i = 0; i < 31; i++) {
+            spenti = db.rawQuery("SELECT " + COLUMN_SPENT + " FROM " + tableNameforDay + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(i)});
+
+            if (spenti.moveToFirst()) {
+                sum += spenti.getInt(0);
+            }
+
+            spenti.close();
+        }
+
+        return sum;
+    }
+
+
 }
 
 

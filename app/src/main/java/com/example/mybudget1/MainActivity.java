@@ -3,6 +3,7 @@ package com.example.mybudget1;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentMonthOffset;
     private int currentDayIndex;
     private Button btnNewSpent;
+    private Button otherSettings;
     private ImageButton btnRefresh;
 
     @SuppressLint("MissingInflatedId")
@@ -75,6 +77,15 @@ public class MainActivity extends AppCompatActivity {
                 selectedDayText.setText("Day " + (position + 1));
             }
         });
+
+
+        otherSettings = findViewById(R.id.otherbtn);
+        otherSettings.setOnClickListener(v -> goToSettings());
+    }
+
+    private void goToSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
     }
 
     private void newSpent(MainActivity mainActivity) {
