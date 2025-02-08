@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/my_darkbg"
     tools:context=".MainActivity">
 
     <FrameLayout
@@ -28,6 +29,7 @@
         android:layout_height="wrap_content"
         android:text="Сегодня"
         android:textSize="18sp"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/viewPager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.514"
@@ -42,6 +44,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Доход"
+        android:padding="10dp"
+        android:textColor="@color/white"
+        android:background="@drawable/btn_light_blue"
         app:layout_constraintBottom_toTopOf="@+id/viewPager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.95"
@@ -49,41 +54,35 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.702" />
 
-    <ImageButton
-        android:id="@+id/btnRefresh"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Refresh"
-        android:scaleType="centerInside"
-        android:src="@drawable/refresh"
-        app:layout_constraintBottom_toTopOf="@+id/fragmentContainer"
-        app:layout_constraintEnd_toStartOf="@+id/btnNewSpent"
-        app:layout_constraintHorizontal_bias="0.327"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.782" />
-
     <Button
         android:id="@+id/btnNewSpent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:padding="10dp"
+        android:textColor="@color/white"
+        android:background="@drawable/btn_light_blue"
         android:text="Добавить трату"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/selectedDayText" />
+        app:layout_constraintTop_toBottomOf="@id/selectedDayText"
+    />
+
+
+        />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
-        android:layout_width="413dp"
-        android:layout_height="512dp"
+        android:layout_width="match_parent"
+        app:layout_constraintHeight_percent="0.6"
+        android:layout_height="0dp"
+        android:background="@drawable/btn_light_green"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.849" >
+        android:layout_marginHorizontal="10dp"
+        app:layout_constraintVertical_bias="0.849">
+
 
     </androidx.viewpager2.widget.ViewPager2>
 

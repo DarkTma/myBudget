@@ -107,43 +107,65 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         int spentData = 0;
         boolean exists = false;
+        boolean waschanged = false;
         int count = 0;
         String newName = name;
+        String namePred = "";
+        long result = 0;
 
         if (getheredData.moveToFirst()) {
             spentData = getheredData.getInt(getheredData.getColumnIndexOrThrow(COLUMN_SPENT));
-            exists = true;
+            exists = false;
 
             // Проверяем, есть ли уже счетчик в имени (например, "name(3)")
             do {
                 String existingName = getheredData.getString(getheredData.getColumnIndexOrThrow(COLUMN_NAME));
-                if (existingName.matches(name + "\\(\\d+\\)")) {
+                if (existingName.matches(name + "\\(\\d+\\)")  || existingName.equals(name) ) {
                     // Извлекаем число из скобок
-                    String number = existingName.replaceAll("[^0-9]", "");
-                    count = Math.max(count, Integer.parseInt(number));
+                    if (existingName.matches(name + "\\(\\d+\\)")) {
+                        String number = existingName.replaceAll("[^0-9]", "");
+                        count = Math.max(count, Integer.parseInt(number));
+                        count++; // Увеличиваем счетчик
+                        newName = name + "(" + count + ")"; // Формируем новое имя
+                        namePred = name + "(" + (count - 1) + ")";
+                        waschanged = true;
+                    }else {
+                        count = 1;
+                        newName = name + "(" + count + ")";
+                    }
+
+
+                    getheredData.close(); // Закрываем курсор
+
+                    spent += spentData; // Обновляем сумму затрат
+
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(COLUMN_DAY, day);
+                    contentValues.put(COLUMN_NAME, newName);
+                    contentValues.put(COLUMN_SPENT, spent);
+
+                    if (waschanged){
+                        result = db.update(tableName, contentValues,
+                                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
+                                new String[]{String.valueOf(day), namePred});
+                    }else {
+                        result = db.update(tableName, contentValues,
+                                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
+                                new String[]{String.valueOf(day), name});
+                    }
+
+                    exists = true;
                 }
             } while (getheredData.moveToNext());
-
-            count++; // Увеличиваем счетчик
-            newName = name + "(" + count + ")"; // Формируем новое имя
         }
         getheredData.close(); // Закрываем курсор
 
-        spent += spentData; // Обновляем сумму затрат
+        if (!exists){
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_DAY, day);
+            contentValues.put(COLUMN_NAME, name);
+            contentValues.put(COLUMN_SPENT, spent);
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(COLUMN_DAY, day);
-        contentValues.put(COLUMN_NAME, newName);
-        contentValues.put(COLUMN_SPENT, spent);
-
-        long result;
-        if (exists) {
-            // Если запись есть – обновляем
-            result = db.update(tableName, contentValues,
-                    COLUMN_DAY + " = ? AND " + COLUMN_NAME + " LIKE ?",
-                    new String[]{String.valueOf(day), name + "%"});
-        } else {
-            // Если записи нет – вставляем новую
             result = db.insert(tableName, null, contentValues);
         }
 
@@ -199,80 +221,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-
-    // Manth Spents
-
-//    private void createTableForMonthSpent(SQLiteDatabase db, String tableName){
-//        String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
-//                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-//                COLUMN_NAME + " TEXT, " +
-//                COLUMN_SPENT + " INTEGER)";
-//        db.execSQL(createTable);
-//    }
-//
-//    public boolean insertMonthlySpent(String name, int spent) {
-//        String tableName = stabilSpents;
-//        SQLiteDatabase db = this.getWritableDatabase();
-//
-//        ContentValues contentValues = new ContentValues();
-//        contentValues.put(COLUMN_NAME, name);
-//        contentValues.put(COLUMN_SPENT, spent);
-//
-//        long result;
-//        result = db.insert(tableName, null, contentValues);
-//
-//        return result != -1;
-//    }
-//
-//    private void createTableForIncome(SQLiteDatabase db, String tableName){
-//        String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
-//                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-//                COLUMN_SPENT + " INTEGER)";
-//        db.execSQL(createTable);
-//    }
-//
-//    public boolean setIncome(int value){
-//        String tableName = income;
-//        SQLiteDatabase db = this.getWritableDatabase();
-//
-//        ContentValues contentValues = new ContentValues();
-//        contentValues.put(COLUMN_INCOME, value);
-//
-//        long result;
-//        result = db.insert(tableName, null, contentValues);
-//
-//        return result != -1;
-//    }
-//
-//    public int getIncome(){
-//        String tableName = income;
-//        SQLiteDatabase db = this.getWritableDatabase();
-//
-//        if (tableName != null && !tableName.isEmpty()) {
-//            Cursor cursor = db.rawQuery("SELECT * FROM " + tableName, null);
-//            int rowCount = cursor.getCount();
-//            cursor.close();
-//        } else {
-//            Log.e("DatabaseError", "tableNameforDay is null or empty");
-//        }
-//        int income = 0;
-//        Cursor incomeI;
-//        int rowCount = 0;
-//        for (int i = 0; i < rowCount; i++) {
-//            incomeI = db.rawQuery("SELECT " + COLUMN_INCOME + " FROM " + tableName + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(i)});
-//
-//            if (incomeI.moveToFirst()) {
-//                income += incomeI.getInt(0);
-//            }
-//
-//            incomeI.close();
-//        }
-//
-//        return income;
-//    }
-//
-//    // Global
-//
     public int checkAllSpents(){
         String tableNameforDay = currentMonthTable;
         SQLiteDatabase db = this.getWritableDatabase();

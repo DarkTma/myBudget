@@ -4,10 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -54,10 +56,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnNewSpent = findViewById(R.id.btnNewSpent);
-        btnRefresh = findViewById(R.id.btnRefresh);
 
         btnNewSpent.setOnClickListener(v -> newSpent(this));
-        btnRefresh.setOnClickListener(v ->updateAdapter());
 
         viewPager = findViewById(R.id.viewPager);
         currentDay = getCurrentDay();
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                selectedDayText.setText("Day " + (position + 1));
+                selectedDayText.setText("День " + (position + 1));
             }
         });
 
@@ -150,13 +150,6 @@ public class MainActivity extends AppCompatActivity {
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
         viewPager.setCurrentItem(currentDay - 1, false);  // Устанавливаем нужный день после обновления
-    }
-
-    public void createNewDaySpenting() {
-        String name = "test";
-        int spent = 1000;
-        DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        databaseHelper.insertData(Calendar.DAY_OF_MONTH, name, spent, 0);
     }
 
     private int getDaysInMonth(int monthOffset) {

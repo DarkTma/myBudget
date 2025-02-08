@@ -5,6 +5,7 @@ import static androidx.core.content.ContextCompat.startActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -46,6 +47,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         Button buttonDelete = convertView.findViewById(R.id.buttonDelete);
 
         // Set the item text
+        textViewItem.setTextColor(Color.WHITE);
         textViewItem.setText(items.get(position));
 
         // Обработчики для кнопок
@@ -110,7 +112,10 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             String itemName = itemData.split(" ")[0];
             deleteItem(itemName, currentDay); // Вызываем метод для удаления
 
-            Toast.makeText(context, "Удаление завершено. Обновите страницу", Toast.LENGTH_SHORT).show();
+            items.remove(position);
+            notifyDataSetChanged();
+
+            Toast.makeText(context, "Удаление завершено", Toast.LENGTH_SHORT).show();
         });
 
         return convertView;
