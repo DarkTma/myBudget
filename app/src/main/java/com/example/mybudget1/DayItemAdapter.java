@@ -7,7 +7,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.text.Html;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -17,11 +21,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 
 import java.util.List;
 
@@ -48,8 +54,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
         TextView textViewItemName = convertView.findViewById(R.id.textViewItemName);
         TextView textViewItemPrice = convertView.findViewById(R.id.textViewItemPrice);
-        Button buttonEdit = convertView.findViewById(R.id.buttonEdit);
-        Button buttonDelete = convertView.findViewById(R.id.buttonDelete);
+        ImageButton buttonEdit = convertView.findViewById(R.id.buttonEdit);
+        ImageButton buttonDelete = convertView.findViewById(R.id.buttonDelete);
         CheckBox checkBox = convertView.findViewById(R.id.isComplete);
 
         // Set the item text
@@ -90,17 +96,35 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
             // Создаем всплывающее окно
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
-            builder.setTitle("Редактирование");
+            builder.setTitle(Html.fromHtml("<font color='#FF5500'>Редактирование</font>"));
 
             // Создаем `EditText` для имени
             EditText inputName = new EditText(context);
             inputName.setInputType(InputType.TYPE_CLASS_TEXT);
             inputName.setText(itemName);
+            inputName.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+            inputName.setBackgroundResource(R.drawable.edit_text_style_orange);
+
+            LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
+            inputName.setLayoutParams(nameParams);
 
             // Создаем `EditText` для суммы
             EditText inputSpent = new EditText(context);
             inputSpent.setInputType(InputType.TYPE_CLASS_NUMBER);
             inputSpent.setText(String.valueOf(itemSpent));
+            inputSpent.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+            inputSpent.setBackgroundResource(R.drawable.edit_text_style_orange);
+
+            LinearLayout.LayoutParams spentParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            spentParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
+            inputSpent.setLayoutParams(nameParams);
 
             // Контейнер для `EditText`
             LinearLayout layout = new LinearLayout(context);
@@ -111,8 +135,14 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
             builder.setView(layout);
 
+            SpannableString positiveButtonText = new SpannableString("Добавить");
+            positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_orange)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            SpannableString negativeButtonText = new SpannableString("Отмена");
+            negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_orange)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
             // Кнопка "Сохранить"
-            builder.setPositiveButton("Сохранить", (dialog, which) -> {
+            builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 String newName = inputName.getText().toString();
                 int newSpent = Integer.parseInt(inputSpent.getText().toString());
 
@@ -134,10 +164,12 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             });
 
             // Кнопка "Отмена"
-            builder.setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());
+            builder.setNegativeButton(negativeButtonText, (dialog, which) -> dialog.dismiss());
 
-            // Показываем диалог
-            builder.show();
+            AlertDialog dialog = builder.create();
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background_edit); // Устанавливаем фон
+            dialog.show();
+
         });
 
         buttonDelete.setOnClickListener(v -> {

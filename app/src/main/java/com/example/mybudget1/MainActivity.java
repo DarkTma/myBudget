@@ -80,9 +80,12 @@ public class MainActivity extends AppCompatActivity {
         currentMonthOffset = 0; // 0 = текущий месяц
         currentDayIndex = getCurrentDay() - 1;
 
+        Intent intent = getIntent();
+        int day = intent.getIntExtra("day",1);
+
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
-        viewPager.setCurrentItem(currentDay - 1, false);
+        viewPager.setCurrentItem(day-1, true);
 
         // Обновляем текст при смене страницы
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
