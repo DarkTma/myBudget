@@ -1,20 +1,64 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="10dp">
 
-    <TextView
-        android:id="@+id/textViewItem"
+    <CheckBox
+        android:id="@+id/isComplete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:layout_weight="1"
-        android:text="Item"
-        android:textSize="16dp"
-        android:padding="10dp"
-        android:textColor="@color/white" />
+        android:layout_marginLeft="5dp">
 
+        <!-- Горизонтальная прокрутка для названия -->
+        <HorizontalScrollView
+            android:id="@+id/horizontalScrollViewName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scrollbars="horizontal">
+
+            <TextView
+                android:id="@+id/textViewItemName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Item Name Example"
+                android:textSize="16sp"
+                android:singleLine="true"
+                android:ellipsize="none"
+                android:scrollHorizontally="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"/>
+        </HorizontalScrollView>
+
+        <!-- Горизонтальная прокрутка для цены -->
+        <HorizontalScrollView
+            android:id="@+id/horizontalScrollViewPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scrollbars="horizontal">
+
+            <TextView
+                android:id="@+id/textViewItemPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Item Price Example"
+                android:textSize="16sp"
+                android:singleLine="true"
+                android:ellipsize="none"
+                android:scrollHorizontally="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"/>
+        </HorizontalScrollView>
+
+    </LinearLayout>
+
+    <!-- Кнопки -->
     <Button
         android:id="@+id/buttonEdit"
         android:layout_width="wrap_content"
@@ -23,8 +67,9 @@
         android:textSize="12dp"
         android:layout_marginRight="4dp"
         android:textColor="@color/white"
-        android:background="@drawable/btn_light_orange"
-        />
+        android:background="@drawable/button_selector_orange"
+        android:layout_gravity="end"
+        android:layout_marginEnd="8dp" />
 
     <Button
         android:id="@+id/buttonDelete"
@@ -33,6 +78,8 @@
         android:text="Удалить"
         android:textSize="12dp"
         android:textColor="@color/white"
-        android:background="@drawable/btn_light_red"/>
+        android:background="@drawable/button_selector_red"
+        android:layout_marginEnd="8dp" />
 
 </LinearLayout>
+

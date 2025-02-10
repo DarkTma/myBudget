@@ -24,7 +24,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_DAY = "day";
     private static final String COLUMN_NAME = "name";
-//    private static final String COLUMN_INCOME = "income";
+    private static final String COLUMN_DONE = "isdone";
     private static final String COLUMN_SPENT = "spent";
 
     public DatabaseHelper(Context context) {
@@ -65,8 +65,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_DAY + " INTEGER, " +
                 COLUMN_NAME + " TEXT, " +
+                COLUMN_DONE + " BOOLEAN, " +
                 COLUMN_SPENT + " INTEGER)";
         db.execSQL(createTable);
+    }
+
+    public void sbros(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + currentMonthTable);
+        db.execSQL("DROP TABLE IF EXISTS " + prevMonthTable);
+        db.execSQL("DROP TABLE IF EXISTS " + nextMonthTable);
+        createTable(db ,currentMonthTable);
+        createTable(db ,nextMonthTable);
+        createTable(db ,prevMonthTable);
     }
 
     // Обновляем названия таблиц в зависимости от текущего месяца
@@ -86,7 +97,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Метод для добавления данных
-    public boolean insertData(int day, String name, int spent, int offset) {
+    public boolean insertData(int day, String name, int spent, int offset , boolean isDone) {
         String tableName;
         if (offset == -1) {
             tableName = prevMonthTable;
@@ -143,6 +154,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     contentValues.put(COLUMN_DAY, day);
                     contentValues.put(COLUMN_NAME, newName);
                     contentValues.put(COLUMN_SPENT, spent);
+                    if (isDone){
+                        contentValues.put(COLUMN_DONE, true);
+                    } else {
+                        contentValues.put(COLUMN_DONE, false);
+                    }
+
 
                     if (waschanged){
                         result = db.update(tableName, contentValues,
@@ -165,6 +182,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             contentValues.put(COLUMN_DAY, day);
             contentValues.put(COLUMN_NAME, name);
             contentValues.put(COLUMN_SPENT, spent);
+            if (isDone){
+                contentValues.put(COLUMN_DONE, true);
+            } else {
+                contentValues.put(COLUMN_DONE, false);
+            }
 
             result = db.insert(tableName, null, contentValues);
         }
@@ -220,6 +242,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result > 0; // Если обновлено хотя бы 1 строка, вернет true
     }
 
+    public void setDone(String name, int day , int offset , boolean isDone){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String tableName;
+        if (offset == -1) {
+            tableName = prevMonthTable;
+        } else if (offset == 0) {
+            tableName = currentMonthTable;
+        } else {
+            tableName = nextMonthTable;
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_DAY, day);
+        contentValues.put(COLUMN_DONE, isDone);
+        db.update(tableName, contentValues, "day = ? AND name = ?", new String[]{String.valueOf(day), name});
+
+    }
+
 
     public int checkAllSpents(){
         String tableNameforDay = currentMonthTable;
@@ -238,6 +279,48 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return sum;
     }
+
+    public int getDoneSpents(int start , int end){
+        String tableName = currentMonthTable;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String query = "SELECT SUM(spent) FROM " + tableName +
+                " WHERE isdone = 1 AND day BETWEEN ? AND ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(start), String.valueOf(end)});
+        int totalSpent = 0;
+
+        if (cursor.moveToFirst()) {
+            totalSpent = cursor.getInt(0);
+        }
+        cursor.close();
+        return totalSpent;
+    }
+
+    public int getNotDoneSpents(int start , int end){
+        String tableName = currentMonthTable;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String query = "SELECT SUM(spent) FROM " + tableName +
+                " WHERE isdone = 0 AND day BETWEEN ? AND ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(start), String.valueOf(end)});
+        int totalSpent = 0;
+
+        if (cursor.moveToFirst()) {
+            totalSpent = cursor.getInt(0);
+        }
+        cursor.close();
+        return totalSpent;
+    }
+
+    public int getAllSpents(int start, int end){
+        int all = getNotDoneSpents(start , end) + getDoneSpents(start , end);
+
+        return  all;
+    }
+
+
 
 
 }

@@ -2,6 +2,7 @@ package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -81,7 +82,10 @@ public class DayFragment extends Fragment {
                 do {
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                     int spent = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
-                    data.add(name + " - " + spent + "₽");
+                    boolean isDone = false;
+                    String isDonestr = cursor.getString(cursor.getColumnIndexOrThrow("isdone"));
+                    if (isDonestr.matches("1")) isDone = true;
+                    data.add(name + "-" + spent + "₽" + "-" + isDone);
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {

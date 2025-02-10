@@ -1,10 +1,13 @@
 package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
@@ -21,9 +24,19 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import android.os.Bundle;
+import android.text.Html;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.util.DisplayMetrics;
+import android.view.ContextThemeWrapper;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -47,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentDayIndex;
     private Button btnNewSpent;
     private Button otherSettings;
+    private Button weekStats;
     private ImageButton btnRefresh;
 
     @SuppressLint("MissingInflatedId")
@@ -81,7 +95,91 @@ public class MainActivity extends AppCompatActivity {
 
         otherSettings = findViewById(R.id.otherbtn);
         otherSettings.setOnClickListener(v -> goToSettings());
+
+        weekStats = findViewById(R.id.weekStats);
+        weekStats.setOnClickListener(v -> showWeekStats(this));
+
     }
+
+private void showWeekStats(MainActivity mainActivity) {
+    TextView customTitle = new TextView(this);
+    customTitle.setText("Статистика недели");
+    customTitle.setTextSize(20);
+    customTitle.setTextColor(ContextCompat.getColor(this, R.color.my_green));
+    customTitle.setPadding(0, 20, 0, 20);
+    customTitle.setGravity(Gravity.CENTER);
+
+    TextView doneStatsText = new TextView(this);
+    doneStatsText.setTextSize(16);
+    doneStatsText.setTextColor(ContextCompat.getColor(this, R.color.my_cyan));
+    doneStatsText.setPadding(0, 10, 0, 10);
+    doneStatsText.setGravity(Gravity.START);
+
+    LinearLayout.LayoutParams donestats = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    donestats.setMargins(50, 10, 0, 20); // Устанавливаем отступы
+    doneStatsText.setLayoutParams(donestats);
+
+    TextView notDoneStatsText = new TextView(this);
+    notDoneStatsText.setTextSize(16);
+    notDoneStatsText.setTextColor(ContextCompat.getColor(this, R.color.my_red));
+    notDoneStatsText.setPadding(0, 10, 0, 10);
+    notDoneStatsText.setGravity(Gravity.START);
+
+    LinearLayout.LayoutParams notdonestats = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+    );
+    notdonestats.setMargins(50, 10, 0, 20); // Устанавливаем отступы
+    notDoneStatsText.setLayoutParams(notdonestats);
+
+    // Добавляем кастомизированный LinearLayout
+    LinearLayout layout = new LinearLayout(this);
+    layout.setOrientation(LinearLayout.VERTICAL);
+    layout.setPadding(20, 20, 20, 20);
+    layout.addView(customTitle);
+    layout.addView(doneStatsText);
+    layout.addView(notDoneStatsText);
+
+
+    doneStatsText.setText("выполненые траты: " + setStatsText(true));
+    notDoneStatsText.setText("невыполненые траты: " + setStatsText(false));
+
+    // Создаём кастомный AlertDialog
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+    // Добавляем в диалог кастомное содержимое
+    builder.setView(layout);
+    builder.setCancelable(true); // Диалог можно закрыть по нажатию вне
+
+    // Добавляем кнопки
+    SpannableString positiveButtonText = new SpannableString("закрыть");
+    positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_green)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    builder.setPositiveButton(positiveButtonText, (dialog, which) -> dialog.dismiss());
+
+    // Создаём и показываем AlertDialog
+    AlertDialog dialog = builder.create();
+    dialog.getWindow().setBackgroundDrawableResource(R.drawable.btn_light_green); // Устанавливаем фон
+    dialog.show();
+}
+
+    private String setStatsText(boolean donetext) {
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        int startOfWeek = DayAdapter.getStartOfWeek();
+        int endOfWeek = DayAdapter.getEndOfWeek();
+        String result = "";
+
+        if (donetext) {
+            result = String.valueOf(databaseHelper.getDoneSpents(startOfWeek, endOfWeek));
+        }else {
+            result += String.valueOf(databaseHelper.getNotDoneSpents(startOfWeek, endOfWeek));
+        }
+
+        return result;
+    }
+
 
     private void goToSettings() {
         Intent intent = new Intent(this, SettingsActivity.class);
@@ -89,62 +187,106 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void newSpent(MainActivity mainActivity) {
-        // Создаем EditText для каждого поля
+        // Создаём EditText с кастомным стилем
         EditText name = new EditText(this);
         name.setInputType(InputType.TYPE_CLASS_TEXT);
-        final EditText spent = new EditText(this);
-        final EditText day = new EditText(this);
+        name.setHint("Название траты");
+        name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+        name.setBackgroundResource(R.drawable.edit_text_style);
 
-        // Устанавливаем подсказки для каждого поля
-        name.setHint("название траты");
-        spent.setHint("сумма");
-        day.setHint("день (по умолчанию сегодня)");
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
+        name.setLayoutParams(nameParams);
 
-        // Создаем контейнер для EditText
+        EditText spent = new EditText(this);
+        spent.setInputType(InputType.TYPE_CLASS_NUMBER);
+        spent.setHint("Сумма");
+        spent.setPadding(0, 20, 0, 20);
+        spent.setBackgroundResource(R.drawable.edit_text_style);
+
+        LinearLayout.LayoutParams spentParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+
+        spentParams.setMargins(0, 20, 0, 20); // Устанавливаем отступы
+        spent.setLayoutParams(spentParams);
+
+        EditText day = new EditText(this);
+        day.setInputType(InputType.TYPE_CLASS_NUMBER);
+        day.setHint("День (по умолчанию сегодня)");
+        day.setPadding(0, 20, 0, 20);
+        day.setBackgroundResource(R.drawable.edit_text_style);
+
+        // Стилизация CheckBox
+        CheckBox checkBox = new CheckBox(this);
+        checkBox.setText("Выполнена?");
+        checkBox.setTextColor(ContextCompat.getColor(this, R.color.my_cyan));
+        checkBox.setChecked(true);
+        checkBox.setButtonDrawable(R.drawable.checkbox_style);
+
+        LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        checkBoxParams.setMargins(0, 20, 0, 20); // Устанавливаем отступы
+        checkBox.setLayoutParams(checkBoxParams);
+
+        // Размещаем элементы в LinearLayout
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(16, 16, 16, 16); // Добавляем отступы для лучшего восприятия
         layout.addView(name);
         layout.addView(spent);
         layout.addView(day);
+        layout.addView(checkBox);
 
+
+
+        // Создаём AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Введите данные")
-                .setView(layout)  // Устанавливаем общий контейнер в диалог
-                .setPositiveButton("Добавить", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String nameData = name.getText().toString().trim(); // Убираем лишние пробелы
-                        String spentDataStr = spent.getText().toString().trim();
-                        String dayDataStr = day.getText().toString().trim();
 
-                        // Если день не указан, ставим текущий день
-                        int dayData = dayDataStr.isEmpty() ? getCurrentDay() : Integer.parseInt(dayDataStr);
+        SpannableString positiveButtonText = new SpannableString("Добавить");
+        positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-                        // Если название пустое, ставим "трата"
-                        if (nameData.isEmpty()) {
-                            nameData = "трата";
+        SpannableString negativeButtonText = new SpannableString("Отмена");
+        negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"));
+        builder.setView(layout)
+                .setPositiveButton(positiveButtonText, (dialog, which) -> {
+                    String nameData = name.getText().toString().trim();
+                    String spentDataStr = spent.getText().toString().trim();
+                    String dayDataStr = day.getText().toString().trim();
+
+                    int dayData = dayDataStr.isEmpty() ? getCurrentDay() : Integer.parseInt(dayDataStr);
+                    Calendar calendar = Calendar.getInstance();
+                    int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+                    if (dayData > daysInMonth) {
+                        Toast.makeText(mainActivity, "Такого числа в этом месяце нет", Toast.LENGTH_SHORT).show();
+                    } else {
+                        if (nameData.isEmpty()) nameData = "Трата";
+                        if (!spentDataStr.isEmpty() && Integer.parseInt(spentDataStr) != 0) {
+                            int spentData = Integer.parseInt(spentDataStr);
+                            boolean isDone = checkBox.isChecked();
+
+                            DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
+                            databaseHelper.insertData(dayData, nameData, spentData, 0, isDone);
+
+                            updateAdapter();
                         }
-
-                        // Если сумма пустая или равна нулю, не сохраняем данные
-                        if (spentDataStr.isEmpty() || Integer.parseInt(spentDataStr) == 0) {
-                            dialog.dismiss(); // Закрываем диалог, если сумма = 0 или пустая
-                            return;
-                        }
-
-                        int spentData = Integer.parseInt(spentDataStr); // Преобразуем строку в число
-
-                        // Вставляем данные в базу
-                        DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
-                        databaseHelper.insertData(dayData, nameData, spentData, 0);
-
-                        //updateFragment();
-                        updateAdapter();
                     }
                 })
-                .setNegativeButton("Отмена", null)
-                .show();
+                .setNegativeButton(negativeButtonText, null);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background); // Устанавливаем фон
+        dialog.show();
     }
+
+
 
     public void updateAdapter() {
         int daysInMonth = getDaysInMonth(currentMonthOffset);
@@ -162,6 +304,8 @@ public class MainActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         return calendar.get(Calendar.DAY_OF_MONTH);
     }
+
+
 }
 
 
@@ -185,6 +329,20 @@ class DayAdapter extends FragmentStateAdapter {
     @Override
     public int getItemCount() {
         return daysInMonth;
+    }
+
+    public static int getStartOfWeek() {
+        Calendar calendar = Calendar.getInstance();
+        int today = calendar.get(Calendar.DAY_OF_MONTH); // Текущий день месяца
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK); // День недели (1 - воскресенье, 2 - понедельник, ..., 7 - суббота)
+
+        // Определяем сдвиг назад до понедельника (если сегодня воскресенье, отнимаем 6)
+        int daysToMonday = (dayOfWeek == Calendar.SUNDAY) ? 6 : (dayOfWeek - Calendar.MONDAY);
+        return today - daysToMonday; // Номер понедельника
+    }
+
+    public static int getEndOfWeek() {
+        return getStartOfWeek() + 6; // Воскресенье - на 6 дней после понедельника
     }
 }
 

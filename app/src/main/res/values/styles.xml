@@ -16,4 +16,11 @@
     <style name="GreenGlowButton" parent="BaseButtonStyle">
         <item name="android:background">@drawable/btn_light_green</item>
     </style>
+    <style name="CustomDialog" parent="Theme.MaterialComponents.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+    <style name="MyDialogTheme" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="android:buttonStyle">@drawable/btn_light_blue</item> <!-- Применяем стиль кнопки -->
+    </style>
 </resources>

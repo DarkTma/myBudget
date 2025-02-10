@@ -39,6 +39,22 @@
 
     <!-- Контейнер для фрагментов -->
 
+
+    <Button
+        android:id="@+id/weekStats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" недельная \n статистика"
+        android:textSize="8dp"
+        android:textColor="@color/white"
+        android:background="@drawable/btn_light_blue"
+        app:layout_constraintBottom_toTopOf="@+id/viewPager"
+        app:layout_constraintEnd_toStartOf="@+id/otherbtn"
+        app:layout_constraintHorizontal_bias="0.235"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.579" />
+
     <Button
         android:id="@+id/otherbtn"
         android:layout_width="wrap_content"

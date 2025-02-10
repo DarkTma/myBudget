@@ -3,16 +3,19 @@ package com.example.mybudget1;
 import static androidx.core.app.PendingIntentCompat.getActivity;
 import static androidx.core.content.ContextCompat.startActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -35,6 +38,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         this.currentDay = currentDay; // Сохраняем текущий день
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
@@ -42,19 +46,43 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             convertView = inflater.inflate(R.layout.list_item, parent, false);
         }
 
-        TextView textViewItem = convertView.findViewById(R.id.textViewItem);
+        TextView textViewItemName = convertView.findViewById(R.id.textViewItemName);
+        TextView textViewItemPrice = convertView.findViewById(R.id.textViewItemPrice);
         Button buttonEdit = convertView.findViewById(R.id.buttonEdit);
         Button buttonDelete = convertView.findViewById(R.id.buttonDelete);
+        CheckBox checkBox = convertView.findViewById(R.id.isComplete);
 
         // Set the item text
-        textViewItem.setTextColor(Color.WHITE);
-        textViewItem.setText(items.get(position));
+        String itemchecked =  items.get(position);
+        boolean isChecked = false;
+        if (itemchecked.split("-")[2].matches("true")){
+            isChecked = true;
+        }
+        if (isChecked){
+            checkBox.setChecked(true);
+        }
+        if (checkBox.isChecked()) {
+            textViewItemName.setTextColor(Color.GREEN);
+            textViewItemPrice.setTextColor(Color.GREEN);
+            String itemtext = items.get(position);
+            String[] itemtextdata = itemtext.split("-");
+            textViewItemName.setText(itemtextdata[0]);
+            textViewItemPrice.setText(itemtextdata[1]);
+        }
+        else {
+            textViewItemName.setTextColor(Color.RED);
+            textViewItemPrice.setTextColor(Color.RED);
+            String itemtext = items.get(position);
+            String[] itemtextdata = itemtext.split("-");
+            textViewItemName.setText(itemtextdata[0]);
+            textViewItemPrice.setText(itemtextdata[1]);
+        }
 
         // Обработчики для кнопок
         buttonEdit.setOnClickListener(v -> {
             // Получаем текущий элемент
             String itemData = items.get(position);
-            String[] parts = itemData.split(" - "); // Разделяем строку
+            String[] parts = itemData.split("-"); // Разделяем строку
             String itemName = parts[0]; // "Coffee"
             String spentString = parts[1].replace("₽", ""); // "100"
 
@@ -93,7 +121,13 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                 databaseHelper.updateData(itemName, currentDay, newName, newSpent);
 
                 // Обновляем данные в списке и уведомляем адаптер
-                items.set(position, newName + " -  " + newSpent + "₽");
+                String end = "-false";
+                if (checkBox.isChecked()){
+                    end = "-true";
+                }
+                items.set(position, newName + "-" + newSpent + "₽"  + end);
+                textViewItemName.setText(newName);
+                textViewItemPrice.setText(newSpent + "₽");
                 notifyDataSetChanged();
 
                 Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
@@ -109,7 +143,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         buttonDelete.setOnClickListener(v -> {
             // Действие для кнопки "Удалить"
             String itemData = items.get(position); // Получаем имя элемента для удаления
-            String itemName = itemData.split(" ")[0];
+            String itemName = textViewItemName.getText().toString();
             deleteItem(itemName, currentDay); // Вызываем метод для удаления
 
             items.remove(position);
@@ -117,6 +151,56 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
             Toast.makeText(context, "Удаление завершено", Toast.LENGTH_SHORT).show();
         });
+
+
+        checkBox.setOnClickListener(v -> {
+            String itemData = items.get(position);
+            String[] parts = itemData.split("-");
+            String name = textViewItemName.getText().toString();
+            String spent = textViewItemPrice.getText().toString();
+            int day = currentDay;
+            boolean isDone = checkBox.isChecked();
+            String value;
+            DatabaseHelper databaseHelper = new DatabaseHelper(context);
+            databaseHelper.setDone(name,day,0,isDone);
+            if (isDone){
+                value = "true";
+            }else {
+                value = "false";
+            }
+            items.set(position, name + "-" + spent    + "-" + value);
+            notifyDataSetChanged();
+        });
+
+
+
+
+
+
+
+
+
+
+        //Анимации
+        buttonEdit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        // При нажатии увеличиваем размер и добавляем тень (свечение)
+                        v.animate().scaleX(1.3f).scaleY(1.3f).setDuration(150).start();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        // Возвращаем в исходное состояние
+                        v.animate().scaleX(1f).scaleY(1f).translationZ(0f).setDuration(150).start();
+                        break;
+                }
+                return false;
+            }
+        });
+
+
 
         return convertView;
     }

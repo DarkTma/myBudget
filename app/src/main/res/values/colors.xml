@@ -5,4 +5,8 @@
     <color name="my_darkbg">#0f0f0f</color>
     <color name="my_darkw">#353535</color>
     <color name="my_darkl">#202020</color>
+    <color name="my_green">#1EFF00</color>
+    <color name="my_red">#FF0000</color>
+    <color name="my_cyan">#00FF82</color>
+    <color name="my_blue">#0000FF</color>
 </resources>
