@@ -2,14 +2,105 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/my_darkbg">
 
-    <!-- Кнопка для перехода на другую активность -->
+    <!-- Левое скрытое меню -->
+    <LinearLayout
+        android:id="@+id/menuLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:background="#333333"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:elevation="8dp"
+        android:padding="16dp" >
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Меню"
+            android:textSize="20sp"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            android:paddingBottom="10dp"/>
+
+        <Button
+            android:id="@+id/btnCloseMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Закрыть"
+            android:background="@color/black"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
+
+    <!-- Кнопка для открытия меню -->
     <Button
-        android:id="@+id/openMainButton"
+        android:id="@+id/btnOpenMenu"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:text="..."
+        android:textSize="20sp"
+        android:background="@drawable/btn_light_blue"
+        android:textColor="@android:color/white"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="10dp"/>
+
+
+    <!-- Контейнер для доходов и расходов -->
+    <LinearLayout
+        android:id="@+id/statsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/btnOpenMenu"
+        android:layout_marginTop="10dp"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/tvIncome"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Доход: 0"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:gravity="center"/>
+
+        <TextView
+            android:id="@+id/tvSpent"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Расход: 0"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:gravity="center"/>
+    </LinearLayout>
+
+    <!-- ListView для элементов -->
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="198dp"
+        android:layout_below="@id/statsContainer"
+        android:background="@drawable/btn_light_blue"
+        android:divider="@android:color/holo_blue_dark"
+        android:dividerHeight="1dp"
+        android:padding="8dp" />
+
+    <!-- Кнопка для расширения списка -->
+    <Button
+        android:id="@+id/btnExpandList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Перейти в MainActivity"
-        android:layout_centerInParent="true" />
-
+        android:text="Расширить список"
+        android:background="@drawable/button_selector_blue"
+        android:textSize="8dp"
+        android:textColor="@color/white"
+        android:padding="10dp"
+        android:layout_below="@id/listView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"/>
 </RelativeLayout>
+

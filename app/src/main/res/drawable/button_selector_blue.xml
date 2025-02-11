@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Красный фон для кнопки при нажатии -->
-    <item android:drawable="@drawable/btn_pressed_red" android:state_pressed="true" />
+    <item android:drawable="@drawable/btn_pressed_blue" android:state_pressed="true" />
 
     <!-- Нормальный фон для кнопки "Изменить" -->
-    <item android:drawable="@drawable/btn_light_red" android:state_enabled="true" />
+    <item android:drawable="@drawable/btn_light_blue" android:state_enabled="true" />
 
     <!-- Нормальный фон для кнопки "Удалить" -->
 </selector>

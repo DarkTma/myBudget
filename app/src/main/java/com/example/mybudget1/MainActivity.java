@@ -1,40 +1,24 @@
 package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
 import java.util.Calendar;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import android.os.Bundle;
 import android.text.Html;
 import android.text.InputType;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
-import android.util.DisplayMetrics;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -43,14 +27,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.viewpager2.widget.ViewPager2;
-
-import com.google.android.material.navigation.NavigationView;
-
-import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
@@ -61,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnNewSpent;
     private Button otherSettings;
     private Button weekStats;
-    private ImageButton btnRefresh;
+    private ImageButton btnBack;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -82,13 +58,17 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         int day = intent.getIntExtra("day",1);
+        int choosenDay = DayAdapter.getStartOfWeek() + day;
+
+        selectedDayText.setText("День " + choosenDay);
 
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
-        viewPager.setCurrentItem(day-1, true);
+        viewPager.setCurrentItem(choosenDay, true);
 
         // Обновляем текст при смене страницы
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onPageSelected(int position) {
                 selectedDayText.setText("День " + (position + 1));
@@ -102,8 +82,15 @@ public class MainActivity extends AppCompatActivity {
         weekStats = findViewById(R.id.weekStats);
         weekStats.setOnClickListener(v -> showWeekStats(this));
 
+        btnBack = findViewById(R.id.buttonBack);
+        btnBack.setOnClickListener(v -> {
+            Intent intentGoBack = new Intent(MainActivity.this, StartActivity.class);
+            startActivity(intentGoBack);
+        });
+
     }
 
+@SuppressLint("SetTextI18n")
 private void showWeekStats(MainActivity mainActivity) {
     TextView customTitle = new TextView(this);
     customTitle.setText("Статистика недели");
