@@ -17,6 +17,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_SPENT = "spent";
     private static final String COLUMN_INCOME = "income";
+    private static final String COLUMN_INCOMEDAY = "incomeday";
+    private static final String COLUMN_ONCEINCOME = "onceincome";
 
     public DatabaseHelper2(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -32,7 +34,10 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         String createTableIncome = "CREATE TABLE IF NOT EXISTS " + TABLE_INCOME + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_INCOME + " INTEGER)";
+                COLUMN_NAME + " TEXT, " +
+                COLUMN_INCOME + " INTEGER, " +
+                COLUMN_INCOMEDAY + " INTEGER, " +
+                COLUMN_ONCEINCOME + " BOOLEAN)";
         db.execSQL(createTableIncome);
     }
 
@@ -52,13 +57,23 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    public boolean setIncome(int value) {
+    public boolean setIncome(int value , String name , int day , boolean once) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(COLUMN_INCOME, value);
-        long result = db.insert(TABLE_INCOME, null, contentValues);
+        ContentValues contentValues2 = new ContentValues();
+        contentValues2.put(COLUMN_NAME, name);
+        contentValues2.put(COLUMN_INCOME, value);
+        contentValues2.put(COLUMN_INCOMEDAY, day);
+        contentValues2.put(COLUMN_ONCEINCOME, once); // Приведение boolean к int
+
+        long result = db.insert(TABLE_INCOME, null, contentValues2);
+
+        if (result == -1) {
+            System.out.println("Ошибка вставки в базу данных!");
+        }
+
         return result != -1;
     }
+
 
     public int getIncome() {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -69,6 +84,12 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         }
         cursor.close();
         return income;
+    }
+
+    public Cursor getIncomeList(){
+        String tableName = TABLE_INCOME;
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + tableName, null);
     }
 
     public int checkMonthSpents() {

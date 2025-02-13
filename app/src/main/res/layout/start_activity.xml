@@ -57,7 +57,7 @@
         android:layout_marginTop="10dp"
         android:padding="10dp">
 
-        <TextView
+        <Button
             android:id="@+id/tvIncome"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -65,7 +65,10 @@
             android:text="Доход: 0"
             android:textSize="18sp"
             android:textColor="@android:color/white"
-            android:gravity="center"/>
+            android:gravity="center"
+            android:background="@android:color/transparent"
+            android:focusable="false"
+            android:clickable="true"/>
 
         <TextView
             android:id="@+id/tvSpent"
@@ -78,12 +81,31 @@
             android:gravity="center"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/statsContainer"
+        android:layout_marginTop="10dp"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/btnIncomeList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Кнопка 2"
+            android:background="@drawable/button_selector_blue"
+            android:textColor="@android:color/white"
+            android:padding="10dp"/>
+    </LinearLayout>
+
     <!-- ListView для элементов -->
     <ListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="198dp"
-        android:layout_below="@id/statsContainer"
+        android:layout_below="@id/buttonContainer"
         android:background="@drawable/btn_light_blue"
         android:divider="@android:color/holo_blue_dark"
         android:dividerHeight="1dp"

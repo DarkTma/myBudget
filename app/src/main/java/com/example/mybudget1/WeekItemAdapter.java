@@ -48,36 +48,34 @@ public class WeekItemAdapter extends BaseAdapter {
 
         TextView dayName = convertView.findViewById(R.id.dayName);
         TextView spent = convertView.findViewById(R.id.day_spent);
-        TextView spentProcent = convertView.findViewById(R.id.day_spent_procent);
-        TextView mustDo = convertView.findViewById(R.id.day_mustdo);
+        TextView mustDo = convertView.findViewById(R.id.day_mustDo);
 
         WeekItem currentItem = items.get(position);
 
         dayName.setText(currentItem.getDayName());
         spent.setText(currentItem.getSpent());
-        spentProcent.setText(currentItem.getSpentProcent());
         mustDo.setText(currentItem.getMustDo());
 
-        String text = spentProcent.getText().toString();
-        String onlyNumbers = text.replaceAll("[^0-9]", ""); // Удаляем все символы, кроме цифр
+        String spentNum = spent.getText().toString().replaceAll("[^0-9]", ""); // Удаляем все символы, кроме цифр
         String mustDoText = mustDo.getText().toString();
+        int spentN = Integer.parseInt(spentNum);
         String mustDoOnlyNum = mustDoText.replaceAll("[^0-9]", ""); // Удаляем все символы, кроме цифр
-        int procent = Integer.parseInt(onlyNumbers);
         int mustDoNum = Integer.parseInt(mustDoOnlyNum);
+        double procent = ((double) spentN / mustDoNum) * 100;
 
-        if (procent == 100 || mustDoNum == 0){
+        if (mustDoNum == 0){
             dayName.setTextColor(Color.GREEN);
             spent.setTextColor(Color.GREEN);
-            spentProcent.setTextColor(Color.GREEN);
+            mustDo.setTextColor(Color.GREEN);
         } else if (procent >= 40){
             int color = ContextCompat.getColor(context, R.color.my_orange);
             dayName.setTextColor(color);
             spent.setTextColor(color);
-            spentProcent.setTextColor(color);
+            mustDo.setTextColor(color);
         } else {
             dayName.setTextColor(Color.RED);
             spent.setTextColor(Color.RED);
-            spentProcent.setTextColor(Color.RED);
+            mustDo.setTextColor(Color.RED);
         }
 
         return convertView;
@@ -88,13 +86,11 @@ public class WeekItemAdapter extends BaseAdapter {
 class WeekItem {
     private String dayName;
     private String spent;
-    private String spentPercent;
     private String mustDo;
 
-    public WeekItem(String dayName, String spent, String spentPercent , String mustDo) {
+    public WeekItem(String dayName, String spent, String mustDo) {
         this.dayName = dayName;
         this.spent = spent;
-        this.spentPercent = spentPercent;
         this.mustDo = mustDo;
     }
 
@@ -108,8 +104,5 @@ class WeekItem {
         return spent;
     }
 
-    public String getSpentProcent() {
-        return spentPercent;
-    }
 
 }
