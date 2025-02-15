@@ -62,14 +62,43 @@ public class StartActivity extends AppCompatActivity {
         spentText = findViewById(R.id.tvSpent);
         listView = findViewById(R.id.listView);
 
-        spentText.setText("расход: " + databaseHelper.checkAllSpents());
+        TextView podskazka = findViewById(R.id.textpodskazka);
+
+
+        //закрытие менюшки
+        LinearLayout menuLayout = findViewById(R.id.menuLayout);
+        View dimLayer = findViewById(R.id.dimLayer);
+
+        dimLayer.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.GONE);
+            dimLayer.setVisibility(View.GONE);
+        });
+
+        Button btnIncomeActivityGo = findViewById(R.id.btnincomeData);
+        btnIncomeActivityGo.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, IncomeActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+
+        int spent = databaseHelper.checkAllSpents();
+        spentText.setText("расход: " + spent);
         int income = databaseIncome.getIncome();
         if (income == 0){
             incomeText.setText("доход: не указан \n нажмите чтоб указать");
             incomeText.setTextColor(Color.RED);
         } else {
             incomeText.setText("доход: " + income);
+            if (income < spent){
+                incomeText.setText("доход: " + income + "\n ваш доход превышивает траты");
+                incomeText.setTextColor(Color.RED);
+            }else {
+                incomeText.setTextColor(Color.GREEN);
+            }
         }
+
+
 
         incomeText.setOnClickListener(v -> setIncomeDialog());
 
@@ -85,17 +114,10 @@ public class StartActivity extends AppCompatActivity {
         int prevDay = currentDayIndex - 1;
         int nextDay = currentDayIndex + 1;
 
-        calendar.set(Calendar.DAY_OF_MONTH, currentDayIndex);
-        SimpleDateFormat sdf1 = new SimpleDateFormat("EEEE", new Locale("ru"));
-        String currentDayName = sdf1.format(calendar.getTime());
+        String prevDayName = DayAdapter.getDayName(prevDay);
+        String currentDayName = DayAdapter.getDayName(currentDayIndex);
+        String nextDayName = DayAdapter.getDayName(nextDay);
 
-        calendar.set(Calendar.DAY_OF_MONTH, prevDay);
-        SimpleDateFormat sdf2 = new SimpleDateFormat("EEEE", new Locale("ru"));
-        String prevDayName = sdf2.format(calendar.getTime());
-
-        calendar.set(Calendar.DAY_OF_MONTH, nextDay);
-        SimpleDateFormat sdf3 = new SimpleDateFormat("EEEE", new Locale("ru"));
-        String nextDayName = sdf3.format(calendar.getTime());
 
         int prevDaySpent = databaseHelper.getDoneSpents(prevDay, prevDay);
         int prevDayMustDo = databaseHelper.getAllSpents(prevDay, prevDay);
@@ -115,10 +137,16 @@ public class StartActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
 
         // Открыть меню
-        btnOpenMenu.setOnClickListener(v -> menuLayout.setVisibility(View.VISIBLE));
+        btnOpenMenu.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.VISIBLE);
+            dimLayer.setVisibility(View.VISIBLE);
+        });
 
         // Закрыть меню
-        btnCloseMenu.setOnClickListener(v -> menuLayout.setVisibility(View.GONE));
+        btnCloseMenu.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.GONE);
+            dimLayer.setVisibility(View.GONE);
+        });
 
         // Расширение списка
         btnExpandList.setOnClickListener(v -> {
@@ -131,6 +159,7 @@ public class StartActivity extends AppCompatActivity {
                 dataList.add(new WeekItem(nextDayName, "потрачено: " + nextDaySpent + "₽", "из: " + nextDayMustDo + "₽"));
 
                 isExpanded = false;
+                podskazka.setVisibility(View.GONE);
                 listView.getLayoutParams().height -= 700; // Увеличиваем высоту
             } else {
                 while (dataList.size() > 0) {
@@ -144,6 +173,7 @@ public class StartActivity extends AppCompatActivity {
                 }
                 listView.getLayoutParams().height += 700; // Возвращаем высоту
                 isExpanded = true;
+                podskazka.setVisibility(View.VISIBLE);
             }
             adapter.notifyDataSetChanged();
         });
@@ -158,11 +188,15 @@ public class StartActivity extends AppCompatActivity {
 
                 // Создаем Intent для перехода на новую активность
                 Intent intent = new Intent(StartActivity.this, MainActivity.class);
-
-                // Передаем данные в новую активность
-                intent.putExtra("day", position);
-                intent.putExtra("dayName", selectedItem.getDayName());
-                intent.putExtra("spent", selectedItem.getSpent());
+                if (!isExpanded) {
+                    int moneday = DayAdapter.getStartOfWeek();
+                    int choosenDay = DayAdapter.findDayOfMonth(moneday, selectedItem.getDayName());
+                    intent.putExtra("day", choosenDay);
+                    intent.putExtra("isexpented", "false");
+                }else {
+                    intent.putExtra("day", position);
+                    intent.putExtra("isexpented", "true");
+                }
 
                 // Запускаем новую активность
                 startActivity(intent);

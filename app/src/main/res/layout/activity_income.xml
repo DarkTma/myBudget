@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/my_darkbg"
+    android:padding="16dp">
+
+    <!-- Заголовок -->
+    <TextView
+        android:id="@+id/tvIncomeTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Список доходов"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:layout_centerHorizontal="true"/>
+
+    <!-- ListView для отображения доходов -->
+    <ListView
+        android:id="@+id/listViewIncome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvIncomeTitle"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/btn_light_blue"
+        android:divider="@android:color/holo_blue_dark"
+        android:dividerHeight="1dp"
+        android:padding="8dp"/>
+
+    <!-- Кнопка для добавления нового дохода -->
+    <Button
+        android:id="@+id/btnAddIncome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Добавить доход"
+        android:background="@drawable/button_selector_blue"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/listViewIncome"
+        android:layout_marginTop="20dp"/>
+</RelativeLayout>

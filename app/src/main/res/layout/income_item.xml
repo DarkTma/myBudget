@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:background="@drawable/btn_light_green"
+    android:layout_marginBottom="5dp">
+
+    <!-- Название дохода -->
+    <TextView
+        android:id="@+id/tvIncomeName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="название дохода"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"/>
+
+    <!-- Сумма дохода -->
+    <TextView
+        android:id="@+id/tvIncomeAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Сумма: 0"
+        android:textSize="14sp"
+        android:textColor="@android:color/holo_green_light"
+        android:layout_marginTop="4dp"/>
+
+    <!-- Дата получения -->
+    <TextView
+        android:id="@+id/tvIncomeDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="день получение"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginTop="2dp"/>
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/checkbox_style"
+        android:layout_marginTop="5dp"
+        />
+
+</LinearLayout>

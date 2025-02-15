@@ -2,13 +2,20 @@ package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.viewpager2.widget.ViewPager2;
+
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.Locale;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
@@ -38,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private Button otherSettings;
     private Button weekStats;
     private ImageButton btnBack;
+    private int selectedDay;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -58,13 +66,20 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         int day = intent.getIntExtra("day",1);
-        int choosenDay = DayAdapter.getStartOfWeek() + day;
+        int choosenDay;
+        String isExpented = intent.getStringExtra("isexpented");
+        if (isExpented.equals("false")) {
+            choosenDay = day;
+        } else {
+            choosenDay = DayAdapter.getStartOfWeek() + day;
+        }
 
         selectedDayText.setText("День " + choosenDay);
 
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
         viewPager.setCurrentItem(choosenDay, true);
+        selectedDay = choosenDay;
 
         // Обновляем текст при смене страницы
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -72,9 +87,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 selectedDayText.setText("День " + (position + 1));
+                selectedDay = position + 1;
             }
         });
-
 
         otherSettings = findViewById(R.id.otherbtn);
         otherSettings.setOnClickListener(v -> goToSettings());
@@ -207,7 +222,7 @@ private void showWeekStats(MainActivity mainActivity) {
 
         EditText day = new EditText(this);
         day.setInputType(InputType.TYPE_CLASS_NUMBER);
-        day.setHint("День (по умолчанию сегодня)");
+        day.setHint("День (по умолч. число в котором вы находетесь)");
         day.setPadding(0, 20, 0, 20);
         day.setBackgroundResource(R.drawable.edit_text_style);
 
@@ -250,11 +265,11 @@ private void showWeekStats(MainActivity mainActivity) {
                     String spentDataStr = spent.getText().toString().trim();
                     String dayDataStr = day.getText().toString().trim();
 
-                    int dayData = dayDataStr.isEmpty() ? getCurrentDay() : Integer.parseInt(dayDataStr);
+                    int dayData = dayDataStr.isEmpty() ? selectedDay : Integer.parseInt(dayDataStr);
                     Calendar calendar = Calendar.getInstance();
                     int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-                    if (dayData > daysInMonth) {
+                    if (dayData > daysInMonth || dayData < 1) {
                         Toast.makeText(mainActivity, "Такого числа в этом месяце нет", Toast.LENGTH_SHORT).show();
                     } else {
                         if (nameData.isEmpty()) nameData = "Трата";
@@ -281,7 +296,7 @@ private void showWeekStats(MainActivity mainActivity) {
     public void updateAdapter() {
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
-        viewPager.setCurrentItem(currentDay - 1, false);  // Устанавливаем нужный день после обновления
+        viewPager.setCurrentItem( selectedDay - 1, false);  // Устанавливаем нужный день после обновления
     }
 
     private int getDaysInMonth(int monthOffset) {
@@ -334,7 +349,58 @@ class DayAdapter extends FragmentStateAdapter {
     public static int getEndOfWeek() {
         return getStartOfWeek() + 6; // Воскресенье - на 6 дней после понедельника
     }
+
+    public static int findDayOfMonth(int mondayDay, String targetDay) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Получаем текущий месяц и год
+            LocalDate now = LocalDate.now();
+            int month = now.getMonthValue();
+            int year = now.getYear();
+
+            // Преобразуем название дня в DayOfWeek
+            DayOfWeek targetDayOfWeek = getDayOfWeek(targetDay);
+            if (targetDayOfWeek == null) {
+                throw new IllegalArgumentException("Неверное название дня: " + targetDay);
+            }
+
+            // Определяем дату понедельника
+            LocalDate mondayDate = LocalDate.of(year, month, mondayDay);
+
+            // Находим сдвиг до целевого дня недели
+            int shift = targetDayOfWeek.getValue() - DayOfWeek.MONDAY.getValue();
+
+            // Вычисляем целевую дату
+            LocalDate targetDate = mondayDate.plusDays(shift);
+
+            // Проверяем, что дата принадлежит текущему месяцу
+            return targetDate.getMonthValue() == month ? targetDate.getDayOfMonth() : -1;
+        }
+        return 1;
+    }
+
+    private static DayOfWeek getDayOfWeek(String day) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (day.equalsIgnoreCase("понедельник")) return DayOfWeek.MONDAY;
+            if (day.equalsIgnoreCase("вторник")) return DayOfWeek.TUESDAY;
+            if (day.equalsIgnoreCase("среда")) return DayOfWeek.WEDNESDAY;
+            if (day.equalsIgnoreCase("четверг")) return DayOfWeek.THURSDAY;
+            if (day.equalsIgnoreCase("пятница")) return DayOfWeek.FRIDAY;
+            if (day.equalsIgnoreCase("суббота")) return DayOfWeek.SATURDAY;
+            if (day.equalsIgnoreCase("воскресенье")) return DayOfWeek.SUNDAY;
+            return null;
+        }
+        return null;
+    }
+
+    public static String getDayName(int day){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        SimpleDateFormat sdf3 = new SimpleDateFormat("EEEE", new Locale("ru"));
+        String dayName = sdf3.format(calendar.getTime());
+        return  dayName;
+    }
 }
+
 
 
 

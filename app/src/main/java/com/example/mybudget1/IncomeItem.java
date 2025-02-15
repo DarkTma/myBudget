@@ -3,16 +3,12 @@ package com.example.mybudget1;
 public class IncomeItem {
     private String name;
     private int amount;
-    private int id;
+    private String date;
 
-    public IncomeItem(int id, String name, int amount) {
-        this.id = id;
+    public IncomeItem(String name, int amount, String date) {
         this.name = name;
         this.amount = amount;
-    }
-
-    public int getId() {
-        return id;
+        this.date = date;
     }
 
     public String getName() {
@@ -22,5 +18,8 @@ public class IncomeItem {
     public int getAmount() {
         return amount;
     }
-}
 
+    public String getDate() {
+        return date;
+    }
+}

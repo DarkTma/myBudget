@@ -4,64 +4,54 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.BaseAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import com.example.mybudget1.IncomeItem;
+import com.example.mybudget1.R;
 
 import java.util.List;
 
-public class IncomeAdapter extends RecyclerView.Adapter<IncomeAdapter.IncomeViewHolder> {
-
+public class IncomeAdapter extends BaseAdapter {
     private Context context;
     private List<IncomeItem> incomeList;
-    private OnIncomeItemClickListener listener;
 
-    public interface OnIncomeItemClickListener {
-        void onEditClick(IncomeItem item);
-        void onDeleteClick(IncomeItem item);
-    }
-
-    public IncomeAdapter(Context context, List<IncomeItem> incomeList, OnIncomeItemClickListener listener) {
+    public IncomeAdapter(Context context, List<IncomeItem> incomeList) {
         this.context = context;
         this.incomeList = incomeList;
-        this.listener = listener;
-    }
-
-    @NonNull
-    @Override
-    public IncomeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_incone, parent, false);
-        return new IncomeViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull IncomeViewHolder holder, int position) {
-        IncomeItem incomeItem = incomeList.get(position);
-        holder.nameTextView.setText(incomeItem.getName());
-        holder.amountTextView.setText(String.valueOf(incomeItem.getAmount()));
-
-        holder.editButton.setOnClickListener(v -> listener.onEditClick(incomeItem));
-        holder.deleteButton.setOnClickListener(v -> listener.onDeleteClick(incomeItem));
-    }
-
-    @Override
-    public int getItemCount() {
+    public int getCount() {
         return incomeList.size();
     }
 
-    public static class IncomeViewHolder extends RecyclerView.ViewHolder {
+    @Override
+    public Object getItem(int position) {
+        return incomeList.get(position);
+    }
 
-        TextView nameTextView, amountTextView;
-        Button editButton, deleteButton;
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
 
-        public IncomeViewHolder(@NonNull View itemView) {
-            super(itemView);
-            nameTextView = itemView.findViewById(R.id.income_name);
-            editButton = itemView.findViewById(R.id.edit_button);
-            deleteButton = itemView.findViewById(R.id.delete_button);
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        if (convertView == null) {
+            convertView = LayoutInflater.from(context).inflate(R.layout.income_item, parent, false);
         }
+
+        IncomeItem income = incomeList.get(position);
+
+        TextView tvName = convertView.findViewById(R.id.tvIncomeName);
+        TextView tvAmount = convertView.findViewById(R.id.tvIncomeAmount);
+        TextView tvDate = convertView.findViewById(R.id.tvIncomeDate);
+
+        tvName.setText(income.getName());
+        tvAmount.setText("Сумма: " + income.getAmount() + " AMD");
+        tvDate.setText("Дата: " + income.getDate());
+
+        return convertView;
     }
 }
