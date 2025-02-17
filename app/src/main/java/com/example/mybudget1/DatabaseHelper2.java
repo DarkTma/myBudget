@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
@@ -104,5 +105,80 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         return totalSpent;
     }
+
+    public void setMonthly(String name, boolean isMonthly){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String tableName = TABLE_INCOME;
+
+        boolean monthly = false;
+
+        if (isMonthly){
+            monthly = true;
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_ONCEINCOME, monthly);
+        db.update(tableName, contentValues, " name = ?", new String[]{name});
+
+    }
+
+    public Cursor getMonthly(String name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(
+                "SELECT " + COLUMN_ONCEINCOME + " FROM " + TABLE_INCOME + " WHERE " + COLUMN_NAME + " = ?",
+                new String[]{name}
+        );
+    }
+
+    public void logAllIncomeData() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_INCOME, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME));
+                int onceIncome = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ONCEINCOME));
+                Log.d("DB_CHECK", "Name: " + name + ", OnceIncome: " + onceIncome);
+            } while (cursor.moveToNext());
+        } else {
+            Log.e("DB_ERROR", "TABLE_INCOME is empty!");
+        }
+        cursor.close();
+    }
+
+    public boolean updateData(String itemName, int incomeDay, String newName, int newIncome) {
+        String tableName = TABLE_INCOME;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        String oldName = itemName;
+
+        contentValues.put(COLUMN_NAME, newName);
+        contentValues.put(COLUMN_INCOMEDAY, incomeDay);
+        contentValues.put(COLUMN_INCOME, newIncome);
+
+        // Обновляем запись, где день и старое имя совпадают
+        int result = db.update(
+                tableName,
+                contentValues,
+                COLUMN_NAME + " = ?",
+                new String[]{oldName}
+        );
+
+        return result > 0; // Если обновлено хотя бы 1 строка, вернет true
+    }
+
+    public void deleteIncome(String name, int day){
+        String tableName = TABLE_INCOME;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String whereClause = "name = ? AND day = ?";
+        String[] whereArgs = new String[]{name, String.valueOf(day)};
+        // Выполняем удаление
+        db.delete(tableName, whereClause, whereArgs);
+
+
+    }
+
 }
 

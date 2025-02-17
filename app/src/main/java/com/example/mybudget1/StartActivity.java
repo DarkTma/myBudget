@@ -189,8 +189,17 @@ public class StartActivity extends AppCompatActivity {
                 // Создаем Intent для перехода на новую активность
                 Intent intent = new Intent(StartActivity.this, MainActivity.class);
                 if (!isExpanded) {
-                    int moneday = DayAdapter.getStartOfWeek();
-                    int choosenDay = DayAdapter.findDayOfMonth(moneday, selectedItem.getDayName());
+//                    int moneday = DayAdapter.getStartOfWeek();
+//                    int choosenDay = DayAdapter.findDayOfMonth(moneday, selectedItem.getDayName());
+                    Calendar calendar = Calendar.getInstance();
+                    int getCurrentDay = calendar.get(Calendar.DAY_OF_MONTH);
+                    int currentDayIndex = getCurrentDay;
+                    int choosenDay = currentDayIndex;
+                    if (position == 0){
+                        choosenDay -= 1;
+                    }else if(position == 2){
+                        choosenDay += 1;
+                    }
                     intent.putExtra("day", choosenDay);
                     intent.putExtra("isexpented", "false");
                 }else {
