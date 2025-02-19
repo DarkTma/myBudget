@@ -7,12 +7,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "finance.db";
     private static final int DATABASE_VERSION = 1;
 
     private static final String TABLE_MONTHLY_SPENT = "monthly_spents";
     private static final String TABLE_INCOME = "income";
+    private static final String TABLE_BUDGET = "budget";
 
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
@@ -20,6 +25,9 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_INCOME = "income";
     private static final String COLUMN_INCOMEDAY = "incomeday";
     private static final String COLUMN_ONCEINCOME = "onceincome";
+    private static final String COLUMN_GIVEN = "given";
+    private static final String COLUMN_LASTACTIVITY = "lastactivity";
+    private static final String COLUMN_BUDGET = "budget";
 
     public DatabaseHelper2(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -38,14 +46,27 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_INCOME + " INTEGER, " +
                 COLUMN_INCOMEDAY + " INTEGER, " +
+                COLUMN_GIVEN + " BOOLEAN, " +
                 COLUMN_ONCEINCOME + " BOOLEAN)";
         db.execSQL(createTableIncome);
+
+        String createTableBudget = "CREATE TABLE IF NOT EXISTS " + TABLE_BUDGET + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_BUDGET + " INTEGER DEFAULT 0, " +
+                COLUMN_LASTACTIVITY + " TEXT)";
+        db.execSQL(createTableBudget);
+
+        // Вставляем дефолтную строку с бюджетом 0
+        String insertDefaultRow = "INSERT INTO " + TABLE_BUDGET + " (" + COLUMN_BUDGET + ", " + COLUMN_LASTACTIVITY + ") " +
+                "SELECT 0, '' WHERE NOT EXISTS (SELECT 1 FROM " + TABLE_BUDGET + ")";
+        db.execSQL(insertDefaultRow);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_MONTHLY_SPENT);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_INCOME);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_BUDGET);
         onCreate(db);
     }
 
@@ -65,6 +86,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         contentValues2.put(COLUMN_INCOME, value);
         contentValues2.put(COLUMN_INCOMEDAY, day);
         contentValues2.put(COLUMN_ONCEINCOME, once); // Приведение boolean к int
+        contentValues2.put(COLUMN_GIVEN, true);
 
         long result = db.insert(TABLE_INCOME, null, contentValues2);
 
@@ -172,12 +194,120 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         String tableName = TABLE_INCOME;
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String whereClause = "name = ? AND day = ?";
+        String whereClause = "name = ? AND incomeday = ?";
         String[] whereArgs = new String[]{name, String.valueOf(day)};
         // Выполняем удаление
         db.delete(tableName, whereClause, whereArgs);
 
 
+    }
+
+    public int controlBudget(int income , int spent){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues2 = new ContentValues();
+        int budget = income - spent;
+        contentValues2.put(COLUMN_BUDGET,budget);
+
+        db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
+
+        return  budget;
+    }
+
+    public void addIncome(int income){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Получаем курсор с данными
+        Cursor budgetData = db.rawQuery("SELECT " + COLUMN_BUDGET + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
+
+        // Проверяем, что курсор не пуст и переходим на первую строку
+        if (budgetData != null && budgetData.moveToFirst()) {
+            int budget = budgetData.getInt(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
+            int newBudget = income + budget;
+
+            ContentValues contentValues2 = new ContentValues();
+            contentValues2.put(COLUMN_BUDGET, newBudget);
+
+            db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
+        } else {
+            Log.e("DB_ERROR", "Нет данных для обновления бюджета");
+        }
+
+        if (budgetData != null) {
+            budgetData.close();
+        }
+
+    }
+
+    public void addSpent(int spent){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor budgetData = db.rawQuery("SELECT " + COLUMN_BUDGET + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
+
+        // Проверяем, что курсор не пуст и переходим на первую строку
+        if (budgetData != null && budgetData.moveToFirst()) {
+            int budget = budgetData.getInt(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
+            int newBudget = budget - spent;
+
+            ContentValues contentValues2 = new ContentValues();
+            contentValues2.put(COLUMN_BUDGET, newBudget);
+
+            db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
+        } else {
+            Log.e("DB_ERROR", "Нет данных для обновления бюджета");
+        }
+
+        if (budgetData != null) {
+            budgetData.close();
+        }
+
+    }
+
+
+    public void setIncomeGiven(boolean a , String name){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues2 = new ContentValues();
+
+        contentValues2.put(COLUMN_GIVEN, a);
+
+        db.update(TABLE_INCOME, contentValues2, COLUMN_NAME + " = ?", new String[]{name});
+    }
+
+    public void setLastActivity(){
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd", Locale.getDefault());
+        String date = sdf.format(new Date());
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues2 = new ContentValues();
+
+        contentValues2.put(COLUMN_LASTACTIVITY, date);
+        db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
+    }
+
+    public Cursor getLastActivity(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.rawQuery("SELECT " + COLUMN_LASTACTIVITY + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1" , null);
+    }
+
+    public void testsetActivity(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues2 = new ContentValues();
+
+        contentValues2.put(COLUMN_LASTACTIVITY, "0");
+        db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
+    }
+
+    public int getBudget(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor a = db.rawQuery("SELECT " + COLUMN_BUDGET + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
+
+        int budget = 0; // Значение по умолчанию
+        if (a != null && a.moveToFirst()) {
+            budget = a.getInt(a.getColumnIndexOrThrow(COLUMN_BUDGET));
+        }
+        if (a != null) {
+            a.close();
+        }
+        return budget;
     }
 
 }

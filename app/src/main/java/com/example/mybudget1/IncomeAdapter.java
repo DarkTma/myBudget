@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import com.example.mybudget1.IncomeItem;
 import com.example.mybudget1.R;
 
+import java.util.Calendar;
 import java.util.List;
 
 public class IncomeAdapter extends BaseAdapter {
@@ -181,6 +182,11 @@ public class IncomeAdapter extends BaseAdapter {
 
                 databaseIncome.updateData(itemName, day, newName, newIncome);
 
+                databaseIncome.addSpent(itemIncome);
+                databaseIncome.addIncome(newIncome);
+
+
+
                 // Обновляем данные в списке и уведомляем адаптер
                 income.change(newName , newIncome , String.valueOf(day));
                 notifyDataSetChanged();
@@ -251,9 +257,15 @@ public class IncomeAdapter extends BaseAdapter {
             // Кнопка "Добавить"
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 if (checkBoxAsk.isChecked()) {
+                    Calendar calendar = Calendar.getInstance();
+                    int today = calendar.get(Calendar.DAY_OF_MONTH);
                     String name = income.getName();
+                    int count = income.getAmount();
                     int day = Integer.parseInt(income.getDate());
                     databaseIncome.deleteIncome(name, day);  // Удаление дохода из базы данных
+                    if (day <= today){
+                        databaseIncome.addSpent(count);
+                    }
                     incomeList.remove(position); // Удаляем объект из списка
                     notifyDataSetChanged(); // Обновляем адаптер
                 } else {

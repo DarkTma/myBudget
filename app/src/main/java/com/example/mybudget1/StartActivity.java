@@ -10,6 +10,7 @@ import android.text.InputType;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,9 +27,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,6 +45,7 @@ public class StartActivity extends AppCompatActivity {
     private Button btnIncome;
     private TextView spentText;
     public Button incomeText;
+    public TextView budgetText;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -52,6 +56,7 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
+
         // Инициализация элементов
         menuLayout = findViewById(R.id.menuLayout);
         btnOpenMenu = findViewById(R.id.btnOpenMenu);
@@ -61,7 +66,7 @@ public class StartActivity extends AppCompatActivity {
         btnIncome = findViewById(R.id.btnIncomeList);
         spentText = findViewById(R.id.tvSpent);
         listView = findViewById(R.id.listView);
-
+        budgetText = findViewById(R.id.tvBudget);
         TextView podskazka = findViewById(R.id.textpodskazka);
 
 
@@ -97,6 +102,12 @@ public class StartActivity extends AppCompatActivity {
                 incomeText.setTextColor(Color.GREEN);
             }
         }
+
+
+        //int budget = databaseIncome.controlBudget(income , spent);
+        refreshBudgetText();
+        refreshIncomesDatas();
+
 
 
 
@@ -212,6 +223,49 @@ public class StartActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+
+    //если пришло время дабавляем сумму дохода
+    //исправить , бюджет щхитает не правильно
+    private void refreshBudget() {
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        Cursor income = databaseIncome.getIncomeList();
+        if (income != null && income.moveToFirst()) {
+            do {
+                String name = income.getString(income.getColumnIndexOrThrow("name"));
+                String given = income.getString(income.getColumnIndexOrThrow("given"));
+                int incomeNum = income.getInt(income.getColumnIndexOrThrow("income"));
+                int date = income.getInt(income.getColumnIndexOrThrow("incomeday"));
+                boolean x = false;
+                if (given.equals("1")) {
+                    x = true;
+                }
+                //////////
+                if (!x){
+                    Calendar calendar = Calendar.getInstance();
+                    int today = calendar.get(Calendar.DAY_OF_MONTH);
+                    if (today >= date) {
+                        databaseIncome.addIncome(incomeNum);
+                        databaseIncome.setIncomeGiven(true, name);
+                    }
+                } else {
+                    Calendar calendar = Calendar.getInstance();
+                    int today = calendar.get(Calendar.DAY_OF_MONTH);
+                    if (today >= date){
+                        databaseIncome.setIncomeGiven(true , name);
+                    }
+                }
+            } while (income.moveToNext());
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void refreshBudgetText() {
+        DatabaseHelper2 databaseHelper2 = new DatabaseHelper2(this);
+        int budget = databaseHelper2.getBudget();
+        budgetText.setText("бюджет: " + String.valueOf(budget));
+
     }
 
     private void showincomeList() {
@@ -361,8 +415,20 @@ public class StartActivity extends AppCompatActivity {
                         }
 
                         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+                        DatabaseHelper databaseHelper = new DatabaseHelper(this);
                         databaseIncome.setIncome(incomeText, nameText, dayText, once);
                         refreshIncomeText();
+
+                        Calendar calendar = Calendar.getInstance();
+                        int today = calendar.get(Calendar.DAY_OF_MONTH);
+                        if (dayText <= today){
+                            databaseIncome.addIncome(incomeText);
+                        } else {
+                            databaseIncome.setIncomeGiven(false, nameText);
+                        }
+
+
+                        refreshBudgetText();
 
                         dialog.dismiss();
                     } else {
@@ -383,22 +449,30 @@ public class StartActivity extends AppCompatActivity {
         incomeText.setText("доход: " + income);
     }
 
-    private int getProcent(int day , int a){
-        DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        int b = databaseHelper.getNotDoneSpents(day, day);
-        if (a + b > 0) {
-            double resultD = (a / (double)(a + b)) * 100;
-            int result = (int) Math.round(resultD);
-            return result;
-        } else {
-            if (databaseHelper.getAllSpents(day, day) == 0){
-                return 100;
-            } else {
-                return 0;
-            }
+
+    private void refreshIncomesDatas(){
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        String lastDate = databaseIncome.getLastActivity().toString();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        String today = sdf.format(new Date());
+
+        boolean newDay = true;
+
+        try {
+            Date d1 = sdf.parse(today);
+            Date d2 = sdf.parse(lastDate);
+            newDay = d2.before(d1); // Возвращает true, если date1 раньше date2
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        if (lastDate.equals("0")){
+            databaseIncome.setLastActivity();
+        } else if(newDay){
+            databaseIncome.setLastActivity();
+            refreshBudget();
         }
     }
-
-
 }
 

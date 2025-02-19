@@ -29,8 +29,23 @@
         android:layout_margin="10dp"/>
 
 
-    <!-- Контейнер для доходов и расходов -->
-    <LinearLayout
+        <!-- Контейнер для доходов и расходов -->
+
+        <TextView
+            android:id="@+id/tvBudget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/btnOpenMenu"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="9dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="dsafdds"
+            android:textColor="@color/white"
+            android:textSize="24sp" />
+
+
+        <LinearLayout
         android:id="@+id/statsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

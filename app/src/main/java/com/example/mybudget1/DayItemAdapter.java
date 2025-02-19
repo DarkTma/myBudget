@@ -148,12 +148,15 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
                 // Обновляем запись в базе данных
                 DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                 databaseHelper.updateData(itemName, currentDay, newName, newSpent);
 
                 // Обновляем данные в списке и уведомляем адаптер
                 String end = "-false";
                 if (checkBox.isChecked()){
                     end = "-true";
+                    databaseIncome.addIncome(itemSpent);
+                    databaseIncome.addSpent(newSpent);
                 }
                 items.set(position, newName + "-" + newSpent + "₽"  + end);
                 textViewItemName.setText(newName);
@@ -173,8 +176,16 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         });
 
         buttonDelete.setOnClickListener(v -> {
+            DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
             // Действие для кнопки "Удалить"
             String itemData = items.get(position); // Получаем имя элемента для удаления
+            String item = itemData.split("-")[1];
+            int itemCount = Integer.parseInt(item.replace("₽", ""));
+
+            if (itemData.split("-")[2].matches("true")) {
+                databaseIncome.addIncome(itemCount);
+            }
+
             String itemName = textViewItemName.getText().toString();
             deleteItem(itemName, currentDay); // Вызываем метод для удаления
 
@@ -186,19 +197,22 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
 
         checkBox.setOnClickListener(v -> {
-            String itemData = items.get(position);
-            String[] parts = itemData.split("-");
             String name = textViewItemName.getText().toString();
             String spent = textViewItemPrice.getText().toString();
             int day = currentDay;
             boolean isDone = checkBox.isChecked();
             String value;
             DatabaseHelper databaseHelper = new DatabaseHelper(context);
+            DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
             databaseHelper.setDone(name,day,0,isDone);
             if (isDone){
                 value = "true";
+                String count = spent.replace("₽", "");
+                databaseIncome.addSpent(Integer.parseInt(count));
             }else {
                 value = "false";
+                String count = spent.replace("₽", "");
+                databaseIncome.addIncome(Integer.parseInt(count));
             }
             items.set(position, name + "-" + spent    + "-" + value);
             notifyDataSetChanged();

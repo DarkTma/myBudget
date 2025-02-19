@@ -63,7 +63,7 @@ public class WeekItemAdapter extends BaseAdapter {
         int mustDoNum = Integer.parseInt(mustDoOnlyNum);
         double procent = ((double) spentN / mustDoNum) * 100;
 
-        if (mustDoNum == 0){
+        if (mustDoNum == 0 || procent == 100){
             dayName.setTextColor(Color.GREEN);
             spent.setTextColor(Color.GREEN);
             mustDo.setTextColor(Color.GREEN);

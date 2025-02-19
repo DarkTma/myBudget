@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
-        viewPager.setCurrentItem(choosenDay, true);
+        viewPager.setCurrentItem(choosenDay-1, false);
         selectedDay = choosenDay;
 
         // Обновляем текст при смене страницы
@@ -278,7 +278,12 @@ private void showWeekStats(MainActivity mainActivity) {
                             boolean isDone = checkBox.isChecked();
 
                             DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
+                            DatabaseHelper2 databaseIncome = new DatabaseHelper2(mainActivity);
                             databaseHelper.insertData(dayData, nameData, spentData, 0, isDone);
+
+                            if (isDone){
+                                databaseIncome.addSpent(spentData);
+                            }
 
                             updateAdapter();
                         }
