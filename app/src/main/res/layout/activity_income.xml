@@ -29,14 +29,14 @@
     <!-- ListView для отображения доходов -->
     <ListView
         android:id="@+id/listViewIncome"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="472dp"
         android:layout_below="@id/tvIncomeTitle"
         android:layout_marginTop="10dp"
         android:background="@drawable/btn_light_blue"
         android:divider="@android:color/holo_blue_dark"
         android:dividerHeight="1dp"
-        android:padding="8dp"/>
+        android:padding="8dp" />
 
     <!-- Кнопка для добавления нового дохода -->
     <Button

@@ -235,25 +235,32 @@ public class StartActivity extends AppCompatActivity {
             do {
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
                 String given = income.getString(income.getColumnIndexOrThrow("given"));
+                String once = income.getString(income.getColumnIndexOrThrow("onceincome"));
                 int incomeNum = income.getInt(income.getColumnIndexOrThrow("income"));
                 int date = income.getInt(income.getColumnIndexOrThrow("incomeday"));
                 boolean x = false;
-                if (given.equals("1")) {
-                    x = true;
-                }
+                boolean checkOnce = false;
+                if (given.equals("1")) x = true;
+                if (once.equals("1")) checkOnce = true;
+
                 //////////
-                if (!x){
+                if (x){
+                    Calendar calendar = Calendar.getInstance();
+                    int today = calendar.get(Calendar.DAY_OF_MONTH);
+                    if (today >= date){
+                        databaseIncome.setIncomeGiven(true , name);
+                    } else {
+                        if (!checkOnce) {
+                            databaseIncome.setIncomeGiven(false, name);
+                        }
+                    }
+                } else {
                     Calendar calendar = Calendar.getInstance();
                     int today = calendar.get(Calendar.DAY_OF_MONTH);
                     if (today >= date) {
                         databaseIncome.addIncome(incomeNum);
                         databaseIncome.setIncomeGiven(true, name);
-                    }
-                } else {
-                    Calendar calendar = Calendar.getInstance();
-                    int today = calendar.get(Calendar.DAY_OF_MONTH);
-                    if (today >= date){
-                        databaseIncome.setIncomeGiven(true , name);
+                        refreshBudgetText();
                     }
                 }
             } while (income.moveToNext());
@@ -454,6 +461,7 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         String lastDate = databaseIncome.getLastActivity().toString();
 
+
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         String today = sdf.format(new Date());
 
@@ -473,6 +481,15 @@ public class StartActivity extends AppCompatActivity {
             databaseIncome.setLastActivity();
             refreshBudget();
         }
+
+        //проверяем изменился ли месяц
+//        if (!today.split("-")[2].equals()){
+//            monthChanged();
+//        }
+    }
+
+    private void monthChanged() {
+
     }
 }
 

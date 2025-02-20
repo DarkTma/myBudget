@@ -43,7 +43,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        updateMonthTables(db);
+        db.execSQL("DROP TABLE IF EXISTS " + prevMonthTable);
+        db.execSQL("DROP TABLE IF EXISTS " + currentMonthTable);
+        db.execSQL("DROP TABLE IF EXISTS " + nextMonthTable);
+        onCreate(db);
     }
 
     private void updateMonthTables(SQLiteDatabase db) {
@@ -318,6 +321,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int all = getNotDoneSpents(start , end) + getDoneSpents(start , end);
 
         return  all;
+    }
+
+    public void monthchanged(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        updateMonthTables(db);
     }
 
 
