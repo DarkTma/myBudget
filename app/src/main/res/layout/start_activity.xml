@@ -89,7 +89,7 @@
             android:id="@+id/btnIncomeList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Кнопка 2"
+            android:text="быстрый список доходов"
             android:background="@drawable/button_selector_blue"
             android:textColor="@android:color/white"
             android:padding="10dp"/>
@@ -178,6 +178,17 @@
             android:background="@drawable/btn_light_green"
             android:textColor="@android:color/white"
             android:layout_marginVertical="20dp"/>
+
+        <Button
+            android:id="@+id/btnOldMonth"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="прошлий месяц"
+            android:background="@drawable/btn_light_green"
+            android:textColor="@android:color/white"
+            android:layout_marginVertical="20dp"/>
+
 
         <Button
             android:id="@+id/btnCloseMenu"

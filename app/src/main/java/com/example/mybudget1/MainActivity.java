@@ -65,13 +65,23 @@ public class MainActivity extends AppCompatActivity {
         currentDayIndex = getCurrentDay() - 1;
 
         Intent intent = getIntent();
-        int day = intent.getIntExtra("day",1);
+        int day = intent.getIntExtra("day",0);
+        if (day == 0){
+            Toast.makeText(this, "этот день не в этом месяце , в меню есть опция след. месяц", Toast.LENGTH_SHORT).show();
+            Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
+            startActivity(intent2);
+        }
         int choosenDay;
         String isExpented = intent.getStringExtra("isexpented");
         if (isExpented.equals("false")) {
             choosenDay = day;
         } else {
             choosenDay = DayAdapter.getStartOfWeek() + day;
+            if (choosenDay <= 0){
+                Toast.makeText(this, "этот день не в этом месяце , в меню есть опция след. месяц", Toast.LENGTH_SHORT).show();
+                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
+                startActivity(intent2);
+            }
         }
 
         selectedDayText.setText("День " + choosenDay);

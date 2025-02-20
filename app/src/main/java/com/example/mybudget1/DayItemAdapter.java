@@ -58,31 +58,28 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         ImageButton buttonDelete = convertView.findViewById(R.id.buttonDelete);
         CheckBox checkBox = convertView.findViewById(R.id.isComplete);
 
-        // Set the item text
-        String itemchecked =  items.get(position);
-        boolean isChecked = false;
-        if (itemchecked.split("-")[2].matches("true")){
-            isChecked = true;
+        // Получаем данные элемента
+        String itemText = items.get(position);
+        String[] itemparts = itemText.split("-");
+
+        if (itemparts.length < 3) {
+            Log.e("Adapter", "Неверный формат данных: " + itemText);
+            return convertView;
         }
-        if (isChecked){
-            checkBox.setChecked(true);
-        }
-        if (checkBox.isChecked()) {
-            textViewItemName.setTextColor(Color.GREEN);
-            textViewItemPrice.setTextColor(Color.GREEN);
-            String itemtext = items.get(position);
-            String[] itemtextdata = itemtext.split("-");
-            textViewItemName.setText(itemtextdata[0]);
-            textViewItemPrice.setText(itemtextdata[1]);
-        }
-        else {
-            textViewItemName.setTextColor(Color.RED);
-            textViewItemPrice.setTextColor(Color.RED);
-            String itemtext = items.get(position);
-            String[] itemtextdata = itemtext.split("-");
-            textViewItemName.setText(itemtextdata[0]);
-            textViewItemPrice.setText(itemtextdata[1]);
-        }
+
+        String name = itemparts[0];
+        String price = itemparts[1];
+        boolean isChecked = itemparts[2].equals("true");
+
+        // Устанавливаем данные в View
+        textViewItemName.setText(name);
+        textViewItemPrice.setText(price);
+        checkBox.setChecked(isChecked);
+
+        // Устанавливаем цвет текста в зависимости от состояния CheckBox
+        int textColor = isChecked ? Color.GREEN : Color.RED;
+        textViewItemName.setTextColor(textColor);
+        textViewItemPrice.setTextColor(textColor);
 
         // Обработчики для кнопок
         buttonEdit.setOnClickListener(v -> {
@@ -197,7 +194,6 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
 
         checkBox.setOnClickListener(v -> {
-            String name = textViewItemName.getText().toString();
             String spent = textViewItemPrice.getText().toString();
             int day = currentDay;
             boolean isDone = checkBox.isChecked();
@@ -214,8 +210,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                 String count = spent.replace("₽", "");
                 databaseIncome.addIncome(Integer.parseInt(count));
             }
-            items.set(position, name + "-" + spent    + "-" + value);
-            notifyDataSetChanged();
+            items.set(position, name + "-" + price + "-" + value);
+            notifyDataSetChanged();  // Обновляем список после изменения состояния
         });
 
 

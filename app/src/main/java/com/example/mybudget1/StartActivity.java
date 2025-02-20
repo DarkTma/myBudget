@@ -86,6 +86,8 @@ public class StartActivity extends AppCompatActivity {
             finish();
         });
 
+        checkMonth();
+
 
         int spent = databaseHelper.checkAllSpents();
         spentText.setText("расход: " + spent);
@@ -422,7 +424,6 @@ public class StartActivity extends AppCompatActivity {
                         }
 
                         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-                        DatabaseHelper databaseHelper = new DatabaseHelper(this);
                         databaseIncome.setIncome(incomeText, nameText, dayText, once);
                         refreshIncomeText();
 
@@ -461,7 +462,6 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         String lastDate = databaseIncome.getLastActivity().toString();
 
-
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         String today = sdf.format(new Date());
 
@@ -480,16 +480,86 @@ public class StartActivity extends AppCompatActivity {
         } else if(newDay){
             databaseIncome.setLastActivity();
             refreshBudget();
+            remembring(today);
+        }
+    }
+
+    private void remembring(String date) {
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        int today = Integer.parseInt(date.split("-")[0]);
+        ArrayList<String> dataList2 = new ArrayList<>();
+        boolean show = false;
+        String isDone;
+        if (today > 1) {
+            Cursor allSpents = databaseHelper.getData(today - 1, 0);
+            if (allSpents != null && allSpents.moveToFirst()) {
+                do {
+                    isDone = allSpents.getString(allSpents.getColumnIndexOrThrow("isdone"));
+                    String name = "";
+                    int spent;
+                    if (isDone.matches("0")){
+                        show = true;
+                        name = allSpents.getString(allSpents.getColumnIndexOrThrow("name"));
+                        spent = allSpents.getInt(allSpents.getColumnIndexOrThrow("spent"));
+                        dataList2.add(name + " , " + spent);
+                    }
+                } while (allSpents.moveToNext());
+            }
         }
 
+        if (show){
+
+
+            // Кастомный адаптер
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.income_item_forshow, R.id.tvItem, dataList2);
+
+            // Создаем ListView
+            ListView listView = new ListView(this);
+            listView.setAdapter(adapter);
+
+            // Создаем AlertDialog с кастомным фоном
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(Html.fromHtml("<font color='#1EFF00'>вчера у вас осталось не невыполненые траты</font>"));
+            builder.setView(listView);
+            builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+
+            // Создаем AlertDialog
+            AlertDialog dialog = builder.create();
+
+            // Устанавливаем фон из drawable
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+
+            // Показываем диалог
+            dialog.show();
+        }
+    }
+
+    private void checkMonth(){
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        Cursor sdfold = databaseIncome.getLastActivity();
+        String oldData = "0";
+        if (sdfold != null && sdfold.moveToFirst()) {
+            do {
+                oldData = sdfold.getString(sdfold.getColumnIndexOrThrow("lastactivity"));
+            } while (sdfold.moveToNext());
+        }
+
+        System.out.println(oldData);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        String today = sdf.format(new Date());
+
         //проверяем изменился ли месяц
-//        if (!today.split("-")[2].equals()){
-//            monthChanged();
-//        }
+        if (!today.split("-")[1].equals(oldData.split("-")[0]) && !oldData.equals("0")){
+            monthChanged();
+        }else {
+            System.out.println("dsgfdg");
+        }
     }
 
     private void monthChanged() {
-
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        databaseHelper.monthchanged();
     }
 }
 

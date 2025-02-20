@@ -50,18 +50,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     private void updateMonthTables(SQLiteDatabase db) {
-        // Удаляем таблицу прошлого месяца
-        db.execSQL("DROP TABLE IF EXISTS " + prevMonthTable);
+        db.beginTransaction(); // Начинаем транзакцию
+        try {
+            // Проверяем, существует ли таблица следующего месяца
+            if (!tableExists(db, nextMonthTable)) {
+                Log.e("SQLite", "Таблица " + nextMonthTable + " не существует. Создаю новую.");
+                createTable(db, nextMonthTable); // Создаем, если её нет
+            }
 
-        // Переименовываем текущий месяц в прошлый
-        db.execSQL("ALTER TABLE " + currentMonthTable + " RENAME TO " + prevMonthTable);
+            // Проверяем и удаляем таблицу прошлого месяца
+            if (tableExists(db, prevMonthTable)) {
+                db.execSQL("DROP TABLE IF EXISTS " + prevMonthTable);
+                Log.d("SQLite", "Удалена таблица: " + prevMonthTable);
+            }
 
-        // Переименовываем следующий месяц в текущий
-        db.execSQL("ALTER TABLE " + nextMonthTable + " RENAME TO " + currentMonthTable);
+            // Переименовываем текущий месяц в прошлый, если он существует
+            if (tableExists(db, currentMonthTable)) {
+                db.execSQL("ALTER TABLE " + currentMonthTable + " RENAME TO " + prevMonthTable);
+                Log.d("SQLite", "Переименована " + currentMonthTable + " -> " + prevMonthTable);
+            } else {
+                Log.e("SQLite", "Ошибка: текущая таблица " + currentMonthTable + " не найдена!");
+            }
 
-        // Создаем новую таблицу для нового следующего месяца
-        createTable(db, nextMonthTable);
+            // Переименовываем следующий месяц в текущий, если он существует
+            if (tableExists(db, nextMonthTable)) {
+                db.execSQL("ALTER TABLE " + nextMonthTable + " RENAME TO " + currentMonthTable);
+                Log.d("SQLite", "Переименована " + nextMonthTable + " -> " + currentMonthTable);
+            } else {
+                Log.e("SQLite", "Ошибка: следующая таблица " + nextMonthTable + " не найдена!");
+            }
+
+            // Создаем новую таблицу для будущего следующего месяца
+            createTable(db, nextMonthTable);
+            Log.d("SQLite", "Создана новая таблица: " + nextMonthTable);
+
+            db.setTransactionSuccessful(); // Завершаем транзакцию
+        } catch (Exception e) {
+            Log.e("SQLite", "Ошибка при обновлении таблиц: " + e.getMessage());
+        } finally {
+            db.endTransaction(); // Закрываем транзакцию
+        }
     }
+
+
+    private boolean tableExists(SQLiteDatabase db, String tableName) {
+        Cursor cursor = db.rawQuery(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                new String[]{tableName}
+        );
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
+
 
     private void createTable(SQLiteDatabase db, String tableName) {
         String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
