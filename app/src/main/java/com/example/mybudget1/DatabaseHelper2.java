@@ -21,6 +21,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
+    private static final String COLUMN_SPENTDAY = "spentday";
+    private static final String COLUMN_DONE = "isdone";
     private static final String COLUMN_SPENT = "spent";
     private static final String COLUMN_INCOME = "income";
     private static final String COLUMN_INCOMEDAY = "incomeday";
@@ -28,6 +30,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_GIVEN = "given";
     private static final String COLUMN_LASTACTIVITY = "lastactivity";
     private static final String COLUMN_BUDGET = "budget";
+
 
     public DatabaseHelper2(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -38,6 +41,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         String createTableMonthlySpent = "CREATE TABLE IF NOT EXISTS " + TABLE_MONTHLY_SPENT + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_NAME + " TEXT, " +
+                COLUMN_DONE + " BOOLEAN, " +
+                COLUMN_SPENTDAY + " INTEGER, " +
                 COLUMN_SPENT + " INTEGER)";
         db.execSQL(createTableMonthlySpent);
 
@@ -308,6 +313,131 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
             a.close();
         }
         return budget;
+    }
+
+    public void monthchanged() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        deleteOnceIncome(db);
+    }
+
+    private boolean deleteOnceIncome(SQLiteDatabase db) {
+        Cursor getheredData = db.rawQuery(
+                "SELECT * FROM " + TABLE_INCOME +
+                        " WHERE " + COLUMN_ONCEINCOME + " = ?",
+                new String[]{String.valueOf("0")}
+        );
+        long result = 0;
+
+        if (getheredData.moveToFirst()) {
+            String name = getheredData.getString(getheredData.getColumnIndexOrThrow("name"));
+            int spent = getheredData.getInt(getheredData.getColumnIndexOrThrow("spent"));
+            do{
+                if (!name.matches("(прошламесячая)")) {
+                    String newName = spent + "(прошламесячная)";
+
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(COLUMN_NAME, newName);
+                    contentValues.put(COLUMN_SPENT, 0);
+
+                    result = db.update(TABLE_INCOME, contentValues,
+                            COLUMN_NAME + " = ?",
+                            new String[]{name});
+                } else {
+                    String whereClause = " name = ?";
+                    String[] whereArgs = new String[]{name};
+                    // Выполняем удаление
+                    db.delete(TABLE_INCOME, whereClause, whereArgs);
+                }
+            } while (getheredData.moveToNext());
+        }
+
+        return result != 1;
+    }
+
+    public boolean addMonthlySpent(String name , int spent , int day , boolean isdone){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues2 = new ContentValues();
+        contentValues2.put(COLUMN_NAME, name);
+        contentValues2.put(COLUMN_SPENT, spent);
+        contentValues2.put(COLUMN_SPENTDAY, day);
+        contentValues2.put(COLUMN_DONE, isdone);
+
+        long result = db.insert(TABLE_MONTHLY_SPENT, null, contentValues2);
+
+        if (result == -1) {
+            System.out.println("Ошибка вставки в базу данных!");
+        }
+
+        return result != -1;
+    }
+
+    public void deleteMonthlySpent(String name , int day){
+        String tableName = TABLE_MONTHLY_SPENT;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String whereClause = "name = ? AND " + COLUMN_SPENTDAY + " = ?";
+        String[] whereArgs = new String[]{name, String.valueOf(day)};
+        // Выполняем удаление
+        db.delete(tableName, whereClause, whereArgs);
+    }
+
+    public Cursor getMonthlySpentList(){
+        String tableName = TABLE_MONTHLY_SPENT;
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + tableName, null);
+    }
+
+    public void setMonthlySpentDone(boolean isDone , String name){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String tableName = TABLE_MONTHLY_SPENT;
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_DONE, isDone);
+        db.update(tableName, contentValues, "name = ?", new String[]{name});
+
+    }
+
+    public String getMonthlySpentDone(String name, int day) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String isDone = "10"; // Значение по умолчанию
+
+        Cursor cursor = db.rawQuery(
+                "SELECT " + COLUMN_DONE + " FROM " + TABLE_MONTHLY_SPENT +
+                        " WHERE " + COLUMN_NAME + " = ?",
+                new String[]{name}
+        );
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) { // Проверяем, есть ли данные
+                isDone = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DONE));
+            }
+            cursor.close(); // Закрываем курсор после использования
+        }
+
+        return isDone;
+    }
+
+
+    public boolean updateMonthlySpent(String itemName, int spentDay, String newName, int newSpent) {
+        String tableName = TABLE_MONTHLY_SPENT;
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        String oldName = itemName;
+
+        contentValues.put(COLUMN_NAME, newName);
+        contentValues.put(COLUMN_SPENTDAY, spentDay);
+        contentValues.put(COLUMN_SPENT, newSpent);
+
+        // Обновляем запись, где день и старое имя совпадают
+        int result = db.update(
+                tableName,
+                contentValues,
+                "name = ? AND " + COLUMN_SPENTDAY + " = ?" ,
+                new String[]{oldName , String.valueOf(spentDay)}
+        );
+
+        return result > 0; // Если обновлено хотя бы 1 строка, вернет true
     }
 
 }

@@ -189,6 +189,16 @@
             android:textColor="@android:color/white"
             android:layout_marginVertical="20dp"/>
 
+        <Button
+            android:id="@+id/btnMonthlySpents"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="ежемесечные траты"
+            android:background="@drawable/btn_light_green"
+            android:textColor="@android:color/white"
+            android:layout_marginVertical="20dp"/>
+
 
         <Button
             android:id="@+id/btnCloseMenu"

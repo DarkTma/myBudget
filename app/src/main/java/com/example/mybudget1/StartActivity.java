@@ -45,6 +45,7 @@ public class StartActivity extends AppCompatActivity {
     private Button btnIncome;
     private TextView spentText;
     public Button incomeText;
+    public Button monthlySpents;
     public TextView budgetText;
 
     @SuppressLint("MissingInflatedId")
@@ -66,6 +67,7 @@ public class StartActivity extends AppCompatActivity {
         btnIncome = findViewById(R.id.btnIncomeList);
         spentText = findViewById(R.id.tvSpent);
         listView = findViewById(R.id.listView);
+        monthlySpents = findViewById(R.id.btnMonthlySpents);
         budgetText = findViewById(R.id.tvBudget);
         TextView podskazka = findViewById(R.id.textpodskazka);
 
@@ -73,6 +75,12 @@ public class StartActivity extends AppCompatActivity {
         //закрытие менюшки
         LinearLayout menuLayout = findViewById(R.id.menuLayout);
         View dimLayer = findViewById(R.id.dimLayer);
+
+        monthlySpents.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, SpentActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
         dimLayer.setOnClickListener(v -> {
             menuLayout.setVisibility(View.GONE);
@@ -245,6 +253,8 @@ public class StartActivity extends AppCompatActivity {
                 if (given.equals("1")) x = true;
                 if (once.equals("1")) checkOnce = true;
 
+
+
                 //////////
                 if (x){
                     Calendar calendar = Calendar.getInstance();
@@ -267,7 +277,39 @@ public class StartActivity extends AppCompatActivity {
                 }
             } while (income.moveToNext());
         }
+
+        Cursor spents = databaseIncome.getMonthlySpentList();
+        if (spents != null && spents.moveToFirst()) {
+            do {
+                String name = spents.getString(spents.getColumnIndexOrThrow("name"));
+                int spentNum = spents.getInt(spents.getColumnIndexOrThrow("spent"));
+                int date = spents.getInt(spents.getColumnIndexOrThrow("spentday"));
+                String isdone = spents.getString(spents.getColumnIndexOrThrow("isdone"));
+                boolean x = false;
+                if (isdone.equals("1")) x = true;
+
+                if (x){
+                    Calendar calendar = Calendar.getInstance();
+                    int today = calendar.get(Calendar.DAY_OF_MONTH);
+                    if (today >= date){
+                        databaseIncome.setMonthlySpentDone(true , name);
+                    } else {
+                        databaseIncome.setMonthlySpentDone(false, name);
+                    }
+                } else {
+                    Calendar calendar = Calendar.getInstance();
+                    int today = calendar.get(Calendar.DAY_OF_MONTH);
+                    if (today >= date) {
+                        databaseIncome.addSpent(spentNum);
+                        databaseIncome.setMonthlySpentDone(true, name);
+                        refreshBudgetText();
+                    }
+                }
+
+            } while (income.moveToNext());
+        }
     }
+
 
     @SuppressLint("SetTextI18n")
     private void refreshBudgetText() {
@@ -559,7 +601,9 @@ public class StartActivity extends AppCompatActivity {
 
     private void monthChanged() {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         databaseHelper.monthchanged();
+        databaseIncome.monthchanged();
     }
 }
 

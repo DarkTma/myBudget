@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:background="@drawable/btn_light_green"
+    android:layout_marginBottom="5dp">
+
+    <!-- Основной контент слева -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvSpentName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="название траты"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvSpentAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Сумма: 0"
+            android:textColor="@android:color/holo_green_light"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvSpentDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="день траты"
+            android:layout_marginBottom="30dp"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Колонка с кнопками справа -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <ImageButton
+            android:id="@+id/btnEditSpent"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/imgbtn_edit"
+            android:contentDescription="Редактировать"
+            android:scaleType="fitCenter"
+            android:padding="8dp" />
+
+        <ImageButton
+            android:id="@+id/btnDeleteSpent"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/imgbtn_delete"
+            android:contentDescription="Удалить"
+            android:padding="8dp"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/my_darkbg"
+    android:padding="16dp">
+
+    <ImageButton
+        android:id="@+id/buttonBackFromSpents"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="end"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="Edit"
+        android:scaleType="centerInside"
+        android:src="@drawable/arrow" />
+
+    <!-- Заголовок -->
+    <TextView
+        android:id="@+id/tvSpentsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Список ежемесечных \n              расходов"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:layout_centerHorizontal="true"/>
+
+    <!-- ListView для отображения доходов -->
+    <ListView
+        android:id="@+id/listViewSpent"
+        android:layout_width="wrap_content"
+        android:layout_height="472dp"
+        android:layout_below="@id/tvSpentsTitle"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/btn_light_blue"
+        android:divider="@android:color/holo_blue_dark"
+        android:dividerHeight="1dp"
+        android:padding="8dp" />
+
+    <!-- Кнопка для добавления нового дохода -->
+    <Button
+        android:id="@+id/btnAddMonthlySpent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Добавить рассход"
+        android:background="@drawable/button_selector_blue"
+        android:textColor="@android:color/white"
+        android:layout_below="@id/listViewSpent"
+        android:layout_marginTop="20dp"/>
+</RelativeLayout>

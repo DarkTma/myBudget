@@ -9,6 +9,7 @@ import android.text.InputType;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -26,28 +27,29 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-public class IncomeActivity extends AppCompatActivity {
+public class SpentActivity extends AppCompatActivity {
 
     private ListView listViewIncome;
-    private IncomeAdapter adapter;
-    private Button btnAddIncome;
-    private ArrayList<IncomeItem> incomeList;
+    private SpentAdapter adapter;
+    private Button btnAddSpent;
+    private ArrayList<SpentItem> spentList;
     private ImageButton btnBack;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_income);
+        setContentView(R.layout.monthly_spents);
 
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
-        listViewIncome = findViewById(R.id.listViewIncome);
-        btnBack = findViewById(R.id.buttonBackFromIncome);
-        btnAddIncome = findViewById(R.id.btnAddIncome);
+        listViewIncome = findViewById(R.id.listViewSpent);
+        btnBack = findViewById(R.id.buttonBackFromSpents);
+        btnAddSpent = findViewById(R.id.btnAddMonthlySpent);
 
-        btnAddIncome.setOnClickListener( v -> {
+        btnAddSpent.setOnClickListener( v -> {
             TextView customTitle = new TextView(this);
-            customTitle.setText("Добавить доход");
+            customTitle.setText("Добавить трату");
             customTitle.setTextSize(20);
             customTitle.setTextColor(ContextCompat.getColor(this, R.color.my_green));
             customTitle.setPadding(0, 20, 0, 20);
@@ -55,7 +57,7 @@ public class IncomeActivity extends AppCompatActivity {
 
             EditText name = new EditText(this);
             name.setInputType(InputType.TYPE_CLASS_TEXT);
-            name.setHint("Название дохода");
+            name.setHint("Название траты");
             name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
             name.setBackgroundResource(R.drawable.edit_text_style);
 
@@ -66,22 +68,22 @@ public class IncomeActivity extends AppCompatActivity {
             nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             name.setLayoutParams(nameParams);
 
-            EditText income = new EditText(this);
-            income.setInputType(InputType.TYPE_CLASS_NUMBER);
-            income.setHint("доход");
-            income.setPadding(0, 30, 0, 10); // Добавляем больше отступов
-            income.setBackgroundResource(R.drawable.edit_text_style);
+            EditText spent = new EditText(this);
+            spent.setInputType(InputType.TYPE_CLASS_NUMBER);
+            spent.setHint("сумма");
+            spent.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+            spent.setBackgroundResource(R.drawable.edit_text_style);
 
             LinearLayout.LayoutParams incomeParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
             incomeParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
-            income.setLayoutParams(nameParams);
+            spent.setLayoutParams(nameParams);
 
             EditText day = new EditText(this);
             day.setInputType(InputType.TYPE_CLASS_NUMBER);
-            day.setHint("день получение(по умлч 1 число)");
+            day.setHint("день траты(по умлч 1 число)");
             day.setPadding(0, 30, 0, 10); // Добавляем больше отступов
             day.setBackgroundResource(R.drawable.edit_text_style);
 
@@ -92,25 +94,11 @@ public class IncomeActivity extends AppCompatActivity {
             dayParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             day.setLayoutParams(nameParams);
 
-            CheckBox checkBox = new CheckBox(this);
-            checkBox.setText("ежемесячный доход?");
-            checkBox.setTextColor(ContextCompat.getColor(this, R.color.my_green));
-            checkBox.setChecked(true);
-            checkBox.setButtonDrawable(R.drawable.checkbox_style);
-
-            LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            checkBoxParams.setMargins(0, 20, 0, 20); // Устанавливаем отступы
-            checkBox.setLayoutParams(checkBoxParams);
-
             LinearLayout layout = new LinearLayout(this);
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.addView(name);
-            layout.addView(income);
+            layout.addView(spent);
             layout.addView(day);
-            layout.addView(checkBox);
 
             // Создаём AlertDialog
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -123,52 +111,51 @@ public class IncomeActivity extends AppCompatActivity {
             builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"));
             builder.setView(layout)
                     .setPositiveButton(positiveButtonText, (dialog, which) -> {
-                        if (Integer.parseInt(income.getText().toString()) != 0){
+                        if (Integer.parseInt(spent.getText().toString()) != 0){
                             String nameText = name.getText().toString();
                             if (nameText.equals("")){
                                 nameText = "доход";
                             }
 
-                            int incomeText = Integer.parseInt(income.getText().toString());
+                            int incomeText = Integer.parseInt(spent.getText().toString());
 
                             int dayText;
                             Calendar calendar = Calendar.getInstance();
                             int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+                            int today = calendar.get(Calendar.DAY_OF_MONTH);
 
                             if (Integer.parseInt(day.getText().toString()) > daysInMonth){
                                 Toast.makeText(this, "данного дня нет в  месяце", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
                             } else {
                                 if (!day.getText().toString().equals("") && !day.getText().toString().matches("0")) {
-
                                     dayText = Integer.parseInt(day.getText().toString());
-
                                 } else {
                                     dayText = 1;
                                 }
-
-                                boolean once = true;
-                                if (!checkBox.isChecked()) {
-                                    once = false;
+                                boolean isdone = false;
+                                if (dayText < today){
+                                    isdone = true;
                                 }
 
-                                databaseIncome.setIncome(incomeText, nameText, dayText, once);
+                                databaseIncome.addMonthlySpent(nameText, incomeText, dayText , isdone);
 
-                                int today = calendar.get(Calendar.DAY_OF_MONTH);
                                 if (dayText <= today) {
-                                    databaseIncome.addIncome(incomeText);
+                                    databaseIncome.addSpent(incomeText);
                                 } else {
-                                    databaseIncome.setIncomeGiven(false, nameText);
+                                    databaseIncome.setMonthlySpentDone(false, nameText);
                                 }
 
                                 dialog.dismiss();
 
-                                Intent intent = new Intent(IncomeActivity.this, IncomeActivity.class);
+                                Log.e("lolya" , databaseIncome.getMonthlySpentDone(nameText , dayText));
+
+                                Intent intent = new Intent(SpentActivity.this, SpentActivity.class);
                                 startActivity(intent);
                             }
 
                         } else {
-                            Toast.makeText(this, "вы недобавили доход", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "вы недобавили трату", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         }
                     })
@@ -180,30 +167,26 @@ public class IncomeActivity extends AppCompatActivity {
         });
 
         btnBack.setOnClickListener(v -> {
-            Intent intentGoBack = new Intent(IncomeActivity.this, StartActivity.class);
+            Intent intentGoBack = new Intent(SpentActivity.this, StartActivity.class);
             startActivity(intentGoBack);
         });
 
 
         // Заполняем список тестовыми данными
-        incomeList = new ArrayList<>();
-        Cursor income = databaseIncome.getIncomeList();
+        spentList = new ArrayList<>();
+        Cursor income = databaseIncome.getMonthlySpentList();
         if (income != null && income.moveToFirst()) {
             do {
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
-                int incomeNum = income.getInt(income.getColumnIndexOrThrow("income"));
-                String date = income.getString(income.getColumnIndexOrThrow("incomeday"));
-                String once = income.getString(income.getColumnIndexOrThrow("onceincome"));
-                boolean x = false;
-                if (once.equals("1")) {
-                    x = true;
-                }
-                incomeList.add(new IncomeItem(name, incomeNum, date, x));
+                int spentNum = income.getInt(income.getColumnIndexOrThrow("spent"));
+                String date = income.getString(income.getColumnIndexOrThrow("spentday"));
+                spentList.add(new SpentItem(name, spentNum, date));
             } while (income.moveToNext());
         }
 
         // Подключаем адаптер
-        adapter = new IncomeAdapter(this, incomeList);
+        adapter = new SpentAdapter(this, spentList);
         listViewIncome.setAdapter(adapter);
     }
 }
+
