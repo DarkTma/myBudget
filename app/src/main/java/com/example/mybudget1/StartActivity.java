@@ -531,18 +531,20 @@ public class StartActivity extends AppCompatActivity {
         int today = Integer.parseInt(date.split("-")[0]);
         ArrayList<String> dataList2 = new ArrayList<>();
         boolean show = false;
+        String name = "";
+        int spent = 0;
+        int day = 1;
         String isDone;
         if (today > 1) {
             Cursor allSpents = databaseHelper.getData(today - 1, 0);
             if (allSpents != null && allSpents.moveToFirst()) {
                 do {
                     isDone = allSpents.getString(allSpents.getColumnIndexOrThrow("isdone"));
-                    String name = "";
-                    int spent;
                     if (isDone.matches("0")){
                         show = true;
                         name = allSpents.getString(allSpents.getColumnIndexOrThrow("name"));
                         spent = allSpents.getInt(allSpents.getColumnIndexOrThrow("spent"));
+                        day = allSpents.getInt(allSpents.getColumnIndexOrThrow("day"));
                         dataList2.add(name + " , " + spent);
                     }
                 } while (allSpents.moveToNext());
@@ -563,7 +565,28 @@ public class StartActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(Html.fromHtml("<font color='#1EFF00'>вчера у вас осталось не невыполненые траты</font>"));
             builder.setView(listView);
-            builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+            builder.setPositiveButton("сделать выпалнеными", (dialog, which) -> {
+                    DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+                        String itemName = "";
+                        int itemSpent = 0;
+                        int itemDay = 1;
+                        String itemIsDone;
+                        Cursor allSpents = databaseHelper.getData(today - 1, 0);
+                        if (allSpents != null && allSpents.moveToFirst()) {
+                            do {
+                                itemIsDone = allSpents.getString(allSpents.getColumnIndexOrThrow("isdone"));
+                                if (itemIsDone.matches("0")){
+                                    itemName = allSpents.getString(allSpents.getColumnIndexOrThrow("name"));
+                                    itemSpent = allSpents.getInt(allSpents.getColumnIndexOrThrow("spent"));
+                                    itemDay = allSpents.getInt(allSpents.getColumnIndexOrThrow("day"));
+                                    databaseHelper.setDone(itemName , itemDay , 0 , true);
+                                    databaseIncome.addSpent(itemSpent);
+                                }
+                            } while (allSpents.moveToNext());
+                        }
+                    dialog.dismiss();
+            })
+                    .setNegativeButton("закрыть", null);
 
             // Создаем AlertDialog
             AlertDialog dialog = builder.create();
@@ -592,7 +615,7 @@ public class StartActivity extends AppCompatActivity {
         String today = sdf.format(new Date());
 
         //проверяем изменился ли месяц
-        if (!today.split("-")[1].equals(oldData.split("-")[0]) && !oldData.equals("0")){
+        if (!today.split("-")[1].equals(oldData.split("-")[0]) && !oldData.equals("")){
             monthChanged();
         }else {
             System.out.println("dsgfdg");
@@ -603,6 +626,14 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         databaseHelper.monthchanged();
+        // Получаем данные из базы
+        Cursor incomeCursor = databaseIncome.getIncomeList(); // Предположим, это возвращает курсор
+        Cursor spentCursor = databaseIncome.getMonthlySpentList(); // Тоже возвращает курсор
+
+        // Сохраняем данные в prevMonth
+        databaseHelper.saveIncomeToPrevMonth(incomeCursor);
+        databaseHelper.saveSpentToPrevMonth(spentCursor);
+
         databaseIncome.monthchanged();
     }
 }

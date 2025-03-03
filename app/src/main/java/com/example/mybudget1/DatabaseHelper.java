@@ -7,7 +7,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "expenses.db";
@@ -17,8 +21,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private String prevMonthTable;
     private String currentMonthTable;
     private String nextMonthTable;
-//    private String stabilSpents;
-//    private String income;
 
     // Колонки таблицы
     private static final String COLUMN_ID = "id";
@@ -37,8 +39,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createTable(db, prevMonthTable);
         createTable(db, currentMonthTable);
         createTable(db, nextMonthTable);
-//        createTableForMonthSpent(db, stabilSpents);
-//        createTableForIncome(db , income);
     }
 
     @Override
@@ -52,37 +52,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private void updateMonthTables(SQLiteDatabase db) {
         db.beginTransaction(); // Начинаем транзакцию
         try {
-            // Проверяем, существует ли таблица следующего месяца
-            if (!tableExists(db, nextMonthTable)) {
-                Log.e("SQLite", "Таблица " + nextMonthTable + " не существует. Создаю новую.");
-                createTable(db, nextMonthTable); // Создаем, если её нет
-            }
+            // Загружаем список существующих таблиц (от нового к старому)
+            List<String> monthTables = getMonthTables(db);
 
-            // Проверяем и удаляем таблицу прошлого месяца
-            if (tableExists(db, prevMonthTable)) {
-                db.execSQL("DROP TABLE IF EXISTS " + prevMonthTable);
-                Log.d("SQLite", "Удалена таблица: " + prevMonthTable);
-            }
+            // Генерируем имя для нового месяца на основе первого элемента списка
+            String newMonth = generateNextMonthName(monthTables.get(0));
 
-            // Переименовываем текущий месяц в прошлый, если он существует
-            if (tableExists(db, currentMonthTable)) {
-                db.execSQL("ALTER TABLE " + currentMonthTable + " RENAME TO " + prevMonthTable);
-                Log.d("SQLite", "Переименована " + currentMonthTable + " -> " + prevMonthTable);
-            } else {
-                Log.e("SQLite", "Ошибка: текущая таблица " + currentMonthTable + " не найдена!");
-            }
+            // Добавляем новый месяц в начало списка
+            monthTables.add(0, newMonth);
 
-            // Переименовываем следующий месяц в текущий, если он существует
-            if (tableExists(db, nextMonthTable)) {
-                db.execSQL("ALTER TABLE " + nextMonthTable + " RENAME TO " + currentMonthTable);
-                Log.d("SQLite", "Переименована " + nextMonthTable + " -> " + currentMonthTable);
-            } else {
-                Log.e("SQLite", "Ошибка: следующая таблица " + nextMonthTable + " не найдена!");
-            }
+            // Создаем новую таблицу
+            createTable(db, newMonth);
+            Log.d("SQLite", "Создана новая таблица: " + newMonth);
 
-            // Создаем новую таблицу для будущего следующего месяца
-            createTable(db, nextMonthTable);
-            Log.d("SQLite", "Создана новая таблица: " + nextMonthTable);
+            // Определяем переменные next, current, prev по индексам списка
+            if (monthTables.size() > 2) {
+                String nextMonthTable = monthTables.get(0);
+                String currentMonthTable = monthTables.get(1);
+                String prevMonthTable = monthTables.get(2);
+
+                // Создаем таблицы для доходов и расходов в prevMonth
+                createIncomeTable(db, prevMonthTable);
+                createSpentTable(db, prevMonthTable);
+
+                Log.d("SQLite", "Next: " + nextMonthTable);
+                Log.d("SQLite", "Current: " + currentMonthTable);
+                Log.d("SQLite", "Prev: " + prevMonthTable);
+            }
 
             db.setTransactionSuccessful(); // Завершаем транзакцию
         } catch (Exception e) {
@@ -91,6 +87,48 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.endTransaction(); // Закрываем транзакцию
         }
     }
+
+
+
+    // Получаем список всех таблиц, отсортированных по времени
+    private List<String> getMonthTables(SQLiteDatabase db) {
+        List<String> tables = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master " +
+                "WHERE type='table' AND name LIKE 'month_%' " +
+                "ORDER BY CAST(SUBSTR(name, 7, 4) AS INTEGER) DESC, " +  // Сортировка по году (например, 2025, 2026)
+                "CAST(SUBSTR(name, 12, 2) AS INTEGER) DESC", null);     // Сортировка по месяцу (1-12)
+
+        while (cursor.moveToNext()) {
+            tables.add(cursor.getString(0));
+        }
+        cursor.close();
+        return tables;
+    }
+
+
+
+
+    // Генерирует имя следующего месяца на основе последней таблицы
+    private String generateNextMonthName(String lastMonth) {
+        Pattern pattern = Pattern.compile("month_(\\d+)_(\\d+)");
+        Matcher matcher = pattern.matcher(lastMonth);
+
+        if (matcher.matches()) {
+            int year = Integer.parseInt(matcher.group(1));
+            int month = Integer.parseInt(matcher.group(2));
+
+            month++; // Увеличиваем месяц
+            if (month > 12) {
+                month = 1;
+                year++;
+            }
+
+            return String.format("month_%d_%d", year, month);
+        }
+
+        return "month_unknown";
+    }
+
 
 
     private boolean tableExists(SQLiteDatabase db, String tableName) {
@@ -368,6 +406,74 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         updateMonthTables(db);
     }
+
+
+    // prev month edits
+    // Создание таблицы для доходов в prevMonth
+    private void createIncomeTable(SQLiteDatabase db, String prevMonthTable) {
+        String createIncomeTableQuery = "CREATE TABLE IF NOT EXISTS " + prevMonthTable + "_income (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "name TEXT, " +
+                "income INTEGER, " +
+                "day INTEGER)";
+        db.execSQL(createIncomeTableQuery);
+    }
+
+    // Создание таблицы для расходов в prevMonth
+    private void createSpentTable(SQLiteDatabase db, String prevMonthTable) {
+        String createSpentTableQuery = "CREATE TABLE IF NOT EXISTS " + prevMonthTable + "_spent (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "name TEXT, " +
+                "spent INTEGER, " +
+                "day INTEGER)";
+        db.execSQL(createSpentTableQuery);
+    }
+
+    // Сохранение доходов в таблицу prevMonth_income
+    // Сохранение доходов в таблицу prevMonth_income
+    public void saveIncomeToPrevMonth(Cursor cursor) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int income = cursor.getInt(cursor.getColumnIndexOrThrow("income"));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("incomeday"));
+
+                // Вставляем данные в таблицу prevMonth_income
+                String insertIncomeQuery = "INSERT INTO " + prevMonthTable + "_income (name, income, day) VALUES (?, ?, ?)";
+                db.execSQL(insertIncomeQuery, new Object[]{name, income, day});
+
+            } while (cursor.moveToNext());
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+    }
+
+    // Сохранение расходов в таблицу prevMonth_spent
+    public void saveSpentToPrevMonth(Cursor cursor) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int spent = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("spentday"));
+
+                // Вставляем данные в таблицу prevMonth_spent
+                String insertSpentQuery = "INSERT INTO " + prevMonthTable + "_spent (name, spent, day) VALUES (?, ?, ?)";
+                db.execSQL(insertSpentQuery, new Object[]{name, spent, day});
+
+            } while (cursor.moveToNext());
+        }
+        if (cursor != null) {
+            cursor.close();
+        }
+    }
+
+
+
+
+
 
 
 
