@@ -46,6 +46,7 @@ public class StartActivity extends AppCompatActivity {
     private TextView spentText;
     public Button incomeText;
     public Button monthlySpents;
+    public Button lastMonths;
     public TextView budgetText;
 
     @SuppressLint("MissingInflatedId")
@@ -69,12 +70,19 @@ public class StartActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         monthlySpents = findViewById(R.id.btnMonthlySpents);
         budgetText = findViewById(R.id.tvBudget);
+        lastMonths = findViewById(R.id.btnLastMonths);
         TextView podskazka = findViewById(R.id.textpodskazka);
 
 
         //закрытие менюшки
         LinearLayout menuLayout = findViewById(R.id.menuLayout);
         View dimLayer = findViewById(R.id.dimLayer);
+
+        lastMonths.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, MonthListActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
         monthlySpents.setOnClickListener(v -> {
             Intent intent = new Intent(StartActivity.this, SpentActivity.class);
@@ -97,7 +105,7 @@ public class StartActivity extends AppCompatActivity {
         checkMonth();
 
 
-        int spent = databaseHelper.checkAllSpents();
+        int spent = databaseHelper.checkAllSpents(0);
         spentText.setText("расход: " + spent);
         int income = databaseIncome.getIncome();
         if (income == 0){

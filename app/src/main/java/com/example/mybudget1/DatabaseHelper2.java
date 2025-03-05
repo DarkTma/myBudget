@@ -330,24 +330,12 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         if (getheredData.moveToFirst()) {
             String name = getheredData.getString(getheredData.getColumnIndexOrThrow("name"));
-            int spent = getheredData.getInt(getheredData.getColumnIndexOrThrow("spent"));
+            int spent = getheredData.getInt(getheredData.getColumnIndexOrThrow("income"));
             do{
-                if (!name.matches("(прошламесячая)")) {
-                    String newName = spent + "(прошламесячная)";
-
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(COLUMN_NAME, newName);
-                    contentValues.put(COLUMN_SPENT, 0);
-
-                    result = db.update(TABLE_INCOME, contentValues,
-                            COLUMN_NAME + " = ?",
-                            new String[]{name});
-                } else {
-                    String whereClause = " name = ?";
-                    String[] whereArgs = new String[]{name};
-                    // Выполняем удаление
-                    db.delete(TABLE_INCOME, whereClause, whereArgs);
-                }
+                String whereClause = " name = ? AND income = ? ";
+                String[] whereArgs = new String[]{name , String.valueOf(spent)};
+                // Выполняем удаление
+                db.delete(TABLE_INCOME, whereClause, whereArgs);
             } while (getheredData.moveToNext());
         }
 

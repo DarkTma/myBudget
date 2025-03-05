@@ -134,11 +134,12 @@ public class IncomeActivity extends AppCompatActivity {
                             int dayText;
                             Calendar calendar = Calendar.getInstance();
                             int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-                            if (Integer.parseInt(day.getText().toString()) > daysInMonth){
-                                Toast.makeText(this, "данного дня нет в  месяце", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            } else {
+                            if (!day.getText().toString().equals("")) {
+                                if (Integer.parseInt(day.getText().toString()) > daysInMonth) {
+                                    Toast.makeText(this, "данного дня нет в  месяце", Toast.LENGTH_SHORT).show();
+                                    dialog.dismiss();
+                                }
+                            }
                                 if (!day.getText().toString().equals("") && !day.getText().toString().matches("0")) {
 
                                     dayText = Integer.parseInt(day.getText().toString());
@@ -165,7 +166,7 @@ public class IncomeActivity extends AppCompatActivity {
 
                                 Intent intent = new Intent(IncomeActivity.this, IncomeActivity.class);
                                 startActivity(intent);
-                            }
+
 
                         } else {
                             Toast.makeText(this, "вы недобавили доход", Toast.LENGTH_SHORT).show();

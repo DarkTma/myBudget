@@ -123,11 +123,12 @@ public class SpentActivity extends AppCompatActivity {
                             Calendar calendar = Calendar.getInstance();
                             int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
                             int today = calendar.get(Calendar.DAY_OF_MONTH);
-
-                            if (Integer.parseInt(day.getText().toString()) > daysInMonth){
-                                Toast.makeText(this, "данного дня нет в  месяце", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                            } else {
+                            if (!day.getText().toString().equals("")){
+                                if (Integer.parseInt(day.getText().toString()) > daysInMonth){
+                                    Toast.makeText(this, "данного дня нет в  месяце", Toast.LENGTH_SHORT).show();
+                                    dialog.dismiss();
+                                }
+                            }
                                 if (!day.getText().toString().equals("") && !day.getText().toString().matches("0")) {
                                     dayText = Integer.parseInt(day.getText().toString());
                                 } else {
@@ -152,7 +153,6 @@ public class SpentActivity extends AppCompatActivity {
 
                                 Intent intent = new Intent(SpentActivity.this, SpentActivity.class);
                                 startActivity(intent);
-                            }
 
                         } else {
                             Toast.makeText(this, "вы недобавили трату", Toast.LENGTH_SHORT).show();

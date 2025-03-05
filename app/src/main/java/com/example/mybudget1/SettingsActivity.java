@@ -39,8 +39,8 @@ public class SettingsActivity extends AppCompatActivity {
         DatabaseHelper databaseHelperD = new DatabaseHelper(this);
 
         incomeNow.setText("ваш доход: " + String.valueOf(databaseHelperM.getIncome()));
-        stats.setText("осталось: " + String.valueOf(databaseHelperM.getIncome() - databaseHelperD.checkAllSpents()));
-        spents.setText("траты за месяц: " + String.valueOf(databaseHelperD.checkAllSpents()));
+        stats.setText("осталось: " + String.valueOf(databaseHelperM.getIncome() - databaseHelperD.checkAllSpents(0)));
+        spents.setText("траты за месяц: " + String.valueOf(databaseHelperD.checkAllSpents(0)));
 
     }
 }

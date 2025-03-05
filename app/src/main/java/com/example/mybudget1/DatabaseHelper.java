@@ -22,6 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private String currentMonthTable;
     private String nextMonthTable;
 
+
     // Колонки таблицы
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_DAY = "day";
@@ -53,7 +54,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.beginTransaction(); // Начинаем транзакцию
         try {
             // Загружаем список существующих таблиц (от нового к старому)
-            List<String> monthTables = getMonthTables(db);
+            List<String> monthTables = getMonthTables();
 
             // Генерируем имя для нового месяца на основе первого элемента списка
             String newMonth = generateNextMonthName(monthTables.get(0));
@@ -67,9 +68,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             // Определяем переменные next, current, prev по индексам списка
             if (monthTables.size() > 2) {
-                String nextMonthTable = monthTables.get(0);
-                String currentMonthTable = monthTables.get(1);
-                String prevMonthTable = monthTables.get(2);
+                nextMonthTable = monthTables.get(0);
+                currentMonthTable = monthTables.get(1);
+                prevMonthTable = monthTables.get(2);
 
                 // Создаем таблицы для доходов и расходов в prevMonth
                 createIncomeTable(db, prevMonthTable);
@@ -88,24 +89,124 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-
-
-    // Получаем список всех таблиц, отсортированных по времени
-    private List<String> getMonthTables(SQLiteDatabase db) {
-        List<String> tables = new ArrayList<>();
-        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master " +
-                "WHERE type='table' AND name LIKE 'month_%' " +
-                "ORDER BY CAST(SUBSTR(name, 7, 4) AS INTEGER) DESC, " +  // Сортировка по году (например, 2025, 2026)
-                "CAST(SUBSTR(name, 12, 2) AS INTEGER) DESC", null);     // Сортировка по месяцу (1-12)
+    public List<MonthData> getMonthData(SQLiteDatabase db) {
+        List<MonthData> monthDataList = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'month_%' ORDER BY name DESC", null);
 
         while (cursor.moveToNext()) {
-            tables.add(cursor.getString(0));
+            String tableName = cursor.getString(0);  // Имя таблицы, например, month_2025_3
+
+            // Проверяем, существует ли таблица для доходов (income) и расходов (spent)
+            if (tableExists(db, tableName + "_income") && tableExists(db, tableName + "_spent")) {
+                // Получаем информацию о доходах и расходах
+                double totalIncome = getTotalIncomeForMonth(db, tableName);
+                double totalSpent = getTotalSpentForMonth(db, tableName);
+
+                // Создаем объект MonthData и добавляем его в список
+                monthDataList.add(new MonthData(tableName, (int) totalIncome, (int) totalSpent));
+            }
         }
+
+        cursor.close();
+        return monthDataList;
+    }
+
+    // Метод для получения общего дохода для месяца
+    private double getTotalIncomeForMonth(SQLiteDatabase db, String tableName) {
+        Cursor cursor = db.rawQuery("SELECT SUM(income) FROM " + tableName + "_income", null);
+        cursor.moveToFirst();
+        double totalIncome = cursor.getDouble(0);
+        cursor.close();
+        return totalIncome;
+    }
+
+    // Метод для получения общих расходов для месяца
+    private double getTotalSpentForMonth(SQLiteDatabase db, String tableName) {
+        Cursor cursor = db.rawQuery("SELECT SUM(spent) FROM " + tableName + "_spent", null);
+        cursor.moveToFirst();
+        double totalSpent = cursor.getDouble(0);
+        cursor.close();
+        return totalSpent;
+    }
+
+    // Метод для проверки существования таблицы
+    public boolean tableExists(String tableName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?", new String[]{tableName});
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
+
+    public List<String> getMonthTables() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        List<String> tables = new ArrayList<>();
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'month_%' ORDER BY name DESC", null);
+
+        while (cursor.moveToNext()) {
+            String tableName = cursor.getString(0);  // Имя таблицы, например, month_2025_3
+
+            // Проверяем, что имя таблицы соответствует шаблону 'month_год_месяц'
+            if (tableName.matches("month_\\d{4}_\\d{1,2}")) {
+                tables.add(tableName);  // Добавляем в список, если имя таблицы соответствует шаблону
+            }
+        }
+
         cursor.close();
         return tables;
     }
 
 
+
+    // Метод для проверки существования таблицы
+    public boolean tableExists(SQLiteDatabase db, String tableName) {
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?", new String[]{tableName});
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
+
+    private double getIncomeForMonth(String monthTableName) {
+        SQLiteDatabase database = this.getReadableDatabase();
+        String incomeTable = monthTableName + "_income";
+
+        // Проверяем, существует ли таблица для доходов
+        if (!tableExists(incomeTable)) {
+            return 0.0;  // Если таблица не существует, возвращаем 0
+        }
+
+        // Если таблица существует, выполняем запрос
+        Cursor cursor = database.rawQuery("SELECT SUM(income) FROM " + incomeTable, null);
+        if (cursor.moveToFirst()) {
+            double income = cursor.getDouble(0);
+            cursor.close();
+            return income;
+        }
+        cursor.close();
+        return 0.0;
+    }
+
+    private double getSpentForMonth(String monthTableName) {
+        SQLiteDatabase database = this.getReadableDatabase();
+        String spentTable = monthTableName + "_spent";
+
+        // Проверяем, существует ли таблица для расходов
+        if (!tableExists(spentTable)) {
+            return 0.0;  // Если таблица не существует, возвращаем 0
+        }
+
+        // Если таблица существует, выполняем запрос
+        Cursor cursor = database.rawQuery("SELECT SUM(spent) FROM " + spentTable, null);
+        if (cursor.moveToFirst()) {
+            double spent = cursor.getDouble(0);
+            cursor.close();
+            return spent;
+        }
+        cursor.close();
+        return 0.0;
+    }
+
+    // Метод для проверки существования таблицы
 
 
     // Генерирует имя следующего месяца на основе последней таблицы
@@ -127,18 +228,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         return "month_unknown";
-    }
-
-
-
-    private boolean tableExists(SQLiteDatabase db, String tableName) {
-        Cursor cursor = db.rawQuery(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-                new String[]{tableName}
-        );
-        boolean exists = cursor.getCount() > 0;
-        cursor.close();
-        return exists;
     }
 
 
@@ -344,8 +433,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public int checkAllSpents(){
+    public int checkAllSpents(int offset){
         String tableNameforDay = currentMonthTable;
+        if (offset == -1) {
+            tableNameforDay = prevMonthTable;
+        }
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor spenti;
         int sum = 0;
@@ -465,17 +557,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             } while (cursor.moveToNext());
         }
+        insertSpentIfDone();
         if (cursor != null) {
             cursor.close();
         }
     }
 
+    public void insertSpentIfDone() {
+        String tableName = prevMonthTable;
 
+        SQLiteDatabase db = this.getWritableDatabase();
 
+        // Строим запрос для выборки данных с DONE = true
+        String selectQuery = "SELECT " + COLUMN_NAME + ", " + COLUMN_DAY + ", " + COLUMN_SPENT + " FROM " + tableName +
+                " WHERE " + COLUMN_DONE + " = 1";
 
+        Cursor cursor = db.rawQuery(selectQuery, null);
 
+        if (cursor.moveToFirst()) {
+            // Итерируем по всем записям с DONE = true
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int spent = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
 
+                // Записываем эти данные в таблицу month_xxxx_x_spent
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_NAME, name);
+                values.put(COLUMN_DAY, day);
+                values.put(COLUMN_SPENT, spent);
 
+                // Вставляем данные в таблицу month_xxxx_x_spent
+                db.insert(tableName + "_spent", null, values);
+
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+    }
 
 
 }
