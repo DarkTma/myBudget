@@ -3,9 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/btn_light_orange"
-    android:gravity="center_vertical">
+    android:layout_marginHorizontal="10dp"
+    android:padding="10dp"
+    android:background="@drawable/btn_light_orange">
 
     <!-- Название месяца -->
     <TextView

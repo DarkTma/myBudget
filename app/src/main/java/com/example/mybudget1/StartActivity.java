@@ -278,6 +278,7 @@ public class StartActivity extends AppCompatActivity {
                     Calendar calendar = Calendar.getInstance();
                     int today = calendar.get(Calendar.DAY_OF_MONTH);
                     if (today >= date) {
+                        checkGoten(name , date);
                         databaseIncome.addIncome(incomeNum);
                         databaseIncome.setIncomeGiven(true, name);
                         refreshBudgetText();
@@ -316,6 +317,10 @@ public class StartActivity extends AppCompatActivity {
 
             } while (income.moveToNext());
         }
+    }
+
+    private void checkGoten(String name, int date) {
+        //soon
     }
 
 

@@ -9,6 +9,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -594,6 +595,76 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
     }
+
+
+//    public List<MonthDetailData> getMonthDetailData(SQLiteDatabase db, String MonthTable) {
+//        List<MonthDetailData> monthDetailDataList = new ArrayList<>();
+//
+//        // Извлекаем доходы для выбранного месяца
+//        String incomeQuery = "SELECT * FROM " + MonthTable + "_income";
+//        Cursor incomeCursor = db.rawQuery(incomeQuery, null);
+//
+//        while (incomeCursor.moveToNext()) {
+//            String name = incomeCursor.getString(incomeCursor.getColumnIndexOrThrow("name"));
+//            int income = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("income"));
+//            int day = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("day"));
+//            monthDetailDataList.add(new MonthDetailData("Income", name, income, day));
+//        }
+//        incomeCursor.close();
+//
+//        // Извлекаем расходы для выбранного месяца
+//        String spentQuery = "SELECT * FROM " + MonthTable + "_spent";
+//        Cursor spentCursor = db.rawQuery(spentQuery, null);
+//
+//        while (spentCursor.moveToNext()) {
+//            String name = spentCursor.getString(spentCursor.getColumnIndexOrThrow("name"));
+//            int spent = spentCursor.getInt(spentCursor.getColumnIndexOrThrow("spent"));
+//            int day = spentCursor.getInt(spentCursor.getColumnIndexOrThrow("day"));
+//            monthDetailDataList.add(new MonthDetailData("Spent", name, spent, day));
+//        }
+//        spentCursor.close();
+//
+//        return monthDetailDataList;
+//    }
+
+    public List<MonthDetailData> getMonthDetailData(SQLiteDatabase db, String monthTable) {
+        List<MonthDetailData> detailList = new ArrayList<>();
+
+        // Запрос для доходов
+        String incomeQuery = "SELECT name, income, day FROM " + monthTable + "_income ORDER BY day ASC";
+        Cursor cursor = db.rawQuery(incomeQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int amount = cursor.getInt(cursor.getColumnIndexOrThrow("income"));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+                detailList.add(new MonthDetailData("Income", name, amount, day));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        // Запрос для расходов
+        String spentQuery = "SELECT name, spent, day FROM " + monthTable + "_spent ORDER BY day ASC";
+        cursor = db.rawQuery(spentQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int amount = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+                detailList.add(new MonthDetailData("Spent", name, amount, day));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        // Сортируем список по дню
+        Collections.sort(detailList, (d1, d2) -> Integer.compare(d1.getDay(), d2.getDay()));
+
+        return detailList;
+    }
+
+
 
 
 }

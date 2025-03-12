@@ -1,6 +1,8 @@
 package com.example.mybudget1;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,9 +12,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class MonthAdapter extends RecyclerView.Adapter<MonthAdapter.MonthViewHolder> {
+public class MonthAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<MonthData> monthDataList; // Список объектов MonthData
+    private List<MonthData> monthDataList;
     private Context context;
 
     public MonthAdapter(Context context, List<MonthData> monthDataList) {
@@ -21,34 +23,41 @@ public class MonthAdapter extends RecyclerView.Adapter<MonthAdapter.MonthViewHol
     }
 
     @Override
-    public MonthViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // Инфлейтим layout для каждого элемента списка
         View view = LayoutInflater.from(context).inflate(R.layout.item_month, parent, false);
-        return new MonthViewHolder(view);
+        return new RecyclerView.ViewHolder(view) {}; // Возвращаем анонимный ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(MonthViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+        // Получаем данные из списка
         MonthData monthData = monthDataList.get(position);
 
-        holder.monthName.setText(monthData.getMonthName()); // Название месяца
-        holder.income.setText("Income: " + monthData.getIncome()); // Доход
-        holder.spent.setText("Spent: " + monthData.getSpent()); // Расходы
+        // Привязываем данные к элементам интерфейса через itemView
+        View itemView = viewHolder.itemView;
+        TextView monthName = itemView.findViewById(R.id.monthName);
+        TextView income = itemView.findViewById(R.id.income);
+        TextView spent = itemView.findViewById(R.id.spent);
+
+        monthName.setText(monthData.getMonthName());
+        monthName.setTextColor(Color.WHITE);
+        income.setText("Income: " + monthData.getIncome());
+        income.setTextColor(Color.GREEN);
+        spent.setText("Spent: " + monthData.getSpent());
+        spent.setTextColor(Color.YELLOW);
+
+        // Обработчик клика на элемент
+        itemView.setOnClickListener(v -> {
+            String a = monthData.getMonthName();
+            Intent intent = new Intent(context, MonthDetailActivity.class);
+            intent.putExtra("monthName", a);
+            context.startActivity(intent);
+        });
     }
 
     @Override
     public int getItemCount() {
-        return monthDataList.size(); // Размер списка месяцев
-    }
-
-    // ViewHolder для каждого элемента
-    public static class MonthViewHolder extends RecyclerView.ViewHolder {
-        TextView monthName, income, spent;
-
-        public MonthViewHolder(View itemView) {
-            super(itemView);
-            monthName = itemView.findViewById(R.id.monthName);
-            income = itemView.findViewById(R.id.income);
-            spent = itemView.findViewById(R.id.spent);
-        }
+        return monthDataList.size();
     }
 }

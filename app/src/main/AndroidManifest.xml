@@ -31,7 +31,7 @@
     <activity android:name=".MainActivity" />
         <activity android:name=".IncomeActivity"/>
         <activity android:name=".SpentActivity"/>
-        <activity android:name=".MonthDetailsActivity"/>
+        <activity android:name=".MonthDetailActivity"/>
         <activity android:name=".MonthListActivity"/>
 
 </application>
