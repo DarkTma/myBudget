@@ -7,6 +7,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -26,14 +32,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Колонки таблицы
     private static final String COLUMN_ID = "id";
+    private static final String COLUMN_CATEGORY = "category_id";
     private static final String COLUMN_DAY = "day";
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_DONE = "isdone";
     private static final String COLUMN_SPENT = "spent";
 
+    private List<String> categories;
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         updateMonthTables();
+//        categories = readCategoriesFromFile(context);
     }
 
     @Override
@@ -87,6 +97,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Log.e("SQLite", "Ошибка при обновлении таблиц: " + e.getMessage());
         } finally {
             db.endTransaction(); // Закрываем транзакцию
+        }
+    }
+
+//    public List<String> readCategoriesFromFile(Context context) {
+//        List<String> categories = new ArrayList<>();
+//        try {
+//            // Попытка открыть файл для чтения
+//            FileInputStream fis = context.openFileInput("categories.txt");
+//            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+//            String line;
+//
+//            // Чтение всех категорий из файла
+//            while ((line = reader.readLine()) != null) {
+//                String[] categoryArray = line.split("-");
+//                for (String category : categoryArray) {
+//                    if (!category.isEmpty()) {
+//                        categories.add(category);  // Добавляем категорию, если она не пустая
+//                    }
+//                }
+//            }
+//            reader.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            createDefaultCategoriesFile(context);
+//        }
+//        return categories;
+//    }
+
+    private void createDefaultCategoriesFile(Context context) {
+        try {
+            FileOutputStream fos = context.openFileOutput("categories.txt", Context.MODE_PRIVATE);
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+            writer.write("other");  // Записываем дефолтную категорию в файл
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -235,6 +281,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private void createTable(SQLiteDatabase db, String tableName) {
         String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_CATEGORY + " INTEGER DEFAULT 0, " +
                 COLUMN_DAY + " INTEGER, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_DONE + " BOOLEAN, " +
@@ -269,7 +316,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Метод для добавления данных
-    public boolean insertData(int day, String name, int spent, int offset , boolean isDone) {
+    public boolean insertData(int day, String name, int spent, int offset , boolean isDone , int category) {
         String tableName;
         if (offset == -1) {
             tableName = prevMonthTable;
@@ -326,6 +373,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     contentValues.put(COLUMN_DAY, day);
                     contentValues.put(COLUMN_NAME, newName);
                     contentValues.put(COLUMN_SPENT, spent);
+                    contentValues.put(COLUMN_CATEGORY, category);
                     if (isDone){
                         contentValues.put(COLUMN_DONE, true);
                     } else {
@@ -381,8 +429,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + tableName + " WHERE " + COLUMN_DAY + " = ?", new String[]{String.valueOf(day)});
     }
 
-    public void deleteData(String name, int day){
-        String tableName = currentMonthTable;
+    public void deleteData(String name, int day , int offset){
+        String tableName;
+        if (offset == -1) {
+            tableName = prevMonthTable;
+        } else if (offset == 0) {
+            tableName = currentMonthTable;
+        } else {
+            tableName = nextMonthTable;
+        }
         SQLiteDatabase db = this.getWritableDatabase();
 
         String whereClause = "name = ? AND day = ?";
@@ -393,8 +448,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public boolean updateData(String itemName, int currentDay, String newName, int newSpent) {
-        String tableName = currentMonthTable;
+    public boolean updateData(String itemName, int currentDay, String newName, int newSpent , int offset) {
+        String tableName;
+        if (offset == -1) {
+            tableName = prevMonthTable;
+        } else if (offset == 0) {
+            tableName = currentMonthTable;
+        } else {
+            tableName = nextMonthTable;
+        }
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         int day = currentDay;

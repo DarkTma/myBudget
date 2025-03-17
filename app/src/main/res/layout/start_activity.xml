@@ -199,6 +199,16 @@
             android:textColor="@android:color/white"
             android:layout_marginVertical="20dp"/>
 
+        <Button
+            android:id="@+id/btnCategories"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="категории"
+            android:background="@drawable/btn_light_green"
+            android:textColor="@android:color/white"
+            android:layout_marginVertical="20dp"/>
+
 
         <Button
             android:id="@+id/btnCloseMenu"

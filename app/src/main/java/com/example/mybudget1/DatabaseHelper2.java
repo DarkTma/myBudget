@@ -7,8 +7,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class DatabaseHelper2 extends SQLiteOpenHelper {
@@ -20,6 +25,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String TABLE_BUDGET = "budget";
 
     private static final String COLUMN_ID = "id";
+    private static final String COLUMN_CATEGORY = "category_id";
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_SPENTDAY = "spentday";
     private static final String COLUMN_DONE = "isdone";
@@ -40,6 +46,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String createTableMonthlySpent = "CREATE TABLE IF NOT EXISTS " + TABLE_MONTHLY_SPENT + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_CATEGORY + " INTEGER DEFAULT 0, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_DONE + " BOOLEAN, " +
                 COLUMN_SPENTDAY + " INTEGER, " +
@@ -74,6 +81,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_BUDGET);
         onCreate(db);
     }
+
+
 
     public boolean insertMonthlySpent(String name, int spent) {
         SQLiteDatabase db = this.getWritableDatabase();

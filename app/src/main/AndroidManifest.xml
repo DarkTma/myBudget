@@ -33,6 +33,7 @@
         <activity android:name=".SpentActivity"/>
         <activity android:name=".MonthDetailActivity"/>
         <activity android:name=".MonthListActivity"/>
+        <activity android:name=".CategoriesActivity"/>
 
 </application>
 

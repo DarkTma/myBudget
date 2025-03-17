@@ -146,7 +146,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                 // Обновляем запись в базе данных
                 DatabaseHelper databaseHelper = new DatabaseHelper(context);
                 DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-                databaseHelper.updateData(itemName, currentDay, newName, newSpent);
+                int currentMonthOffset = ((MainActivity) context).getoffset();
+                databaseHelper.updateData(itemName, currentDay, newName, newSpent , currentMonthOffset);
 
                 // Обновляем данные в списке и уведомляем адаптер
                 String end = "-false";
@@ -200,7 +201,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             String value;
             DatabaseHelper databaseHelper = new DatabaseHelper(context);
             DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-            databaseHelper.setDone(name,day,0,isDone);
+            int currentMonthOffset = ((MainActivity) context).getoffset();
+            databaseHelper.setDone(name,day,currentMonthOffset,isDone);
             if (isDone){
                 value = "true";
                 String count = spent.replace("₽", "");
@@ -250,12 +252,11 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
     // Метод для удаления элемента по имени и дню
     private void deleteItem(String itemName, int day) {
-        // Здесь ты можешь использовать метод deleteDataByName из DatabaseHelper,
-        // передав и день, чтобы удалить нужный элемент.
         DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        databaseHelper.deleteData(itemName, day); // Новый метод для удаления по имени и дню
+        int currentMonthOffset = ((MainActivity) context).getoffset();
+        databaseHelper.deleteData(itemName, day , currentMonthOffset);
 
-        items.remove(itemName); // Удаляем элемент из списка по имени
+        items.remove(itemName);
     }
 }
 

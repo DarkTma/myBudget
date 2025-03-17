@@ -102,6 +102,13 @@ public class StartActivity extends AppCompatActivity {
             finish();
         });
 
+        Button btnCategoriesGo = findViewById(R.id.btnCategories);
+        btnCategoriesGo.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, CategoriesActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
         checkMonth();
 
 
