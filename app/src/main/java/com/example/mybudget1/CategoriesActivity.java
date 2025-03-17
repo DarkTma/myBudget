@@ -1,17 +1,21 @@
 package com.example.mybudget1;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.List;
+
+import android.content.Intent;
 
 public class CategoriesActivity extends AppCompatActivity {
 
@@ -20,11 +24,18 @@ public class CategoriesActivity extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private List<String> categories;
     private FileHelper fileHelper;
+    private ImageButton buttonBackFromCategories;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.categories_activity);
+
+        buttonBackFromCategories = findViewById(R.id.buttonBackFromCategories);
+        buttonBackFromCategories.setOnClickListener(v -> {
+            Intent intentGoBack = new Intent(CategoriesActivity.this, StartActivity.class);
+            startActivity(intentGoBack);
+        });
 
         listViewCategories = findViewById(R.id.listViewCategories);
         btnAddCategory = findViewById(R.id.btnAddCategorie);
@@ -39,7 +50,10 @@ public class CategoriesActivity extends AppCompatActivity {
         listViewCategories.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showDeleteConfirmationDialog(position);
+                // При нажатии на категорию, передаем индекс в новую активность
+                Intent intent = new Intent(CategoriesActivity.this, ExpensesActivity.class);
+                intent.putExtra("category_id", position);  // Передаем индекс категории
+                startActivity(intent);
             }
         });
 

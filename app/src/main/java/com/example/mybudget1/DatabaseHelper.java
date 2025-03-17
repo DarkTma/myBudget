@@ -158,6 +158,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return monthDataList;
     }
 
+    public List<ExpenseData> getExpensesByCategory(int categoryId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        List<ExpenseData> expenseDataList = new ArrayList<>();
+
+        // Получаем список таблиц, которые начинаются с 'month_'
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'month_%' AND name NOT LIKE '%_income' AND name NOT LIKE '%_spent' ORDER BY name DESC", null);
+
+        while (cursor.moveToNext()) {
+            String tableName = cursor.getString(0);
+
+            // Строим запрос для получения расходов для данной категории
+            String query = "SELECT * FROM " + tableName + " WHERE " + COLUMN_CATEGORY + " = ? ";
+            Cursor expenseCursor = db.rawQuery(query, new String[]{String.valueOf(categoryId)});
+
+            // Обрабатываем результаты запроса
+            while (expenseCursor.moveToNext()) {
+                String expenseName = expenseCursor.getString(expenseCursor.getColumnIndexOrThrow("name"));
+                double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
+                int expenseDate = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("day"));
+
+                String date = String.valueOf(expenseDate) + "." + tableName.split("_")[2] + "." + tableName.split("_")[1];
+                // Добавляем данные в список
+                expenseDataList.add(new ExpenseData(expenseName, expenseAmount , date));
+            }
+
+            expenseCursor.close();
+        }
+
+        cursor.close();
+        return expenseDataList;
+    }
+
+
     // Метод для получения общего дохода для месяца
     private double getTotalIncomeForMonth(SQLiteDatabase db, String tableName) {
         Cursor cursor = db.rawQuery("SELECT SUM(income) FROM " + tableName + "_income", null);
@@ -402,6 +435,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             contentValues.put(COLUMN_DAY, day);
             contentValues.put(COLUMN_NAME, name);
             contentValues.put(COLUMN_SPENT, spent);
+            contentValues.put(COLUMN_CATEGORY, category);
             if (isDone){
                 contentValues.put(COLUMN_DONE, true);
             } else {
@@ -447,6 +481,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 
     }
+
 
     public boolean updateData(String itemName, int currentDay, String newName, int newSpent , int offset) {
         String tableName;
