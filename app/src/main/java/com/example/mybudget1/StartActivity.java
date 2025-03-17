@@ -278,9 +278,8 @@ public class StartActivity extends AppCompatActivity {
                     Calendar calendar = Calendar.getInstance();
                     int today = calendar.get(Calendar.DAY_OF_MONTH);
                     if (today >= date) {
-                        checkGoten(name , date);
-                        databaseIncome.addIncome(incomeNum);
-                        databaseIncome.setIncomeGiven(true, name);
+                        checkGoten(name , date , incomeNum , true);
+
                         refreshBudgetText();
                     }
                 }
@@ -309,8 +308,7 @@ public class StartActivity extends AppCompatActivity {
                     Calendar calendar = Calendar.getInstance();
                     int today = calendar.get(Calendar.DAY_OF_MONTH);
                     if (today >= date) {
-                        databaseIncome.addSpent(spentNum);
-                        databaseIncome.setMonthlySpentDone(true, name);
+                        checkGoten(name , date , spentNum , false);
                         refreshBudgetText();
                     }
                 }
@@ -319,9 +317,7 @@ public class StartActivity extends AppCompatActivity {
         }
     }
 
-    private void checkGoten(String name, int date) {
-        //soon
-    }
+
 
 
     @SuppressLint("SetTextI18n")
@@ -515,9 +511,9 @@ public class StartActivity extends AppCompatActivity {
 
     private void refreshIncomesDatas(){
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-        String lastDate = databaseIncome.getLastActivity().toString();
+        String lastDate = databaseIncome.getLastActivity();
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.getDefault());
         String today = sdf.format(new Date());
 
         boolean newDay = true;
@@ -536,6 +532,53 @@ public class StartActivity extends AppCompatActivity {
             databaseIncome.setLastActivity();
             refreshBudget();
             remembring(today);
+        }
+    }
+
+    private void checkGoten(String name, int date , int count , boolean type) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        Calendar calendar = Calendar.getInstance();
+        int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        if (type) { // Если это доход
+            builder.setMessage("Вы получили зарплату - " + name + ", " + count + " ?");
+
+            builder.setPositiveButton("Да", (dialog, which) -> {
+                databaseIncome.addIncome(count);
+                databaseIncome.setIncomeGiven(true, name);
+                refreshBudgetText();
+            });
+
+            builder.setNeutralButton("Отложить", (dialog, which) -> {
+                dialog.dismiss();  // Закрываем текущий диалог
+            });
+
+            builder.setNegativeButton("Удалить", (dialog, which) -> {
+                databaseIncome.deleteIncome(name, date);
+            });
+
+            builder.show();
+
+        } else {
+            builder.setMessage("Вы выполнили трату - " + name + ", " + count + " ?");
+
+            builder.setPositiveButton("Да", (dialog, which) -> {
+                databaseIncome.addSpent(count);
+                databaseIncome.setIncomeGiven(true, name);
+                refreshBudgetText();
+            });
+
+            builder.setNeutralButton("Отложить", (dialog, which) -> {
+                dialog.dismiss();  // Закрываем второй диалог
+            });
+
+            builder.setNegativeButton("Удалить", (dialog, which) -> {
+                databaseIncome.deleteMonthlySpent(name, date);
+            });
+
+            builder.show();
         }
     }
 
@@ -614,15 +657,7 @@ public class StartActivity extends AppCompatActivity {
 
     private void checkMonth(){
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-        Cursor sdfold = databaseIncome.getLastActivity();
-        String oldData = "0";
-        if (sdfold != null && sdfold.moveToFirst()) {
-            do {
-                oldData = sdfold.getString(sdfold.getColumnIndexOrThrow("lastactivity"));
-            } while (sdfold.moveToNext());
-        }
-
-        System.out.println(oldData);
+        String oldData = databaseIncome.getLastActivity();
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
         String today = sdf.format(new Date());

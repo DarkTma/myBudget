@@ -278,7 +278,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     }
 
     public void setLastActivity(){
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy", Locale.getDefault());
         String date = sdf.format(new Date());
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -288,10 +288,20 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
     }
 
-    public Cursor getLastActivity(){
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.rawQuery("SELECT " + COLUMN_LASTACTIVITY + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1" , null);
+    public String getLastActivity() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + COLUMN_LASTACTIVITY + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
+
+        String lastActivity = null;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                lastActivity = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LASTACTIVITY));
+            }
+            cursor.close();
+        }
+        return lastActivity;
     }
+
 
     public void testsetActivity(){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -357,6 +367,20 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         }
 
         return result != -1;
+    }
+
+    public boolean changeDate(String name, int date, int count , boolean isincome) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_INCOMEDAY, date);
+        int result;
+        if (isincome) {
+            result = db.update(TABLE_INCOME, values, COLUMN_NAME + " = ? AND " + COLUMN_INCOME + " = ?", new String[]{name, String.valueOf(count)});
+        } else {
+            result = db.update(TABLE_MONTHLY_SPENT, values, COLUMN_NAME + " = ? AND " + COLUMN_SPENT + " = ?", new String[]{name, String.valueOf(count)});
+        }
+        return result > 0;
     }
 
     public void deleteMonthlySpent(String name , int day){
