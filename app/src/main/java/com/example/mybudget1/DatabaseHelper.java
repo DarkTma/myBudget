@@ -483,7 +483,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public boolean updateData(String itemName, int currentDay, String newName, int newSpent , int offset) {
+    public boolean updateData(String itemName, int currentDay, String newName, int newSpent , int offset , int category) {
         String tableName;
         if (offset == -1) {
             tableName = prevMonthTable;
@@ -499,6 +499,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         contentValues.put(COLUMN_NAME, newName);
         contentValues.put(COLUMN_SPENT, newSpent);
+        contentValues.put(COLUMN_CATEGORY, category);
 
         // Обновляем запись, где день и старое имя совпадают
         int result = db.update(

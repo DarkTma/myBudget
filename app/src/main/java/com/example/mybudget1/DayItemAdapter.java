@@ -17,12 +17,14 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -85,6 +87,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         buttonEdit.setOnClickListener(v -> {
             // Получаем текущий элемент
             String itemData = items.get(position);
+            final int[] selectedCategoryId = {0};
             String[] parts = itemData.split("-"); // Разделяем строку
             String itemName = parts[0]; // "Coffee"
             String spentString = parts[1].replace("₽", ""); // "100"
@@ -123,12 +126,36 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             spentParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             inputSpent.setLayoutParams(nameParams);
 
+            FileHelper fileHelper = new FileHelper(context);
+            List<String> categories = fileHelper.readCategoriesFromFile(); // Чтение категорий
+            Spinner categorySpinner = new Spinner(context);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            categorySpinner.setAdapter(adapter);
+
+            // Устанавливаем дефолтную категорию
+            categorySpinner.setSelection(categories.indexOf("other"));
+
+            // Обработчик выбора категории
+            categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    // Сохраняем выбранную категорию
+                    selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {
+                }
+            });
+
             // Контейнер для `EditText`
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.setPadding(50, 20, 50, 20);
             layout.addView(inputName);
             layout.addView(inputSpent);
+            layout.addView(categorySpinner);
 
             builder.setView(layout);
 
@@ -147,7 +174,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                 DatabaseHelper databaseHelper = new DatabaseHelper(context);
                 DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                 int currentMonthOffset = ((MainActivity) context).getoffset();
-                databaseHelper.updateData(itemName, currentDay, newName, newSpent , currentMonthOffset);
+                databaseHelper.updateData(itemName, currentDay, newName, newSpent , currentMonthOffset , selectedCategoryId[0]);
 
                 // Обновляем данные в списке и уведомляем адаптер
                 String end = "-false";

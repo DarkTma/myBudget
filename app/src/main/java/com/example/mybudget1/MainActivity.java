@@ -306,12 +306,6 @@ private void showWeekStats(MainActivity mainActivity) {
         checkBoxParams.setMargins(0, 20, 0, 20); // Устанавливаем отступы
         checkBox.setLayoutParams(checkBoxParams);
 
-        // Создаем TextView для надписи "Вы можете выбрать день"
-        TextView selectDayHint = new TextView(this);
-        selectDayHint.setText("Вы можете выбрать день");
-        selectDayHint.setTextSize(12);  // Маленький размер шрифта
-        selectDayHint.setTextColor(ContextCompat.getColor(this, android.R.color.white));  // Белый цвет
-        selectDayHint.setPadding(0, 10, 0, 10); // Добавляем отступ сверху и снизу
 
         // Выбор дня (календарь)
         final TextView dayTextView = new TextView(this);
@@ -394,7 +388,6 @@ private void showWeekStats(MainActivity mainActivity) {
         // Размещаем элементы в LinearLayout
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.addView(selectDayHint); // Добавляем текст "Вы можете выбрать день"
         layout.addView(name);
         layout.addView(spent);
         layout.addView(dayTextView); // Добавляем TextView с календарем
