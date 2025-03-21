@@ -114,12 +114,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        otherSettings = findViewById(R.id.otherbtn);
-        otherSettings.setOnClickListener(v -> goToSettings());
-
-        weekStats = findViewById(R.id.weekStats);
-        weekStats.setOnClickListener(v -> showWeekStats(this));
-
         btnBack = findViewById(R.id.buttonBack);
         btnBack.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(MainActivity.this, StartActivity.class);
@@ -173,71 +167,6 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setCurrentItem(0, false);
         selectedDayText.setText("День 1");
     }
-
-@SuppressLint("SetTextI18n")
-private void showWeekStats(MainActivity mainActivity) {
-    TextView customTitle = new TextView(this);
-    customTitle.setText("Статистика недели");
-    customTitle.setTextSize(20);
-    customTitle.setTextColor(ContextCompat.getColor(this, R.color.my_green));
-    customTitle.setPadding(0, 20, 0, 20);
-    customTitle.setGravity(Gravity.CENTER);
-
-    TextView doneStatsText = new TextView(this);
-    doneStatsText.setTextSize(16);
-    doneStatsText.setTextColor(ContextCompat.getColor(this, R.color.my_cyan));
-    doneStatsText.setPadding(0, 10, 0, 10);
-    doneStatsText.setGravity(Gravity.START);
-
-    LinearLayout.LayoutParams donestats = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    donestats.setMargins(50, 10, 0, 20); // Устанавливаем отступы
-    doneStatsText.setLayoutParams(donestats);
-
-    TextView notDoneStatsText = new TextView(this);
-    notDoneStatsText.setTextSize(16);
-    notDoneStatsText.setTextColor(ContextCompat.getColor(this, R.color.my_red));
-    notDoneStatsText.setPadding(0, 10, 0, 10);
-    notDoneStatsText.setGravity(Gravity.START);
-
-    LinearLayout.LayoutParams notdonestats = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-    );
-    notdonestats.setMargins(50, 10, 0, 20); // Устанавливаем отступы
-    notDoneStatsText.setLayoutParams(notdonestats);
-
-    // Добавляем кастомизированный LinearLayout
-    LinearLayout layout = new LinearLayout(this);
-    layout.setOrientation(LinearLayout.VERTICAL);
-    layout.setPadding(20, 20, 20, 20);
-    layout.addView(customTitle);
-    layout.addView(doneStatsText);
-    layout.addView(notDoneStatsText);
-
-
-    doneStatsText.setText("выполненые траты: " + setStatsText(true));
-    notDoneStatsText.setText("невыполненые траты: " + setStatsText(false));
-
-    // Создаём кастомный AlertDialog
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-    // Добавляем в диалог кастомное содержимое
-    builder.setView(layout);
-    builder.setCancelable(true); // Диалог можно закрыть по нажатию вне
-
-    // Добавляем кнопки
-    SpannableString positiveButtonText = new SpannableString("закрыть");
-    positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_green)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    builder.setPositiveButton(positiveButtonText, (dialog, which) -> dialog.dismiss());
-
-    // Создаём и показываем AlertDialog
-    AlertDialog dialog = builder.create();
-    dialog.getWindow().setBackgroundDrawableResource(R.drawable.btn_light_green); // Устанавливаем фон
-    dialog.show();
-}
 
     private String setStatsText(boolean donetext) {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
@@ -309,7 +238,7 @@ private void showWeekStats(MainActivity mainActivity) {
 
         // Выбор дня (календарь)
         final TextView dayTextView = new TextView(this);
-        dayTextView.setText("Выберите день: " + selectedDay);  // Изначально показываем выбранный день
+        dayTextView.setText("день: " + selectedDay);  // Изначально показываем выбранный день
         dayTextView.setPadding(0, 20, 0, 20);
         dayTextView.setTextColor(ContextCompat.getColor(this, R.color.my_cyan));
         dayTextView.setTextSize(18);
@@ -364,15 +293,22 @@ private void showWeekStats(MainActivity mainActivity) {
         // Загрузим категории из файла
         FileHelper fileHelper = new FileHelper(this);
         List<String> categories = fileHelper.readCategoriesFromFile(); // Чтение категорий
+
+// Создаем кастомный Spinner с нашим стилем
         Spinner categorySpinner = new Spinner(this);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categorySpinner.setAdapter(adapter);
 
-        // Устанавливаем дефолтную категорию
-        categorySpinner.setSelection(categories.indexOf("other"));
+// Применяем стиль для спиннера
+        categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background); // фоновое изображение для выпадающего списка
+        categorySpinner.setSelection(categories.indexOf("other")); // Устанавливаем дефолтную категорию
 
-        // Обработчик выбора категории
+// Устанавливаем кастомный стиль для спиннера
+        categorySpinner.setBackgroundResource(R.drawable.spinner_background);
+        categorySpinner.setDropDownVerticalOffset(10); // Отступ вниз для выпадающего списка
+
+// Обработчик выбора категории
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
@@ -385,13 +321,15 @@ private void showWeekStats(MainActivity mainActivity) {
             }
         });
 
+
         // Размещаем элементы в LinearLayout
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.addView(name);
         layout.addView(spent);
-        layout.addView(dayTextView); // Добавляем TextView с календарем
-        layout.addView(categorySpinner); // Добавляем Spinner с категориями
+        layout.addView(dayTextView);
+        layout.addView(categorySpinner);
+        layout.addView(checkBox);
 
         // Создаём AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);

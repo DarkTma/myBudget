@@ -23,4 +23,20 @@
     <style name="MyDialogTheme" parent="Theme.MaterialComponents.Light.Dialog.Alert">
         <item name="android:buttonStyle">@drawable/btn_light_blue</item> <!-- Применяем стиль кнопки -->
     </style>
+
+
+    <style name="CustomSpinnerStyle">
+        <item name="android:background">@drawable/spinner_background</item> <!-- добавим фон -->
+        <item name="android:textColor">@color/white</item> <!-- текст белый -->
+        <item name="android:textSize">18sp</item> <!-- размер текста -->
+        <item name="android:padding">10dp</item> <!-- отступы -->
+    </style>
+
+    <style name="CustomSpinnerDropDownStyle">
+        <item name="android:background">@android:color/white</item> <!-- фон для выпадающего списка -->
+        <item name="android:textColor">@color/black</item> <!-- цвет текста -->
+        <item name="android:textSize">16sp</item> <!-- размер текста в выпадающем списке -->
+    </style>
+
+
 </resources>

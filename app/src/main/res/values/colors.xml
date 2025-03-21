@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="my_darkbg">#0f0f0f</color>
-    <color name="my_darkw">#353535</color>
-    <color name="my_darkl">#202020</color>
+    <color name="white">#E0E0E0</color>
+    <color name="my_darkbg">#1E1E1E</color>
+    <color name="my_darkw">#1B1B1B</color>
+    <color name="my_darkl">#353535</color>
     <color name="my_green">#1EFF00</color>
     <color name="my_red">#FF0000</color>
     <color name="my_cyan">#00FF82</color>
     <color name="my_blue">#0000FF</color>
     <color name="my_orange">#FF5500</color>
+
+    <style name="DarkListStyle">
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="android:divider">?attr/colorOnSurface</item>
+        <item name="android:dividerHeight">1dp</item>
+    </style>
+
+    <color name="list_item_background">#181818</color> <!-- Темный серый -->
+    <color name="list_background">#121212</color> <!-- Основной темный фон -->
+    <color name="text_primary">#E0E0E0</color> <!-- Белый текст -->
+    <color name="text_secondary">#B0B0B0</color> <!-- Серый текст -->
+    <color name="divider">#292929</color> <!-- Разделительная линия -->
+
+
 </resources>

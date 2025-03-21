@@ -44,7 +44,7 @@ public class StartActivity extends AppCompatActivity {
     private boolean isExpanded = false;
     private Button btnIncome;
     private TextView spentText;
-    public Button incomeText;
+    public TextView incomeText;
     public Button monthlySpents;
     public Button lastMonths;
     public TextView budgetText;
@@ -116,15 +116,11 @@ public class StartActivity extends AppCompatActivity {
         spentText.setText("расход: " + spent);
         int income = databaseIncome.getIncome();
         if (income == 0){
-            incomeText.setText("доход: не указан \n нажмите чтоб указать");
-            incomeText.setTextColor(Color.RED);
+            incomeText.setText("доход: ?");
         } else {
             incomeText.setText("доход: " + income);
             if (income < spent){
-                incomeText.setText("доход: " + income + "\n ваш доход превышивает траты");
                 incomeText.setTextColor(Color.RED);
-            }else {
-                incomeText.setTextColor(Color.GREEN);
             }
         }
 

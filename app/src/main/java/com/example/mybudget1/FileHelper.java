@@ -43,6 +43,56 @@ public class FileHelper {
         return categories;
     }
 
+    public List<CategoryItem> getCategoriesWithPrices(int i) {
+        List<CategoryItem> categories = new ArrayList<>();
+        DatabaseHelper databaseHelper = new DatabaseHelper(context); // Создаём экземпляр DatabaseHelper
+        try {
+            FileInputStream fis = context.openFileInput(FILE_NAME);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+            String line;
+            int id = 0; // Условный ID для категорий
+
+            while ((line = reader.readLine()) != null) {
+                String[] categoryArray = line.split("-");
+                for (String category : categoryArray) {
+                    if (!category.isEmpty()) {
+                        int price = databaseHelper.getAllExpenseByCategory(id , i);
+                        categories.add(new CategoryItem(id, category, price));
+                        id++;
+                    }
+                }
+            }
+            reader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            createDefaultCategoriesFile();
+            categories.add(new CategoryItem(0, "other", 0));
+        }
+        return categories;
+    }
+
+    public boolean updateCategoryName(int categoryId, String newCategoryName) {
+        List<String> categories = readCategoriesFromFile();
+        if (categoryId >= 0 && categoryId < categories.size()) {
+            // Обновляем название категории
+            categories.set(categoryId, newCategoryName);
+
+            try {
+                // Перезаписываем файл с обновленными категориями
+                FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+                for (String category : categories) {
+                    writer.write(category + "-");
+                }
+                writer.close();
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
     // Добавление новой категории в файл
     public void addCategoryToFile(String newCategory) {
         try {

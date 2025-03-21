@@ -61,6 +61,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public void updateExpenseCategory(int expenseId, int newCategoryId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Получаем список всех таблиц, соответствующих шаблону "month_%"
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'month_%' AND name NOT LIKE '%_income' AND name NOT LIKE '%_spent' ORDER BY name DESC", null);
+
+        // Проходим по каждой таблице и обновляем записи
+        while (cursor.moveToNext()) {
+            String tableName = cursor.getString(0);  // Имя таблицы, например, month_2025_3
+
+            // Создаем объект ContentValues для обновления данных
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_CATEGORY, newCategoryId);  // Устанавливаем новую категорию
+
+            // Обновляем все записи в таблице, у которых ID расхода соответствует expenseId
+            int rowsAffected = db.update(tableName, values, COLUMN_CATEGORY + " = ?", new String[]{String.valueOf(expenseId)});
+
+            if (rowsAffected > 0) {
+                Log.d("SQLite", "Категория расхода с ID " + expenseId + " успешно обновлена в таблице " + tableName);
+            } else {
+                Log.d("SQLite", "Не удалось обновить категорию расхода с ID " + expenseId + " в таблице " + tableName);
+            }
+        }
+
+        // Закрываем курсор после обработки
+        cursor.close();
+
+        db.close();
+    }
+
+
     private void updateMonthTables(SQLiteDatabase db) {
         db.beginTransaction(); // Начинаем транзакцию
         try {
@@ -99,31 +130,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.endTransaction(); // Закрываем транзакцию
         }
     }
-
-//    public List<String> readCategoriesFromFile(Context context) {
-//        List<String> categories = new ArrayList<>();
-//        try {
-//            // Попытка открыть файл для чтения
-//            FileInputStream fis = context.openFileInput("categories.txt");
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
-//            String line;
-//
-//            // Чтение всех категорий из файла
-//            while ((line = reader.readLine()) != null) {
-//                String[] categoryArray = line.split("-");
-//                for (String category : categoryArray) {
-//                    if (!category.isEmpty()) {
-//                        categories.add(category);  // Добавляем категорию, если она не пустая
-//                    }
-//                }
-//            }
-//            reader.close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            createDefaultCategoriesFile(context);
-//        }
-//        return categories;
-//    }
 
     private void createDefaultCategoriesFile(Context context) {
         try {
@@ -189,6 +195,67 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return expenseDataList;
     }
+
+    public int getAllExpenseByCategory(int categoryId, int i) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int sum = 0;
+
+        // Строим запрос в зависимости от значения i
+        if (i == 3) {
+            // Если i = 3, выбираем все таблицы с префиксом 'month_'
+            String querytable = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'month_%' AND name NOT LIKE '%_income' AND name NOT LIKE '%_spent' ORDER BY name DESC";
+            Cursor cursor = db.rawQuery(querytable, null);
+            while (cursor.moveToNext()) {
+                String tableName = cursor.getString(0);
+
+                // Строим запрос для получения расходов для данной категории
+                String query = "SELECT * FROM " + tableName + " WHERE " + COLUMN_CATEGORY + " = ?";
+                Cursor expenseCursor = db.rawQuery(query, new String[]{String.valueOf(categoryId)});
+
+                // Обрабатываем результаты запроса
+                while (expenseCursor.moveToNext()) {
+                    double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
+                    sum += expenseAmount;
+                }
+                expenseCursor.close();
+            }
+            cursor.close();
+        } else if (i == 2) {
+            // Если i = 2, выбираем таблицы с именами 'currentmonth' и 'prevmonth'
+            String queryCurrent = "SELECT * FROM " + currentMonthTable + " WHERE " + COLUMN_CATEGORY + " = ?";
+            Cursor expenseCursorCurrent = db.rawQuery(queryCurrent, new String[]{String.valueOf(categoryId)});
+
+            // Обрабатываем результаты запроса
+            while (expenseCursorCurrent.moveToNext()) {
+                double expenseAmount = expenseCursorCurrent.getDouble(expenseCursorCurrent.getColumnIndexOrThrow("spent"));
+                sum += expenseAmount;
+            }
+            expenseCursorCurrent.close();
+
+            String queryPrev = "SELECT * FROM " + prevMonthTable + " WHERE " + COLUMN_CATEGORY + " = ?";
+            Cursor expenseCursorPrev = db.rawQuery(queryPrev, new String[]{String.valueOf(categoryId)});
+
+            // Обрабатываем результаты запроса
+            while (expenseCursorPrev.moveToNext()) {
+                double expenseAmount = expenseCursorPrev.getDouble(expenseCursorPrev.getColumnIndexOrThrow("spent"));
+                sum += expenseAmount;
+            }
+            expenseCursorPrev.close();
+        } else if (i == 1) {
+            // Если i = 1, выбираем только таблицу 'currentmonth'
+            String query = "SELECT * FROM " + currentMonthTable + " WHERE " + COLUMN_CATEGORY + " = ?";
+            Cursor expenseCursor = db.rawQuery(query, new String[]{String.valueOf(categoryId)});
+
+            // Обрабатываем результаты запроса
+            while (expenseCursor.moveToNext()) {
+                double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
+                sum += expenseAmount;
+            }
+            expenseCursor.close();
+        }
+        return sum;
+    }
+
 
 
     // Метод для получения общего дохода для месяца

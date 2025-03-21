@@ -10,134 +10,133 @@
         android:layout_height="match_parent"
         android:fillViewport="true">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <!-- Кнопка для открытия меню -->
-    <Button
-        android:id="@+id/btnOpenMenu"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:text="Меню"
-        android:textSize="10sp"
-        android:background="@drawable/btn_light_blue"
-        android:textColor="@android:color/white" />
-
-
-        <!-- Контейнер для доходов и расходов -->
-
-        <TextView
-            android:id="@+id/tvBudget"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@id/btnOpenMenu"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="9dp"
-            android:layout_marginBottom="8dp"
-            android:gravity="center"
-            android:text="dsafdds"
-            android:textColor="@color/white"
-            android:textSize="24sp" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
+            <!-- Кнопка для открытия меню -->
+            <Button
+                android:id="@+id/btnOpenMenu"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:text="☰"
+                android:textSize="20sp"
+                android:background="@drawable/btn_light_blue"
+                android:textColor="@android:color/white" />
 
-        <LinearLayout
-        android:id="@+id/statsContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_below="@id/btnOpenMenu"
-        android:layout_marginTop="10dp"
-        android:padding="10dp">
+            <!-- Контейнер для доходов и расходов -->
 
-        <Button
-            android:id="@+id/tvIncome"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Доход: 0"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:gravity="center"
-            android:background="@android:color/transparent"
-            android:focusable="false"
-            android:clickable="true"/>
+            <TextView
+                android:id="@+id/tvBudget"
+                android:layout_width="252dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/btnOpenMenu"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="1dp"
+                android:layout_marginEnd="-3dp"
+                android:layout_toStartOf="@+id/statsContainer"
+                android:gravity="start"
+                android:text="dsafdd"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
 
-        <TextView
-            android:id="@+id/tvSpent"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Расход: 0"
-            android:textSize="18sp"
-            android:textColor="@android:color/white"
-            android:gravity="center"/>
-    </LinearLayout>
+            <LinearLayout
+                android:id="@+id/statsContainer"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="16dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                android:padding="10dp">
 
-    <LinearLayout
-        android:id="@+id/buttonContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_below="@id/statsContainer"
-        android:layout_marginTop="10dp"
-        android:padding="8dp">
+                <TextView
+                    android:id="@+id/tvIncome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:clickable="true"
+                    android:focusable="false"
+                    android:gravity="center"
+                    android:text="Доход: 0"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
 
-        <Button
-            android:id="@+id/btnIncomeList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="быстрый список доходов"
-            android:background="@drawable/button_selector_blue"
-            android:textColor="@android:color/white"
-            android:padding="10dp"/>
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/tvSpent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Расход: 0"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
+            </LinearLayout>
 
-    <!-- ListView для элементов -->
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
-        android:layout_height="198dp"
-        android:layout_below="@id/buttonContainer"
-        android:background="@drawable/btn_light_blue"
-        android:divider="@android:color/holo_blue_dark"
-        android:dividerHeight="1dp"
-        android:padding="8dp" />
+            <LinearLayout
+                android:id="@+id/buttonContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_below="@id/statsContainer"
+                android:layout_marginTop="10dp"
+                android:padding="8dp">
 
-    <!-- Кнопка для расширения списка -->
-    <Button
-        android:id="@+id/btnExpandList"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Расширить список"
-        android:background="@drawable/button_selector_blue"
-        android:textSize="8dp"
-        android:textColor="@color/white"
-        android:padding="10dp"
-        android:layout_below="@id/listView"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"/>
+                <Button
+                    android:id="@+id/btnIncomeList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="быстрый список доходов"
+                    android:background="@drawable/button_selector_blue"
+                    android:textColor="@android:color/white"
+                    android:padding="10dp"/>
+            </LinearLayout>
 
-    <TextView
-        android:id="@+id/textpodskazka"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/btnExpandList"
-        android:layout_alignParentStart="true"
-        android:visibility="gone"
-        android:layout_alignParentEnd="true"
-        android:layout_marginStart="107dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="104dp"
-        android:layout_marginBottom="213dp"
-        android:text="нажмите на день чтоб получить
-        подробности или данные любово дня текушего месяца"
-        android:textColor="@color/white"
-        android:textSize="8dp" />
+            <!-- ListView для элементов -->
+            <ListView
+                android:id="@+id/listView"
+                android:layout_width="match_parent"
+                android:layout_height="198dp"
+                android:layout_below="@id/buttonContainer"
+                android:background="@drawable/list_item_background"
+                android:divider="@android:color/holo_blue_dark"
+                android:dividerHeight="1dp"
+                android:padding="8dp" />
 
-    </RelativeLayout>
+            <!-- Кнопка для расширения списка -->
+            <Button
+                android:id="@+id/btnExpandList"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Расширить список"
+                android:background="@drawable/button_selector_blue"
+                android:textSize="8dp"
+                android:textColor="@color/white"
+                android:padding="10dp"
+                android:layout_below="@id/listView"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"/>
+
+            <TextView
+                android:id="@+id/textpodskazka"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/btnExpandList"
+                android:layout_alignParentStart="true"
+                android:visibility="gone"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="107dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="104dp"
+                android:layout_marginBottom="213dp"
+                android:text="нажмите на день чтоб получить подробности или данные любого дня текущего месяца"
+                android:textColor="@color/white"
+                android:textSize="8dp" />
+
+        </RelativeLayout>
     </ScrollView>
 
     <FrameLayout
@@ -146,8 +145,7 @@
         android:layout_height="match_parent"
         android:visibility="gone"
         android:background="#99000000"
-         android:clickable="true"/>
-
+        android:clickable="true"/>
 
     <!-- Меню -->
     <LinearLayout
@@ -184,7 +182,7 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="прошлий месяц"
+            android:text="прошлый месяц"
             android:background="@drawable/btn_light_green"
             android:textColor="@android:color/white"
             android:layout_marginVertical="20dp"/>
@@ -209,7 +207,6 @@
             android:textColor="@android:color/white"
             android:layout_marginVertical="20dp"/>
 
-
         <Button
             android:id="@+id/btnCloseMenu"
             android:layout_width="match_parent"
@@ -219,6 +216,4 @@
             android:textColor="@android:color/white"/>
     </LinearLayout>
 
-
 </RelativeLayout>
-

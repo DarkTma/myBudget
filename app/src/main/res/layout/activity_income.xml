@@ -33,7 +33,7 @@
         android:layout_height="472dp"
         android:layout_below="@id/tvIncomeTitle"
         android:layout_marginTop="10dp"
-        android:background="@drawable/btn_light_blue"
+        android:background="@drawable/list_item_background"
         android:divider="@android:color/holo_blue_dark"
         android:dividerHeight="1dp"
         android:padding="8dp" />

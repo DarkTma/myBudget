@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/my_darkbg"
     android:padding="16dp">
 
     <ImageButton
@@ -17,6 +18,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewMonthDetails"
         android:layout_width="match_parent"
+        android:background="@drawable/list_item_background"
         android:layout_height="match_parent" />
 
 

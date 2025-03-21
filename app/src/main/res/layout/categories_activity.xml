@@ -15,23 +15,36 @@
         android:scaleType="centerInside"
         android:src="@drawable/arrow" />
 
+    <!-- Добавление Spinner для выбора месяца -->
+
     <TextView
         android:id="@+id/tvCategoriesTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@id/buttonBackFromCategories"
+        android:layout_marginTop="72dp"
         android:text="Список категорий"
-        android:textSize="20sp"
-        android:textStyle="bold"
         android:textColor="@android:color/white"
-        android:layout_centerHorizontal="true"/>
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/monthSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvCategoriesTitle"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="65dp"
+        android:background="@drawable/spinner_background"
+        android:padding="8dp" />
 
     <ListView
         android:id="@+id/listViewCategories"
         android:layout_width="match_parent"
         android:layout_height="472dp"
-        android:layout_below="@id/tvCategoriesTitle"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/btn_light_blue"
+        android:layout_below="@+id/tvCategoriesTitle"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/list_item_background"
         android:divider="@android:color/holo_blue_dark"
         android:dividerHeight="1dp"
         android:padding="8dp" />
@@ -45,4 +58,5 @@
         android:textColor="@android:color/white"
         android:layout_below="@id/listViewCategories"
         android:layout_marginTop="20dp"/>
+
 </RelativeLayout>
