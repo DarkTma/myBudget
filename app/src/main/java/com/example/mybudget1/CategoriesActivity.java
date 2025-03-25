@@ -62,7 +62,7 @@ public class CategoriesActivity extends AppCompatActivity {
                         selectedMonthOption = "current"; // Текущий месяц
                         break;
                     case 1:
-                        selectedMonthOption = "both"; // Текущий и прошлый
+                        selectedMonthOption = "last 2"; // Текущий и прошлый
                         break;
                     case 2:
                         selectedMonthOption = "all"; // Все месяцы
@@ -90,7 +90,7 @@ public class CategoriesActivity extends AppCompatActivity {
             case "current":
                 categoryItems = fileHelper.getCategoriesWithPrices(1);
                 break;
-            case "both":
+            case "last 2":
                 categoryItems = fileHelper.getCategoriesWithPrices(2);
                 break;
             case "all":

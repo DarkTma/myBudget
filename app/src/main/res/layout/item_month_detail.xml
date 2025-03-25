@@ -4,8 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="10dp"
-    android:layout_marginHorizontal="10dp"
-    android:background="@drawable/btn_light_red">
+    android:layout_marginHorizontal="10dp">
 
     <TextView
         android:layout_marginStart="8dp"

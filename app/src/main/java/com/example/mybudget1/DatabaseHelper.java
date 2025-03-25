@@ -460,7 +460,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         namePred = name + "(" + (count - 1) + ")";
                         waschanged = true;
                     }else {
-                        count = 1;
+                        count = 2;
                         newName = name + "(" + count + ")";
                     }
 
@@ -762,35 +762,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-//    public List<MonthDetailData> getMonthDetailData(SQLiteDatabase db, String MonthTable) {
-//        List<MonthDetailData> monthDetailDataList = new ArrayList<>();
-//
-//        // Извлекаем доходы для выбранного месяца
-//        String incomeQuery = "SELECT * FROM " + MonthTable + "_income";
-//        Cursor incomeCursor = db.rawQuery(incomeQuery, null);
-//
-//        while (incomeCursor.moveToNext()) {
-//            String name = incomeCursor.getString(incomeCursor.getColumnIndexOrThrow("name"));
-//            int income = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("income"));
-//            int day = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("day"));
-//            monthDetailDataList.add(new MonthDetailData("Income", name, income, day));
-//        }
-//        incomeCursor.close();
-//
-//        // Извлекаем расходы для выбранного месяца
-//        String spentQuery = "SELECT * FROM " + MonthTable + "_spent";
-//        Cursor spentCursor = db.rawQuery(spentQuery, null);
-//
-//        while (spentCursor.moveToNext()) {
-//            String name = spentCursor.getString(spentCursor.getColumnIndexOrThrow("name"));
-//            int spent = spentCursor.getInt(spentCursor.getColumnIndexOrThrow("spent"));
-//            int day = spentCursor.getInt(spentCursor.getColumnIndexOrThrow("day"));
-//            monthDetailDataList.add(new MonthDetailData("Spent", name, spent, day));
-//        }
-//        spentCursor.close();
-//
-//        return monthDetailDataList;
-//    }
+
 
     public List<MonthDetailData> getMonthDetailData(SQLiteDatabase db, String monthTable) {
         List<MonthDetailData> detailList = new ArrayList<>();
