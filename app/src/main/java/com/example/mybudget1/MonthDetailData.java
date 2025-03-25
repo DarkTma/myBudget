@@ -5,12 +5,14 @@ public class MonthDetailData {
     private String name;  // Имя категории
     private int amount;   // Сумма (доход или расход)
     private int day;      // День месяца
+    private String category;
 
-    public MonthDetailData(String type, String name, int amount, int day) {
+    public MonthDetailData(String type, String name, int amount, int day , String category) {
         this.type = type;
         this.name = name;
         this.amount = amount;
         this.day = day;
+        this.category = category;
     }
 
     // Геттеры и сеттеры
@@ -29,5 +31,7 @@ public class MonthDetailData {
     public int getDay() {
         return day;
     }
+
+    public  String getCategory(){ return category; }
 }
 

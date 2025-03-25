@@ -178,7 +178,7 @@ public class SpentActivity extends AppCompatActivity {
         if (income != null && income.moveToFirst()) {
             do {
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
-                int spentNum = income.getInt(income.getColumnIndexOrThrow("spent"));
+                int spentNum = income.getInt(income.getColumnIndexOrThrow("monthly_spent"));
                 String date = income.getString(income.getColumnIndexOrThrow("spentday"));
                 spentList.add(new SpentItem(name, spentNum, date));
             } while (income.moveToNext());

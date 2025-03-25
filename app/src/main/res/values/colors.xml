@@ -23,5 +23,9 @@
     <color name="text_secondary">#B0B0B0</color> <!-- Серый текст -->
     <color name="divider">#292929</color> <!-- Разделительная линия -->
 
+    <color name="gray">#CCCCCC</color>
+    <color name="green">#4CAF50</color>
+    <color name="yellow">#FFD700</color>
+
 
 </resources>

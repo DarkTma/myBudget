@@ -43,6 +43,17 @@ public class FileHelper {
         return categories;
     }
 
+    public static String getCategoryById(Context context, int categoryId) {
+        FileHelper fileHelper = new FileHelper(context);
+        List<String> categories = fileHelper.readCategoriesFromFile();
+
+        if (categoryId >= 0 && categoryId < categories.size()) {
+            return categories.get(categoryId);
+        }
+        return "Неизвестная категория"; // Если ID не найден
+    }
+
+
     public List<CategoryItem> getCategoriesWithPrices(int i) {
         List<CategoryItem> categories = new ArrayList<>();
         DatabaseHelper databaseHelper = new DatabaseHelper(context); // Создаём экземпляр DatabaseHelper

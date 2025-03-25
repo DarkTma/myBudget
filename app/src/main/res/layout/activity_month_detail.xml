@@ -15,6 +15,17 @@
         android:scaleType="centerInside"
         android:src="@drawable/arrow" />
 
+    <EditText
+        android:id="@+id/searchInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Поиск"
+        android:padding="8dp"
+        android:background="@drawable/edit_text_style"
+        android:drawableLeft="@android:drawable/ic_menu_search"
+        android:inputType="text" />
+
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewMonthDetails"
         android:layout_width="match_parent"

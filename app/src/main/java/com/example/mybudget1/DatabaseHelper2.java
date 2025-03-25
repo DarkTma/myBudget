@@ -29,7 +29,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_SPENTDAY = "spentday";
     private static final String COLUMN_DONE = "isdone";
-    private static final String COLUMN_SPENT = "spent";
+    private static final String COLUMN_SPENT = "monthly_spent";
     private static final String COLUMN_INCOME = "income";
     private static final String COLUMN_INCOMEDAY = "incomeday";
     private static final String COLUMN_ONCEINCOME = "onceincome";

@@ -43,6 +43,7 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
         holder.name.setText(data.getName());
         holder.amount.setText("сумма: " + data.getAmount());
         holder.day.setText("День: " + data.getDay());
+        holder.category.setText(data.getCategory());
     }
 
     @Override
@@ -51,7 +52,7 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
     }
 
     public static class MonthDetailViewHolder extends RecyclerView.ViewHolder {
-        TextView type, name, amount, day;
+        TextView type, name, amount, day , category;
 
         public MonthDetailViewHolder(View itemView) {
             super(itemView);
@@ -59,6 +60,7 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
             name = itemView.findViewById(R.id.name);
             amount = itemView.findViewById(R.id.amount);
             day = itemView.findViewById(R.id.day);
+            category = itemView.findViewById(R.id.category);
         }
     }
 }

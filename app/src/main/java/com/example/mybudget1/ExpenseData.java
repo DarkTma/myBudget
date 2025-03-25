@@ -33,7 +33,7 @@ public class ExpenseData {
         this.amount = amount;
     }
 
-    public String getdate() {
+    public String getDate() {
         return date;
     }
 

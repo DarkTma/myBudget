@@ -20,7 +20,7 @@
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Category"
+        android:text="name"
         android:textSize="14sp" />
 
     <TextView
@@ -37,6 +37,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Day: 1"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_marginStart="8dp"
+        android:id="@+id/category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category: 1"
         android:textSize="14sp" />
 
 </LinearLayout>

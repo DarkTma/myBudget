@@ -38,12 +38,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_DONE = "isdone";
     private static final String COLUMN_SPENT = "spent";
 
+    private Context context; // Добавляем поле
+
     private List<String> categories;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         updateMonthTables();
-//        categories = readCategoriesFromFile(context);
+        this.context = context;
     }
 
     @Override
@@ -269,7 +271,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Метод для получения общих расходов для месяца
     private double getTotalSpentForMonth(SQLiteDatabase db, String tableName) {
-        Cursor cursor = db.rawQuery("SELECT SUM(spent) FROM " + tableName + "_spent", null);
+        Cursor cursor = db.rawQuery("SELECT SUM(monthly_spent) FROM " + tableName + "_spent", null);
         cursor.moveToFirst();
         double totalSpent = cursor.getDouble(0);
         cursor.close();
@@ -682,7 +684,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createSpentTableQuery = "CREATE TABLE IF NOT EXISTS " + prevMonthTable + "_spent (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT, " +
-                "spent INTEGER, " +
+                "monthly_spent INTEGER, " +
                 "day INTEGER)";
         db.execSQL(createSpentTableQuery);
     }
@@ -714,11 +716,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null && cursor.moveToFirst()) {
             do {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                int spent = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                int spent = cursor.getInt(cursor.getColumnIndexOrThrow("monthly_spent"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("spentday"));
 
                 // Вставляем данные в таблицу prevMonth_spent
-                String insertSpentQuery = "INSERT INTO " + prevMonthTable + "_spent (name, spent, day) VALUES (?, ?, ?)";
+                String insertSpentQuery = "INSERT INTO " + prevMonthTable + "_spent (name, monthly_spent, day) VALUES (?, ?, ?)";
                 db.execSQL(insertSpentQuery, new Object[]{name, spent, day});
 
             } while (cursor.moveToNext());
@@ -776,21 +778,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                 int amount = cursor.getInt(cursor.getColumnIndexOrThrow("income"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
-                detailList.add(new MonthDetailData("Income", name, amount, day));
+                detailList.add(new MonthDetailData("Income", name, amount, day , "доход"));
             } while (cursor.moveToNext());
         }
         cursor.close();
 
         // Запрос для расходов
-        String spentQuery = "SELECT name, spent, day FROM " + monthTable + "_spent ORDER BY day ASC";
+        String spentQuery = "SELECT name, monthly_spent , day FROM " + monthTable + "_spent ORDER BY day ASC";
         cursor = db.rawQuery(spentQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                int amount = cursor.getInt(cursor.getColumnIndexOrThrow("monthly_spent"));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+                detailList.add(new MonthDetailData("Spent", name, amount, day , "ежемесечная трата"));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        String spentdaysQuery = "SELECT name , spent , day , category_id FROM " + monthTable + " ORDER BY day ASC";
+        cursor = db.rawQuery(spentdaysQuery, null);
 
         if (cursor.moveToFirst()) {
             do {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                 int amount = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
-                detailList.add(new MonthDetailData("Spent", name, amount, day));
+                int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
+                String categoryName = FileHelper.getCategoryById(context , category_id);
+                detailList.add(new MonthDetailData("Spent", name, amount, day , categoryName));
             } while (cursor.moveToNext());
         }
         cursor.close();
