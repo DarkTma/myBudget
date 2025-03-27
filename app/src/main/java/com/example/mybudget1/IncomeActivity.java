@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,18 +80,18 @@ public class IncomeActivity extends AppCompatActivity {
             incomeParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             income.setLayoutParams(nameParams);
 
-            EditText day = new EditText(this);
-            day.setInputType(InputType.TYPE_CLASS_NUMBER);
-            day.setHint("день получение(по умлч 1 число)");
-            day.setPadding(0, 30, 0, 10); // Добавляем больше отступов
-            day.setBackgroundResource(R.drawable.edit_text_style);
+            NumberPicker day = new NumberPicker(this);
+            day.setMinValue(1);
+            day.setMaxValue(31);
+            day.setWrapSelectorWheel(true); // Цикличная прокрутка
 
             LinearLayout.LayoutParams dayParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
             dayParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
-            day.setLayoutParams(nameParams);
+            day.setLayoutParams(dayParams);
+
 
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText("ежемесячный доход?");
@@ -123,53 +124,33 @@ public class IncomeActivity extends AppCompatActivity {
             builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"));
             builder.setView(layout)
                     .setPositiveButton(positiveButtonText, (dialog, which) -> {
-                        if (Integer.parseInt(income.getText().toString()) != 0){
-                            String nameText = name.getText().toString();
-                            if (nameText.equals("")){
+                        if (!income.getText().toString().isEmpty() && Integer.parseInt(income.getText().toString()) != 0) {
+                            String nameText = name.getText().toString().trim();
+                            if (nameText.isEmpty()) {
                                 nameText = "доход";
                             }
 
                             int incomeText = Integer.parseInt(income.getText().toString());
 
-                            int dayText;
-                            Calendar calendar = Calendar.getInstance();
-                            int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-                            if (!day.getText().toString().equals("")) {
-                                if (Integer.parseInt(day.getText().toString()) > daysInMonth) {
-                                    Toast.makeText(this, "данного дня нет в  месяце", Toast.LENGTH_SHORT).show();
-                                    dialog.dismiss();
-                                }
-                            }
-                                if (!day.getText().toString().equals("") && !day.getText().toString().matches("0")) {
+                            int dayText = day.getValue();
 
-                                    dayText = Integer.parseInt(day.getText().toString());
-
-                                } else {
-                                    dayText = 1;
-                                }
-
-                                boolean once = true;
-                                if (!checkBox.isChecked()) {
-                                    once = false;
-                                }
-
-                                databaseIncome.setIncome(incomeText, nameText, dayText, once);
-
-                                int today = calendar.get(Calendar.DAY_OF_MONTH);
-                                if (dayText <= today) {
-                                    databaseIncome.addIncome(incomeText);
-                                } else {
-                                    databaseIncome.setIncomeGiven(false, nameText);
-                                }
-
+                            if (dayText > 31) {
+                                Toast.makeText(this, "Можно выбрать до 31-го числа", Toast.LENGTH_SHORT).show();
                                 dialog.dismiss();
+                                return;
+                            }
 
-                                Intent intent = new Intent(IncomeActivity.this, IncomeActivity.class);
-                                startActivity(intent);
+                            boolean once = checkBox.isChecked(); // Обратная логика: если чекбокс НЕ отмечен, то once = false
 
+                            // Записываем в базу
+                            databaseIncome.setIncome(incomeText, nameText, dayText, once);
 
+                            dialog.dismiss();
+
+                            Intent intent = new Intent(IncomeActivity.this, IncomeActivity.class);
+                            startActivity(intent);
                         } else {
-                            Toast.makeText(this, "вы недобавили доход", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Вы не добавили доход", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         }
                     })

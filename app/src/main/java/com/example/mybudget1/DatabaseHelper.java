@@ -223,17 +223,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             cursor.close();
         } else if (i == 2) {
-            // Если i = 2, выбираем таблицы с именами 'currentmonth' и 'prevmonth'
-            String queryCurrent = "SELECT * FROM " + currentMonthTable + " WHERE " + COLUMN_CATEGORY + " = ?";
-            Cursor expenseCursorCurrent = db.rawQuery(queryCurrent, new String[]{String.valueOf(categoryId)});
-
-            // Обрабатываем результаты запроса
-            while (expenseCursorCurrent.moveToNext()) {
-                double expenseAmount = expenseCursorCurrent.getDouble(expenseCursorCurrent.getColumnIndexOrThrow("spent"));
-                sum += expenseAmount;
-            }
-            expenseCursorCurrent.close();
-
             String queryPrev = "SELECT * FROM " + prevMonthTable + " WHERE " + COLUMN_CATEGORY + " = ?";
             Cursor expenseCursorPrev = db.rawQuery(queryPrev, new String[]{String.valueOf(categoryId)});
 
@@ -257,6 +246,56 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return sum;
     }
+
+    public int getAllExpense(int i) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int sum = 0;
+
+        // Строим запрос в зависимости от значения i
+        if (i == 3) {
+            // Если i = 3, выбираем все таблицы с префиксом 'month_'
+            String querytable = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'month_%' AND name NOT LIKE '%_income' AND name NOT LIKE '%_spent' ORDER BY name DESC";
+            Cursor cursor = db.rawQuery(querytable, null);
+            while (cursor.moveToNext()) {
+                String tableName = cursor.getString(0);
+
+                // Строим запрос для получения расходов для этой таблицы
+                String query = "SELECT * FROM " + tableName;
+                Cursor expenseCursor = db.rawQuery(query, null);
+
+                // Обрабатываем результаты запроса
+                while (expenseCursor.moveToNext()) {
+                    int expenseAmount = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("spent"));
+                    sum += expenseAmount;
+                }
+                expenseCursor.close();
+            }
+            cursor.close();
+        } else if (i == 2) {
+            String queryPrev = "SELECT * FROM " + prevMonthTable;
+            Cursor expenseCursorPrev = db.rawQuery(queryPrev, null);
+
+            // Обрабатываем результаты запроса
+            while (expenseCursorPrev.moveToNext()) {
+                int expenseAmount = expenseCursorPrev.getInt(expenseCursorPrev.getColumnIndexOrThrow("spent"));
+                sum += expenseAmount;
+            }
+            expenseCursorPrev.close();
+        } else if (i == 1) {
+            // Если i = 1, выбираем только таблицу 'currentmonth'
+            String query = "SELECT * FROM " + currentMonthTable;
+            Cursor expenseCursor = db.rawQuery(query, null);
+
+            // Обрабатываем результаты запроса
+            while (expenseCursor.moveToNext()) {
+                int expenseAmount = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("spent"));
+                sum += expenseAmount;
+            }
+            expenseCursor.close();
+        }
+        return sum;
+    }
+
 
 
 

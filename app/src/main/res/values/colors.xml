@@ -9,6 +9,7 @@
     <color name="my_red">#FF0000</color>
     <color name="my_cyan">#00FF82</color>
     <color name="my_blue">#0000FF</color>
+    <color name="primary">#0A84FF</color>
     <color name="my_orange">#FF5500</color>
 
     <style name="DarkListStyle">

@@ -41,7 +41,7 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
             holder.day.setTextColor(Color.WHITE);
         }
         holder.name.setText(data.getName());
-        holder.amount.setText("сумма: " + data.getAmount());
+        holder.amount.setText("сумма: " + data.getAmount() + "₽");
         holder.day.setText("День: " + data.getDay());
         holder.category.setText(data.getCategory());
     }

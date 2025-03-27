@@ -16,14 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnNewSpent">
 
-        <!-- ViewPager2 для дней -->
     </FrameLayout>
-
-    <!-- Кнопка сбоку -->
-
-    <!-- Кнопка снизу -->
-
-    <!-- Контейнер для фрагментов -->
 
 
     <TextView
@@ -33,7 +26,8 @@
         android:gravity="center"
         android:text="Сегодня"
         android:textColor="@color/white"
-        android:textSize="18sp"
+        android:textSize="30sp"
+        android:divider="@color/primary"
         app:layout_constraintBottom_toTopOf="@+id/viewPager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -78,6 +72,7 @@
         app:layout_constraintHeight_percent="0.6"
         android:layout_height="0dp"
         android:background="@drawable/list_item_background"
+        android:divider="@color/primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

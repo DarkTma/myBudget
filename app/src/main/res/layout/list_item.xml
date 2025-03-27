@@ -5,8 +5,11 @@
     android:padding="10dp">
 
     <CheckBox
+        android:layout_marginTop="10dp"
         android:id="@+id/isComplete"
         android:layout_width="wrap_content"
+        android:button="@null"
+        android:background="@drawable/checkbox_style"
         android:layout_height="wrap_content" />
 
     <LinearLayout
@@ -64,8 +67,8 @@
         android:id="@+id/buttonEdit"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/imgbtn_edit1"
         android:contentDescription="Edit"
+        android:src="@android:drawable/ic_menu_edit"
         android:background="?android:attr/selectableItemBackground"
         android:layout_gravity="end"
         android:layout_marginEnd="8dp"
@@ -76,8 +79,8 @@
         android:id="@+id/buttonDelete"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/imgbtn_delete"
         android:contentDescription="Delete"
+        android:src="@android:drawable/ic_menu_delete"
         android:background="?android:attr/selectableItemBackground"
         android:layout_marginEnd="8dp"
         android:scaleType="centerInside" />

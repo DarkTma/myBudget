@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,7 +48,7 @@ public class SpentActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.buttonBackFromSpents);
         btnAddSpent = findViewById(R.id.btnAddMonthlySpent);
 
-        btnAddSpent.setOnClickListener( v -> {
+        btnAddSpent.setOnClickListener(v -> {
             TextView customTitle = new TextView(this);
             customTitle.setText("Добавить трату");
             customTitle.setTextSize(20);
@@ -58,49 +59,41 @@ public class SpentActivity extends AppCompatActivity {
             EditText name = new EditText(this);
             name.setInputType(InputType.TYPE_CLASS_TEXT);
             name.setHint("Название траты");
-            name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+            name.setPadding(0, 30, 0, 10);
             name.setBackgroundResource(R.drawable.edit_text_style);
 
             LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
+            nameParams.setMargins(0, 10, 0, 20);
             name.setLayoutParams(nameParams);
 
             EditText spent = new EditText(this);
             spent.setInputType(InputType.TYPE_CLASS_NUMBER);
-            spent.setHint("сумма");
-            spent.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+            spent.setHint("Сумма");
+            spent.setPadding(0, 30, 0, 10);
             spent.setBackgroundResource(R.drawable.edit_text_style);
-
-            LinearLayout.LayoutParams incomeParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            incomeParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             spent.setLayoutParams(nameParams);
 
-            EditText day = new EditText(this);
-            day.setInputType(InputType.TYPE_CLASS_NUMBER);
-            day.setHint("день траты(по умлч 1 число)");
-            day.setPadding(0, 30, 0, 10); // Добавляем больше отступов
-            day.setBackgroundResource(R.drawable.edit_text_style);
+            NumberPicker dayPicker = new NumberPicker(this);
+            dayPicker.setMinValue(1);
+            dayPicker.setMaxValue(31);
+            dayPicker.setWrapSelectorWheel(true);
 
             LinearLayout.LayoutParams dayParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            dayParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
-            day.setLayoutParams(nameParams);
+            dayParams.setMargins(0, 10, 0, 20);
+            dayPicker.setLayoutParams(dayParams);
 
             LinearLayout layout = new LinearLayout(this);
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.addView(name);
             layout.addView(spent);
-            layout.addView(day);
+            layout.addView(dayPicker);
 
-            // Создаём AlertDialog
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
             SpannableString positiveButtonText = new SpannableString("Добавить");
@@ -108,54 +101,29 @@ public class SpentActivity extends AppCompatActivity {
 
             SpannableString negativeButtonText = new SpannableString("Отмена");
             negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_green)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"));
-            builder.setView(layout)
+
+            builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"))
+                    .setView(layout)
                     .setPositiveButton(positiveButtonText, (dialog, which) -> {
-                        if (Integer.parseInt(spent.getText().toString()) != 0){
-                            String nameText = name.getText().toString();
-                            if (nameText.equals("")){
-                                nameText = "доход";
+                        if (!spent.getText().toString().isEmpty() && Integer.parseInt(spent.getText().toString()) != 0) {
+                            String nameText = name.getText().toString().trim();
+                            if (nameText.isEmpty()) {
+                                nameText = "Трата";
                             }
 
-                            int incomeText = Integer.parseInt(spent.getText().toString());
+                            int spentValue = Integer.parseInt(spent.getText().toString());
+                            int selectedDay = dayPicker.getValue();
 
-                            int dayText;
                             Calendar calendar = Calendar.getInstance();
-                            int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
                             int today = calendar.get(Calendar.DAY_OF_MONTH);
-                            if (!day.getText().toString().equals("")){
-                                if (Integer.parseInt(day.getText().toString()) > daysInMonth){
-                                    Toast.makeText(this, "данного дня нет в  месяце", Toast.LENGTH_SHORT).show();
-                                    dialog.dismiss();
-                                }
-                            }
-                                if (!day.getText().toString().equals("") && !day.getText().toString().matches("0")) {
-                                    dayText = Integer.parseInt(day.getText().toString());
-                                } else {
-                                    dayText = 1;
-                                }
-                                boolean isdone = false;
-                                if (dayText < today){
-                                    isdone = true;
-                                }
 
-                                databaseIncome.addMonthlySpent(nameText, incomeText, dayText , isdone);
+                            databaseIncome.addMonthlySpent(nameText, spentValue, selectedDay);
+                            dialog.dismiss();
 
-                                if (dayText <= today) {
-                                    databaseIncome.addSpent(incomeText);
-                                } else {
-                                    databaseIncome.setMonthlySpentDone(false, nameText);
-                                }
-
-                                dialog.dismiss();
-
-                                Log.e("lolya" , databaseIncome.getMonthlySpentDone(nameText , dayText));
-
-                                Intent intent = new Intent(SpentActivity.this, SpentActivity.class);
-                                startActivity(intent);
-
+                            Intent intent = new Intent(SpentActivity.this, SpentActivity.class);
+                            startActivity(intent);
                         } else {
-                            Toast.makeText(this, "вы недобавили трату", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Вы не добавили трату", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
                         }
                     })

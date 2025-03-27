@@ -68,7 +68,9 @@ public class FileHelper {
                 for (String category : categoryArray) {
                     if (!category.isEmpty()) {
                         int price = databaseHelper.getAllExpenseByCategory(id , i);
-                        categories.add(new CategoryItem(id, category, price));
+                        int allprice = databaseHelper.getAllExpense(i);
+                        int procent = (allprice != 0) ? (price * 100) / allprice : 0;
+                        categories.add(new CategoryItem(id, category, price , procent));
                         id++;
                     }
                 }
@@ -77,7 +79,7 @@ public class FileHelper {
         } catch (Exception e) {
             e.printStackTrace();
             createDefaultCategoriesFile();
-            categories.add(new CategoryItem(0, "other", 0));
+            categories.add(new CategoryItem(0, "other", 0 , 0));
         }
         return categories;
     }

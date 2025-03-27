@@ -32,7 +32,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
         ExpenseData expense = expenseList.get(position);
 
         holder.name.setText(expense.getName());
-        holder.amount.setText("Сумма: " + expense.getAmount());
+        holder.amount.setText("Сумма: " + expense.getAmount() + "₽");
         holder.day.setText("День: " + expense.getDate());
 
         holder.amount.setTextColor(context.getResources().getColor(R.color.yellow));

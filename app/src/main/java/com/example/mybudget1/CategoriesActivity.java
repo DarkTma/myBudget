@@ -11,6 +11,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.widget.CheckBox;
+import java.util.Collections;
+import java.util.Comparator;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,6 +31,7 @@ public class CategoriesActivity extends AppCompatActivity {
     private ImageButton buttonBackFromCategories;
     private Spinner monthSelector; // Селектор для месяца
     private String selectedMonthOption = "current"; // По умолчанию выбран текущий месяц
+    private CheckBox checkBoxSortByProcent; // Новый чекбокс
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +48,16 @@ public class CategoriesActivity extends AppCompatActivity {
         listViewCategories = findViewById(R.id.listViewCategories);
         btnAddCategory = findViewById(R.id.btnAddCategorie);
         monthSelector = findViewById(R.id.monthSelector); // Инициализация Spinner
+        checkBoxSortByProcent = findViewById(R.id.checkBoxSortByProcent);
+
+        checkBoxSortByProcent.setOnCheckedChangeListener((buttonView, isChecked) -> loadCategories());
 
         fileHelper = new FileHelper(this);
         databaseHelper = new DatabaseHelper(this);
 
         // Настройка Spinner для выбора месяца
         ArrayAdapter<String> adapterMonth = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
-                new String[]{"Текущий месяц", "Текущий и прошлый", "Все"});
+                new String[]{"Текущий месяц", "прошлый месяц", "Все"});
         adapterMonth.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         monthSelector.setAdapter(adapterMonth);
 
@@ -62,7 +69,7 @@ public class CategoriesActivity extends AppCompatActivity {
                         selectedMonthOption = "current"; // Текущий месяц
                         break;
                     case 1:
-                        selectedMonthOption = "last 2"; // Текущий и прошлый
+                        selectedMonthOption = "last"; // Текущий и прошлый
                         break;
                     case 2:
                         selectedMonthOption = "all"; // Все месяцы
@@ -90,7 +97,7 @@ public class CategoriesActivity extends AppCompatActivity {
             case "current":
                 categoryItems = fileHelper.getCategoriesWithPrices(1);
                 break;
-            case "last 2":
+            case "last":
                 categoryItems = fileHelper.getCategoriesWithPrices(2);
                 break;
             case "all":
@@ -98,17 +105,24 @@ public class CategoriesActivity extends AppCompatActivity {
                 break;
         }
 
-        // Создаем адаптер и передаем обработчики для редактирования и удаления
+        // Если чекбокс включен - сортируем по проценту
+        if (checkBoxSortByProcent.isChecked()) {
+            Collections.sort(categoryItems, new Comparator<CategoryItem>() {
+                @Override
+                public int compare(CategoryItem c1, CategoryItem c2) {
+                    return Integer.compare(c2.getProcent(), c1.getProcent());
+                }
+            });
+        }
+
         adapter = new CategoryAdapter(this, categoryItems, new CategoryAdapter.OnCategoryActionListener() {
             @Override
             public void onEdit(int categoryId) {
-                // Логика редактирования категории
                 showEditCategoryDialog(categoryId);
             }
 
             @Override
             public void onDelete(int categoryId) {
-                // Логика удаления категории
                 showDeleteConfirmationDialog(categoryId);
             }
         });
@@ -130,7 +144,7 @@ public class CategoriesActivity extends AppCompatActivity {
                 // Добавляем категорию в файл
                 fileHelper.addCategoryToFile(newCategory);
                 // Обновляем список категорий
-                categoryItems.add(new CategoryItem(categoryItems.size(), newCategory, 0));
+                categoryItems.add(new CategoryItem(categoryItems.size(), newCategory, 0 , 0));
                 adapter.notifyDataSetChanged();
                 Toast.makeText(CategoriesActivity.this, "Категория добавлена", Toast.LENGTH_SHORT).show();
             } else {

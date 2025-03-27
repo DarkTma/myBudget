@@ -2,7 +2,7 @@
     <solid android:color="#333333" /> <!-- Темный фон для спиннера -->
     <corners android:radius="8dp" /> <!-- Скругленные углы -->
     <stroke
-        android:color="@android:color/holo_blue_light"
+        android:color="@color/my_cyan"
         android:width="2dp" />
     <padding
         android:left="10dp"

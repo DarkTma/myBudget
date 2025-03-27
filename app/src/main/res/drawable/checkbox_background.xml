@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Активное состояние (зеленый цвет) -->
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#4CAF50"/> <!-- Зеленый -->
+            <corners android:radius="8dp"/> <!-- Скругленные углы -->
+            <stroke android:width="2dp" android:color="#388E3C"/> <!-- Темно-зеленая рамка -->
+        </shape>
+    </item>
+
+    <!-- Неактивное состояние (красный цвет) -->
+    <item android:state_checked="false">
+        <shape android:shape="rectangle">
+            <solid android:color="#F44336"/> <!-- Красный -->
+            <corners android:radius="8dp"/> <!-- Скругленные углы -->
+            <stroke android:width="2dp" android:color="#D32F2F"/> <!-- Темно-красная рамка -->
+        </shape>
+    </item>
+</selector>

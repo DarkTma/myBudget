@@ -30,7 +30,7 @@
         android:id="@+id/recyclerViewMonthDetails"
         android:layout_width="match_parent"
         android:background="@drawable/list_item_background"
-        android:divider="@android:color/holo_blue_dark"
+        android:divider="@color/primary"
         android:layout_height="match_parent" />
 
 

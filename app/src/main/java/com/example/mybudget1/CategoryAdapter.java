@@ -52,6 +52,7 @@ public class CategoryAdapter extends BaseAdapter {
             holder.btnInfo = convertView.findViewById(R.id.btnInfo);
             holder.btnEdit = convertView.findViewById(R.id.btnEdit);
             holder.btnDelete = convertView.findViewById(R.id.btnDelete);
+            holder.tvProcent = convertView.findViewById(R.id.tvCategoryProcent);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -59,7 +60,8 @@ public class CategoryAdapter extends BaseAdapter {
 
         CategoryItem category = categories.get(position);
         holder.tvName.setText(category.getName());
-        holder.tvPrice.setText(String.valueOf(category.getPrice()));
+        holder.tvPrice.setText(String.valueOf(category.getPrice()) + "₽");
+        holder.tvProcent.setText(String.valueOf(category.getProcent()) + "%");
 
         holder.btnEdit.setOnClickListener(v -> listener.onEdit(category.getId()));
         holder.btnDelete.setOnClickListener(v -> listener.onDelete(category.getId()));
@@ -95,6 +97,8 @@ public class CategoryAdapter extends BaseAdapter {
         ImageButton btnEdit;
         ImageButton btnDelete;
         ImageButton btnInfo;
+
+        TextView tvProcent;
     }
 }
 

@@ -301,11 +301,11 @@ public class MainActivity extends AppCompatActivity {
         categorySpinner.setAdapter(adapter);
 
 // Применяем стиль для спиннера
-        categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background); // фоновое изображение для выпадающего списка
+        categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan); // фоновое изображение для выпадающего списка
         categorySpinner.setSelection(categories.indexOf("other")); // Устанавливаем дефолтную категорию
 
 // Устанавливаем кастомный стиль для спиннера
-        categorySpinner.setBackgroundResource(R.drawable.spinner_background);
+        categorySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
         categorySpinner.setDropDownVerticalOffset(10); // Отступ вниз для выпадающего списка
 
 // Обработчик выбора категории

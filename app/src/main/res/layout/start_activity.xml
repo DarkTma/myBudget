@@ -102,7 +102,7 @@
                 android:layout_height="198dp"
                 android:layout_below="@id/buttonContainer"
                 android:background="@drawable/list_item_background"
-                android:divider="@android:color/holo_blue_dark"
+                android:divider="@color/primary"
                 android:dividerHeight="1dp"
                 android:padding="8dp" />
 
