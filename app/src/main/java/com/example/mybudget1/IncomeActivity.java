@@ -3,6 +3,7 @@ package com.example.mybudget1;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.InputType;
@@ -34,6 +35,7 @@ public class IncomeActivity extends AppCompatActivity {
     private Button btnAddIncome;
     private ArrayList<IncomeItem> incomeList;
     private ImageButton btnBack;
+    private TextView incomeText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +47,14 @@ public class IncomeActivity extends AppCompatActivity {
         listViewIncome = findViewById(R.id.listViewIncome);
         btnBack = findViewById(R.id.buttonBackFromIncome);
         btnAddIncome = findViewById(R.id.btnAddIncome);
+        incomeText = findViewById(R.id.tvIncome);
+
+        int incomeAll = databaseIncome.getIncome();
+        if (incomeAll == 0){
+            incomeText.setText("доход: ?");
+        } else {
+            incomeText.setText("доход: " + incomeAll + "₽");
+        }
 
         btnAddIncome.setOnClickListener( v -> {
             TextView customTitle = new TextView(this);

@@ -45,7 +45,6 @@ public class StartActivity extends AppCompatActivity {
     private boolean isExpanded = false;
     private Button btnIncome;
     private TextView spentText;
-    public TextView incomeText;
     public Button monthlySpents;
     public Button lastMonths;
     public TextView budgetText;
@@ -65,7 +64,6 @@ public class StartActivity extends AppCompatActivity {
         btnOpenMenu = findViewById(R.id.btnOpenMenu);
         btnCloseMenu = findViewById(R.id.btnCloseMenu);
         btnExpandList = findViewById(R.id.btnExpandList);
-        incomeText = findViewById(R.id.tvIncome);
         btnIncome = findViewById(R.id.btnIncomeList);
         spentText = findViewById(R.id.tvSpent);
         listView = findViewById(R.id.listView);
@@ -115,25 +113,10 @@ public class StartActivity extends AppCompatActivity {
 
         int spent = databaseHelper.checkAllSpents(0);
         spentText.setText("расход: " + spent + "₽");
-        int income = databaseIncome.getIncome();
-        if (income == 0){
-            incomeText.setText("доход: ?");
-        } else {
-            incomeText.setText("доход: " + income + "₽");
-            if (income < spent){
-                incomeText.setTextColor(Color.RED);
-            }
-        }
-
 
         //int budget = databaseIncome.controlBudget(income , spent);
         refreshBudgetText();
         refreshIncomesDatas();
-
-
-
-
-        incomeText.setOnClickListener(v -> setIncomeDialog());
 
         btnIncome.setOnClickListener(v -> showincomeList());
 
@@ -485,11 +468,7 @@ public class StartActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void refreshIncomeText() {
-        DatabaseHelper2 databaseHelper2 = new DatabaseHelper2(this);
-        int income = databaseHelper2.getIncome();
-        incomeText.setText("доход: " + income);
-    }
+
 
 
     private void refreshIncomesDatas(){

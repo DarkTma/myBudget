@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textColor="@color/white"
+        android:textColor="@color/yellow"
         android:text="Month Name"
         android:textSize="16sp"
         android:textStyle="bold"

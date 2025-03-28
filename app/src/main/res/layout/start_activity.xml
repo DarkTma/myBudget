@@ -30,14 +30,12 @@
 
             <TextView
                 android:id="@+id/tvBudget"
-                android:layout_width="252dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/btnOpenMenu"
                 android:layout_alignParentStart="true"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="1dp"
-                android:layout_marginEnd="-3dp"
-                android:layout_toStartOf="@+id/statsContainer"
+                android:layout_alignParentTop="true"
+                android:layout_marginStart="70dp"
+                android:layout_marginTop="10dp"
                 android:gravity="start"
                 android:text="dsafdd"
                 android:textColor="@color/white"
@@ -45,26 +43,14 @@
 
             <LinearLayout
                 android:id="@+id/statsContainer"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="16dp"
+                android:layout_marginLeft="61dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="50dp"
                 android:orientation="vertical"
                 android:padding="10dp">
 
-                <TextView
-                    android:id="@+id/tvIncome"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@android:color/transparent"
-                    android:clickable="true"
-                    android:focusable="false"
-                    android:gravity="center"
-                    android:text="Доход: 0"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp" />
 
                 <TextView
                     android:id="@+id/tvSpent"

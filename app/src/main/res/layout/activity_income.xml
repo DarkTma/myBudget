@@ -15,6 +15,17 @@
         android:scaleType="centerInside"
         android:src="@drawable/arrow" />
 
+    <TextView
+        android:id="@+id/tvIncome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="fvg"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/yellow"
+        android:layout_centerHorizontal="true"/>
+
     <!-- Заголовок -->
     <TextView
         android:id="@+id/tvIncomeTitle"
@@ -23,6 +34,7 @@
         android:text="Список доходов"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:layout_marginTop="50dp"
         android:textColor="@android:color/white"
         android:layout_centerHorizontal="true"/>
 
