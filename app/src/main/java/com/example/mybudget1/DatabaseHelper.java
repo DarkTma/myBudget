@@ -571,6 +571,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + tableName + " WHERE " + COLUMN_DAY + " = ?", new String[]{String.valueOf(day)});
     }
 
+    public Cursor getNotDoneSpentsOfMonth() {
+        String tableName = currentMonthTable;
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + tableName + " WHERE isdone = 0", null);
+    }
+
+
     public void deleteData(String name, int day , int offset){
         String tableName;
         if (offset == -1) {

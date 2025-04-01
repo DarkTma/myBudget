@@ -552,23 +552,19 @@ public class StartActivity extends AppCompatActivity {
         int today = Integer.parseInt(date.split("-")[0]);
         ArrayList<String> dataList2 = new ArrayList<>();
         boolean show = false;
-        String name = "";
-        int spent = 0;
-        int day = 1;
-        String isDone;
+        String name;
+        int spent;
+        int day;
         if (today > 1) {
-            Cursor allSpents = databaseHelper.getData(today - 1, 0);
-            if (allSpents != null && allSpents.moveToFirst()) {
+            Cursor allNoteDoneSpents = databaseHelper.getNotDoneSpentsOfMonth();
+            if (allNoteDoneSpents != null && allNoteDoneSpents.moveToFirst()) {
                 do {
-                    isDone = allSpents.getString(allSpents.getColumnIndexOrThrow("isdone"));
-                    if (isDone.matches("0")){
-                        show = true;
-                        name = allSpents.getString(allSpents.getColumnIndexOrThrow("name"));
-                        spent = allSpents.getInt(allSpents.getColumnIndexOrThrow("spent"));
-                        day = allSpents.getInt(allSpents.getColumnIndexOrThrow("day"));
-                        dataList2.add(name + " , " + spent);
-                    }
-                } while (allSpents.moveToNext());
+                    show = true;
+                    name = allNoteDoneSpents.getString(allNoteDoneSpents.getColumnIndexOrThrow("name"));
+                    spent = allNoteDoneSpents.getInt(allNoteDoneSpents.getColumnIndexOrThrow("spent"));
+                    day = allNoteDoneSpents.getInt(allNoteDoneSpents.getColumnIndexOrThrow("day"));
+                    dataList2.add(name + " - " + spent + "₽ , " + day + " числа\n");
+                } while (allNoteDoneSpents.moveToNext());
             }
         }
 
@@ -586,23 +582,19 @@ public class StartActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle(Html.fromHtml("<font color='#1EFF00'>вчера у вас осталось не невыполненые траты</font>"));
             builder.setView(listView);
-            builder.setPositiveButton("сделать выпалнеными", (dialog, which) -> {
+            builder.setPositiveButton("я выполнил их", (dialog, which) -> {
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
                         String itemName = "";
                         int itemSpent = 0;
                         int itemDay = 1;
-                        String itemIsDone;
-                        Cursor allSpents = databaseHelper.getData(today - 1, 0);
+                        Cursor allSpents = databaseHelper.getNotDoneSpentsOfMonth();
                         if (allSpents != null && allSpents.moveToFirst()) {
                             do {
-                                itemIsDone = allSpents.getString(allSpents.getColumnIndexOrThrow("isdone"));
-                                if (itemIsDone.matches("0")){
-                                    itemName = allSpents.getString(allSpents.getColumnIndexOrThrow("name"));
-                                    itemSpent = allSpents.getInt(allSpents.getColumnIndexOrThrow("spent"));
-                                    itemDay = allSpents.getInt(allSpents.getColumnIndexOrThrow("day"));
-                                    databaseHelper.setDone(itemName , itemDay , 0 , true);
-                                    databaseIncome.addSpent(itemSpent);
-                                }
+                                itemName = allSpents.getString(allSpents.getColumnIndexOrThrow("name"));
+                                itemSpent = allSpents.getInt(allSpents.getColumnIndexOrThrow("spent"));
+                                itemDay = allSpents.getInt(allSpents.getColumnIndexOrThrow("day"));
+                                databaseHelper.setDone(itemName , itemDay , 0 , true);
+                                databaseIncome.addSpent(itemSpent);
                             } while (allSpents.moveToNext());
                         }
                     dialog.dismiss();
