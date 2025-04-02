@@ -31,6 +31,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_SPENTDAY = "spentday";
     private static final String COLUMN_SPENT = "monthly_spent";
     private static final String COLUMN_INCOME = "income";
+    private static final String COLUMN_COUNT = "count";
     private static final String COLUMN_INCOMEDAY = "incomeday";
     private static final String COLUMN_ONCEINCOME = "onceincome";
     private static final String COLUMN_NEXT = "next";
@@ -50,6 +51,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_NEXT + " TEXT, " +
                 COLUMN_SPENTDAY + " INTEGER, " +
+                COLUMN_COUNT + " INTEGER, " +
                 COLUMN_SPENT + " INTEGER)";
         db.execSQL(createTableMonthlySpent);
 
@@ -59,6 +61,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 COLUMN_INCOME + " INTEGER, " +
                 COLUMN_INCOMEDAY + " INTEGER, " +
                 COLUMN_NEXT + " TEXT, " +
+                COLUMN_COUNT + " INTEGER, " +
                 COLUMN_ONCEINCOME + " BOOLEAN)";
         db.execSQL(createTableIncome);
 
@@ -100,6 +103,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         contentValues2.put(COLUMN_INCOME, value);
         contentValues2.put(COLUMN_INCOMEDAY, day);
         contentValues2.put(COLUMN_ONCEINCOME, once);
+        contentValues2.put(COLUMN_COUNT, 0);
 
         // Получаем текущую дату
         Calendar today = Calendar.getInstance();
@@ -159,6 +163,33 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + tableName, null);
     }
+
+    public Cursor getIncomeListForSQL() {
+        String tableName = TABLE_INCOME;
+        SQLiteDatabase db = this.getWritableDatabase(); // Должен быть writable для обновления данных
+
+        Cursor cursor = db.rawQuery("SELECT * FROM " + tableName + " WHERE count > 0", null);
+
+        return cursor;
+    }
+    public void resetIncome(){
+        String tableName = TABLE_INCOME;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_COUNT, 0);
+        db.update(tableName, contentValues, "count > 0", null);
+    }
+
+    public void resetMonthlySpents(){
+        String tableName = TABLE_MONTHLY_SPENT;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_COUNT, 0);
+        db.update(tableName, contentValues, "count > 0", null);
+    }
+
 
     public int checkMonthSpents() {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -224,7 +255,37 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         contentValues.put(COLUMN_INCOMEDAY, incomeDay);
         contentValues.put(COLUMN_INCOME, newIncome);
 
-        // Обновляем запись, где день и старое имя совпадают
+        // Получаем текущую дату
+        Calendar today = Calendar.getInstance();
+        int currentYear = today.get(Calendar.YEAR);
+        int currentMonth = today.get(Calendar.MONTH) + 1; // Calendar.MONTH начинается с 0
+        int currentDay = today.get(Calendar.DAY_OF_MONTH);
+
+        // Определяем месяц для установки COLUMN_NEXT
+        int targetMonth = (currentDay > incomeDay) ? (currentMonth + 1) : currentMonth;
+        int targetYear = currentYear;
+
+        // Если месяц стал 13 (т.е. следующий год), исправляем
+        if (targetMonth > 12) {
+            targetMonth = 1;
+            targetYear++;
+        }
+
+        // Определяем количество дней в целевом месяце
+        Calendar targetDate = Calendar.getInstance();
+        targetDate.set(targetYear, targetMonth - 1, 1);
+        int maxDaysInMonth = targetDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        // Если указанное число превышает число дней в месяце, ставим последний день
+        int finalDay = Math.min(incomeDay, maxDaysInMonth);
+
+        // Форматируем дату в строку "dd-MM-yyyy"
+        String nextDate = String.format("%02d-%02d-%04d", finalDay, targetMonth, targetYear);
+
+        // Добавляем новый COLUMN_NEXT в contentValues
+        contentValues.put(COLUMN_NEXT, nextDate);
+
+        // Обновляем запись, где имя совпадает
         int result = db.update(
                 tableName,
                 contentValues,
@@ -234,6 +295,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         return result > 0; // Если обновлено хотя бы 1 строка, вернет true
     }
+
 
     public void deleteIncome(String name, int day){
         String tableName = TABLE_INCOME;
@@ -308,15 +370,25 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     }
 
 
-    public void setIncomeGiven(String name , int num) {
+    public void setIncomeGiven(String name , String date) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Получаем текущую дату из COLUMN_NEXT
-        Cursor cursor = db.query(TABLE_INCOME, new String[]{COLUMN_NEXT}, COLUMN_NAME + " = ?", new String[]{name}, null, null, null);
+        Cursor cursor = db.query(TABLE_INCOME, new String[]{COLUMN_NEXT,COLUMN_COUNT}, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name,date}, null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            String currentDate = cursor.getString(0); // Получаем дату в формате "dd-MM-yyyy"
+            String currentDate = cursor.getString(0);
             cursor.close();
+
+            // 1. Получаем текущее значение count
+            Cursor cursorc = db.query(TABLE_INCOME, new String[]{COLUMN_COUNT}, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name,date}, null, null, null);
+
+            int count = 0;
+            if (cursorc.moveToFirst()) {
+                count = cursorc.getInt(0);
+                count += 1;
+            }
+            cursorc.close();
 
             // Разбираем текущую дату
             String[] parts = currentDate.split("-");
@@ -345,8 +417,9 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
             // Обновляем запись в базе
             ContentValues contentValues = new ContentValues();
             contentValues.put(COLUMN_NEXT, nextDate);
+            contentValues.put(COLUMN_COUNT , count);
 
-            db.update(TABLE_INCOME, contentValues, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? " , new String[]{name , String.valueOf(num)});
+            db.update(TABLE_INCOME, contentValues, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name,date});
         }
 
         if (cursor != null) {
@@ -436,6 +509,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         contentValues2.put(COLUMN_NAME, name);
         contentValues2.put(COLUMN_SPENT, spent);
         contentValues2.put(COLUMN_SPENTDAY, day);
+        contentValues2.put(COLUMN_COUNT, 0);
 
         // Получаем текущую дату
         Calendar today = Calendar.getInstance();
@@ -507,51 +581,62 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + tableName, null);
     }
 
-    public void setMonthlySpentGiven(String name, int day) {
+    public Cursor getMonthlySpentListForSQL() {
+        String tableName = TABLE_MONTHLY_SPENT;
         SQLiteDatabase db = this.getWritableDatabase();
 
-        // Получаем текущую дату из COLUMN_NEXT
-        Cursor cursor = db.query(TABLE_MONTHLY_SPENT, new String[]{COLUMN_NEXT}, COLUMN_NAME + " = ?", new String[]{name}, null, null, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + tableName + " WHERE count > 0", null);
+
+        return cursor;
+    }
+
+
+    public void setMonthlySpentGiven(String name, String day) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Cursor cursor = db.query(TABLE_MONTHLY_SPENT, new String[]{COLUMN_NEXT, COLUMN_COUNT},
+                COLUMN_NAME + " = ? AND " + COLUMN_SPENTDAY + " = ?",
+                new String[]{name, String.valueOf(day)}, null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
-            String currentDate = cursor.getString(0); // Получаем дату в формате "dd-MM-yyyy"
+            String currentDate = cursor.getString(0);
+            int count = cursor.getInt(1);
             cursor.close();
 
-            // Разбираем текущую дату
+
             String[] parts = currentDate.split("-");
             int storedDay = Integer.parseInt(parts[0]);
             int month = Integer.parseInt(parts[1]);
             int year = Integer.parseInt(parts[2]);
 
-            // Увеличиваем месяц
             month += 1;
             if (month > 12) {
                 month = 1;
                 year++;
             }
 
-            // Определяем последний день нового месяца
             Calendar targetDate = Calendar.getInstance();
             targetDate.set(year, month - 1, 1);
             int maxDaysInMonth = targetDate.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-            // Если указанный день превышает число дней в месяце, ставим последний день
             int finalDay = Math.min(storedDay, maxDaysInMonth);
 
-            // Формируем новую дату в формате "dd-MM-yyyy"
             String nextDate = String.format("%02d-%02d-%04d", finalDay, month, year);
 
-            // Обновляем запись в базе
             ContentValues contentValues = new ContentValues();
             contentValues.put(COLUMN_NEXT, nextDate);
+            contentValues.put(COLUMN_COUNT, count + 1);
 
-            db.update(TABLE_MONTHLY_SPENT, contentValues, COLUMN_NAME + " = ? AND " + COLUMN_SPENTDAY + " = ?", new String[]{name, String.valueOf(day)});
+            db.update(TABLE_MONTHLY_SPENT, contentValues,
+                    COLUMN_NAME + " = ? AND " + COLUMN_SPENTDAY + " = ?",
+                    new String[]{name, String.valueOf(day)});
         }
 
         if (cursor != null) {
             cursor.close();
         }
     }
+
 
 
 
@@ -565,16 +650,39 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         contentValues.put(COLUMN_SPENTDAY, spentDay);
         contentValues.put(COLUMN_SPENT, newSpent);
 
-        // Обновляем запись, где день и старое имя совпадают
+        Calendar today = Calendar.getInstance();
+        int currentYear = today.get(Calendar.YEAR);
+        int currentMonth = today.get(Calendar.MONTH) + 1;
+        int currentDay = today.get(Calendar.DAY_OF_MONTH);
+
+        int targetMonth = (currentDay > spentDay) ? (currentMonth + 1) : currentMonth;
+        int targetYear = currentYear;
+
+        if (targetMonth > 12) {
+            targetMonth = 1;
+            targetYear++;
+        }
+
+        Calendar targetDate = Calendar.getInstance();
+        targetDate.set(targetYear, targetMonth - 1, 1);
+        int maxDaysInMonth = targetDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        int finalDay = Math.min(spentDay, maxDaysInMonth);
+
+        String nextDate = String.format("%02d-%02d-%04d", finalDay, targetMonth, targetYear);
+
+        contentValues.put(COLUMN_NEXT, nextDate);
+
         int result = db.update(
                 tableName,
                 contentValues,
-                "name = ? AND " + COLUMN_SPENTDAY + " = ?" ,
-                new String[]{oldName , String.valueOf(spentDay)}
+                "name = ? AND " + COLUMN_SPENTDAY + " = ?",
+                new String[]{oldName, String.valueOf(spentDay)}
         );
 
-        return result > 0; // Если обновлено хотя бы 1 строка, вернет true
+        return result > 0;
     }
+
 
 }
 

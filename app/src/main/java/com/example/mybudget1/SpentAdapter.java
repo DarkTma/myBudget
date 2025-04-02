@@ -18,6 +18,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,6 +72,15 @@ public class SpentAdapter extends BaseAdapter {
         ImageButton btnedit = convertView.findViewById(R.id.btnEditSpent);
         ImageButton btndelete = convertView.findViewById(R.id.btnDeleteSpent);
 
+        btnedit.setFocusable(false);
+        btndelete.setFocusable(false);
+
+
+        convertView.setOnLongClickListener(v -> {
+            showPaymentDialog(context, spent);
+            return true; // true означает, что событие обработано
+        });
+
         tvName.setText(spent.getName());
         tvAmount.setText("Сумма: " + spent.getAmount() + " ₽");
         tvDate.setText("Дата: " + spent.getDate());
@@ -115,18 +125,17 @@ public class SpentAdapter extends BaseAdapter {
             inputSpent.setLayoutParams(nameParams);
 
             //Создаем `EditText` для дня получения
-            EditText inputDay = new EditText(context);
-            inputDay.setInputType(InputType.TYPE_CLASS_NUMBER);
-            inputDay.setText(String.valueOf(spent.getDate()));
-            inputDay.setPadding(0, 30, 0, 10); // Добавляем больше отступов
-            inputDay.setBackgroundResource(R.drawable.edit_text_style_orange);
+            NumberPicker inputDay = new NumberPicker(context);
+            inputDay.setMinValue(1);
+            inputDay.setMaxValue(31);
+            inputDay.setValue(Integer.valueOf(spent.getDate()));
 
             LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            inputParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
-            inputDay.setLayoutParams(nameParams);
+            inputParams.setMargins(0, 10, 0, 20);
+            inputDay.setLayoutParams(inputParams);
 
             // Контейнер для `EditText`
             LinearLayout layout = new LinearLayout(context);
@@ -148,7 +157,7 @@ public class SpentAdapter extends BaseAdapter {
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 String newName = inputName.getText().toString();
                 int newIncome = Integer.parseInt(inputSpent.getText().toString());
-                int day = Integer.parseInt(inputDay.getText().toString());
+                int day = Integer.parseInt(String.valueOf(inputDay.getValue()));
 
                 // Обновляем запись в базе данных
 
@@ -191,5 +200,31 @@ public class SpentAdapter extends BaseAdapter {
 
 
         return convertView;
+    }
+
+    private void showPaymentDialog(Context context, SpentItem spent) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        builder.setTitle("Выплата зарплаты")
+                .setMessage("Хотите сейчас же выплатить зарплату?")
+                .setPositiveButton("Да", (dialog, which) -> {
+                    DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
+                    databaseIncome.setMonthlySpentGiven(spent.getName(), spent.getDate());
+                    databaseIncome.addSpent(spent.getAmount());
+                    Toast.makeText(context, "Зарплата выплачена!", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show(); // Показываем диалог перед изменением стиля
+
+        // Устанавливаем фон
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+        }
+
+        // Меняем цвет кнопок после показа диалога
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
     }
 }

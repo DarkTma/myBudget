@@ -744,16 +744,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                 int income = cursor.getInt(cursor.getColumnIndexOrThrow("income"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("incomeday"));
+                int count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
 
                 // Вставляем данные в таблицу prevMonth_income
-                String insertIncomeQuery = "INSERT INTO " + prevMonthTable + "_income (name, income, day) VALUES (?, ?, ?)";
-                db.execSQL(insertIncomeQuery, new Object[]{name, income, day});
-
+                for (int i = 0; i < count; i++) {
+                    String insertIncomeQuery = "INSERT INTO " + prevMonthTable + "_income (name, income, day) VALUES (?, ?, ?)";
+                    db.execSQL(insertIncomeQuery, new Object[]{name, income, day});
+                }
             } while (cursor.moveToNext());
         }
         if (cursor != null) {
             cursor.close();
         }
+
+
     }
 
     // Сохранение расходов в таблицу prevMonth_spent
@@ -764,10 +768,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                 int spent = cursor.getInt(cursor.getColumnIndexOrThrow("monthly_spent"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("spentday"));
+                int count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
 
                 // Вставляем данные в таблицу prevMonth_spent
-                String insertSpentQuery = "INSERT INTO " + prevMonthTable + "_spent (name, monthly_spent, day) VALUES (?, ?, ?)";
-                db.execSQL(insertSpentQuery, new Object[]{name, spent, day});
+                for (int i = 0; i < count; i++) {
+                    String insertSpentQuery = "INSERT INTO " + prevMonthTable + "_spent (name, monthly_spent, day) VALUES (?, ?, ?)";
+                    db.execSQL(insertSpentQuery, new Object[]{name, spent, day});
+                }
 
             } while (cursor.moveToNext());
         }
