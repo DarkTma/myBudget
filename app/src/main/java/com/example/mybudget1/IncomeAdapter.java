@@ -262,15 +262,9 @@ public class IncomeAdapter extends BaseAdapter {
             // Кнопка "Добавить"
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 if (checkBoxAsk.isChecked()) {
-                    Calendar calendar = Calendar.getInstance();
-                    int today = calendar.get(Calendar.DAY_OF_MONTH);
                     String name = income.getName();
-                    int count = income.getAmount();
                     int day = Integer.parseInt(income.getDate());
                     databaseIncome.deleteIncome(name, day);  // Удаление дохода из базы данных
-                    if (day <= today){
-                        databaseIncome.addSpent(count);
-                    }
                     incomeList.remove(position); // Удаляем объект из списка
                     notifyDataSetChanged(); // Обновляем адаптер
                 } else {

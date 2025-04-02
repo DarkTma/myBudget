@@ -205,13 +205,13 @@ public class SpentAdapter extends BaseAdapter {
     private void showPaymentDialog(Context context, SpentItem spent) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-        builder.setTitle("Выплата зарплаты")
-                .setMessage("Хотите сейчас же выплатить зарплату?")
+        builder.setTitle("Выпалнение траты")
+                .setMessage("Хотите сейчас же выполнить трату?")
                 .setPositiveButton("Да", (dialog, which) -> {
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                     databaseIncome.setMonthlySpentGiven(spent.getName(), spent.getDate());
                     databaseIncome.addSpent(spent.getAmount());
-                    Toast.makeText(context, "Зарплата выплачена!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Успех", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());
 

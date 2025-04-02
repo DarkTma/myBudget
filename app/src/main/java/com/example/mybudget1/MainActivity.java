@@ -263,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                     this,
                     (view, year, monthOfYear, dayOfMonth) -> {
                         // Обновляем день, если пользователь выбрал новый
-                        offset[0] = monthOfYear - 2;
+                        offset[0] = (monthOfYear < currentMonth) ? -1 : (monthOfYear > currentMonth) ? 1 : 0;
                         selectedDay = dayOfMonth;
                         dayTextView.setText("Выбран день: " + selectedDay); // Обновляем отображаемый текст
                     },
