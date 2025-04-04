@@ -43,10 +43,10 @@ public class MonthDetailActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         databaseHelper = new DatabaseHelper(this);
-        String prevMonthTable = getIntent().getStringExtra("monthName");
+        String MonthTable = getIntent().getStringExtra("monthName");
 
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
-        monthDetailDataList = databaseHelper.getMonthDetailData(db, prevMonthTable);
+        monthDetailDataList = databaseHelper.getMonthDetailData(db, MonthTable);
         filteredList.addAll(monthDetailDataList);
 
         adapter = new MonthDetailAdapter(filteredList);

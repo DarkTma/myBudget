@@ -34,16 +34,32 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
             holder.name.setTextColor(Color.GREEN);
             holder.amount.setTextColor(Color.GREEN);
             holder.day.setTextColor(Color.WHITE);
-        } else {
+            holder.category.setVisibility(View.GONE);
+        } else if (data.getType().matches("Spent")) {
             holder.type.setText("Рассход");
             holder.name.setTextColor(Color.YELLOW);
             holder.amount.setTextColor(Color.YELLOW);
             holder.day.setTextColor(Color.WHITE);
+        } else if (data.getType().matches("MSpent")) {
+            holder.type.setText("Ежемесячная трата");
+            holder.name.setTextColor(Color.CYAN);
+            holder.amount.setTextColor(Color.CYAN);
+            holder.day.setTextColor(Color.WHITE);
+            holder.category.setVisibility(View.GONE);
         }
         holder.name.setText(data.getName());
-        holder.amount.setText("сумма: " + data.getAmount() + "₽");
+        holder.amount.setText("Сумма: " + data.getAmount() + "₽");
         holder.day.setText("День: " + data.getDay());
-        holder.category.setText(data.getCategory());
+        holder.category.setText("Котегория: " + data.getCategory());
+
+        if (data.getType().matches("Info")){
+            holder.type.setText("Важно");
+            holder.name.setText(data.getName());
+            holder.name.setTextColor(Color.RED);
+            holder.amount.setVisibility(View.GONE);
+            holder.day.setVisibility(View.GONE);
+            holder.category.setVisibility(View.GONE);
+        }
     }
 
     @Override
