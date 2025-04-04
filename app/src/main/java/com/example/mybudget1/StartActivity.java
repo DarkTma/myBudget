@@ -378,7 +378,7 @@ public class StartActivity extends AppCompatActivity {
         } else if(newDay){
             databaseIncome.setLastActivity();
             refreshBudget();
-            remembring(today);
+            remembring();
         }
     }
 
@@ -432,9 +432,10 @@ public class StartActivity extends AppCompatActivity {
     }
 
 
-    private void remembring(String date) {
+    private void remembring() {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        int today = Integer.parseInt(date.split("-")[0]);
+        Calendar calendar = Calendar.getInstance();
+        int today = calendar.get(Calendar.DAY_OF_MONTH);
         ArrayList<String> dataList2 = new ArrayList<>();
         boolean show = false;
         String name;
@@ -448,7 +449,7 @@ public class StartActivity extends AppCompatActivity {
                     name = allNoteDoneSpents.getString(allNoteDoneSpents.getColumnIndexOrThrow("name"));
                     spent = allNoteDoneSpents.getInt(allNoteDoneSpents.getColumnIndexOrThrow("spent"));
                     day = allNoteDoneSpents.getInt(allNoteDoneSpents.getColumnIndexOrThrow("day"));
-                    if(today > day) {
+                    if(today >= day) {
                         dataList2.add(name + " - " + spent + "₽ , " + day + " числа\n");
                     }
                 } while (allNoteDoneSpents.moveToNext());
@@ -467,7 +468,7 @@ public class StartActivity extends AppCompatActivity {
 
             // Создаем AlertDialog с кастомным фоном
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(Html.fromHtml("<font color='#1EFF00'>вчера у вас осталось не выполненые траты</font>"));
+            builder.setTitle(Html.fromHtml("<font color='#1EFF00'>у вас еть не выполненые траты</font>"));
             builder.setView(listView);
             builder.setPositiveButton("я выполнил их", (dialog, which) -> {
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
@@ -480,9 +481,10 @@ public class StartActivity extends AppCompatActivity {
                                 itemName = allSpents.getString(allSpents.getColumnIndexOrThrow("name"));
                                 itemSpent = allSpents.getInt(allSpents.getColumnIndexOrThrow("spent"));
                                 itemDay = allSpents.getInt(allSpents.getColumnIndexOrThrow("day"));
-                                if(today > itemDay) {
+                                if(today >= itemDay) {
                                     databaseHelper.setDone(itemName, itemDay, 0, true);
                                     databaseIncome.addSpent(itemSpent);
+                                    refreshBudgetText();
                                 }
                             } while (allSpents.moveToNext());
                         }

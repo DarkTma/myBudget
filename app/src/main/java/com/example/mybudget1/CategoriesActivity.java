@@ -3,11 +3,18 @@ package com.example.mybudget1;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.InputType;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -17,6 +24,7 @@ import java.util.Comparator;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import java.util.List;
 
@@ -132,14 +140,39 @@ public class CategoriesActivity extends AppCompatActivity {
 
     // Диалог для добавления новой категории
     private void showAddCategoryDialog() {
+
+        EditText name = new EditText(this);
+        name.setInputType(InputType.TYPE_CLASS_TEXT);
+        name.setHint("Название категории");
+        name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+        name.setBackgroundResource(R.drawable.edit_text_style);
+
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
+        name.setLayoutParams(nameParams);
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.addView(name);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Добавить категорию");
 
         final android.widget.EditText input = new android.widget.EditText(this);
         builder.setView(input);
 
-        builder.setPositiveButton("Добавить", (dialog, which) -> {
-            String newCategory = input.getText().toString().trim();
+        SpannableString positiveButtonText = new SpannableString("Добавить");
+        positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        SpannableString negativeButtonText = new SpannableString("Отмена");
+        negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите название</font>"));
+        builder.setView(layout);
+        builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
+            String newCategory = name.getText().toString().trim();
             if (!newCategory.isEmpty()) {
                 // Добавляем категорию в файл
                 fileHelper.addCategoryToFile(newCategory);
@@ -152,8 +185,11 @@ public class CategoriesActivity extends AppCompatActivity {
             }
         });
 
-        builder.setNegativeButton("Отмена", null);
-        builder.show();
+        builder.setNegativeButton(negativeButtonText, null);
+
+        AlertDialog dialog = builder.create();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background); // Устанавливаем фон
+        dialog.show();
     }
 
     // Диалог для подтверждения удаления категории

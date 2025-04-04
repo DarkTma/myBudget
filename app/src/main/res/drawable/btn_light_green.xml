@@ -6,7 +6,7 @@
         <shape android:shape="rectangle">
             <solid android:color="#00000000"/> <!-- Прозрачный -->
             <corners android:radius="12dp"/>
-            <stroke android:width="10dp" android:color="#09FF00"/> <!-- Синяя граница -->
+            <stroke android:width="2dp" android:color="#09FF00"/> <!-- Синяя граница -->
         </shape>
     </item>
 
