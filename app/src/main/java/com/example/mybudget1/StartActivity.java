@@ -1,6 +1,7 @@
 package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -24,6 +25,7 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -43,7 +45,6 @@ public class StartActivity extends AppCompatActivity {
     private WeekItemAdapter adapter;
     private List<String> dataList;
     private boolean isExpanded = false;
-    private Button btnIncome;
     private TextView spentText;
     public Button monthlySpents;
     public Button lastMonths;
@@ -58,13 +59,11 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
-
         // Инициализация элементов
         menuLayout = findViewById(R.id.menuLayout);
         btnOpenMenu = findViewById(R.id.btnOpenMenu);
         btnCloseMenu = findViewById(R.id.btnCloseMenu);
         btnExpandList = findViewById(R.id.btnExpandList);
-        btnIncome = findViewById(R.id.btnIncomeList);
         spentText = findViewById(R.id.tvSpent);
         listView = findViewById(R.id.listView);
         monthlySpents = findViewById(R.id.btnMonthlySpents);
@@ -72,6 +71,14 @@ public class StartActivity extends AppCompatActivity {
         lastMonths = findViewById(R.id.btnLastMonths);
         TextView podskazka = findViewById(R.id.textpodskazka);
 
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                finishAffinity();
+            }
+        };
+        this.getOnBackPressedDispatcher().addCallback(this, callback);
 
         //закрытие менюшки
         LinearLayout menuLayout = findViewById(R.id.menuLayout);
@@ -118,9 +125,6 @@ public class StartActivity extends AppCompatActivity {
         refreshBudgetText();
         refreshIncomesDatas();
 
-        btnIncome.setOnClickListener(v -> showincomeList());
-
-
 
         // Данные для ListView
         List<WeekItem> dataList = new ArrayList<>();
@@ -160,9 +164,10 @@ public class StartActivity extends AppCompatActivity {
 
         // Закрыть меню
         btnCloseMenu.setOnClickListener(v -> {
-            menuLayout.setVisibility(View.GONE);
-            dimLayer.setVisibility(View.GONE);
+            this.finishAffinity();
         });
+
+
 
         // Расширение списка
         btnExpandList.setOnClickListener(v -> {
@@ -176,6 +181,7 @@ public class StartActivity extends AppCompatActivity {
 
                 isExpanded = false;
                 podskazka.setVisibility(View.GONE);
+                btnExpandList.setText("Расширить список");
                 listView.getLayoutParams().height -= 700; // Увеличиваем высоту
             } else {
                 while (dataList.size() > 0) {
@@ -189,6 +195,7 @@ public class StartActivity extends AppCompatActivity {
                 }
                 listView.getLayoutParams().height += 700; // Возвращаем высоту
                 isExpanded = true;
+                btnExpandList.setText("сократить список");
                 podskazka.setVisibility(View.VISIBLE);
             }
             adapter.notifyDataSetChanged();
@@ -300,11 +307,12 @@ public class StartActivity extends AppCompatActivity {
 
 
 
+
     @SuppressLint("SetTextI18n")
     private void refreshBudgetText() {
         DatabaseHelper2 databaseHelper2 = new DatabaseHelper2(this);
         int budget = databaseHelper2.getBudget();
-        budgetText.setText("бюджет: " + String.valueOf(budget) + "₽");
+        budgetText.setText("баланс: " + String.valueOf(budget) + "₽");
 
     }
 

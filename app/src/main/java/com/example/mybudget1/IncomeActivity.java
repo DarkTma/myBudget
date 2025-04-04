@@ -56,6 +56,8 @@ public class IncomeActivity extends AppCompatActivity {
             incomeText.setText("доход: " + incomeAll + "₽");
         }
 
+        refreshList();
+
         btnAddIncome.setOnClickListener( v -> {
             TextView customTitle = new TextView(this);
             customTitle.setText("Добавить доход");
@@ -157,8 +159,8 @@ public class IncomeActivity extends AppCompatActivity {
 
                             dialog.dismiss();
 
-                            Intent intent = new Intent(IncomeActivity.this, IncomeActivity.class);
-                            startActivity(intent);
+                            refreshIncomeText();
+                            refreshList();
                         } else {
                             Toast.makeText(this, "Вы не добавили доход", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
@@ -178,7 +180,12 @@ public class IncomeActivity extends AppCompatActivity {
 
 
         // Заполняем список тестовыми данными
+
+    }
+
+    private void refreshList() {
         incomeList = new ArrayList<>();
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         Cursor income = databaseIncome.getIncomeList();
         if (income != null && income.moveToFirst()) {
             do {
@@ -197,5 +204,15 @@ public class IncomeActivity extends AppCompatActivity {
         // Подключаем адаптер
         adapter = new IncomeAdapter(this, incomeList);
         listViewIncome.setAdapter(adapter);
+    }
+
+    private void refreshIncomeText() {
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        int incomeAll = databaseIncome.getIncome();
+        if (incomeAll == 0){
+            incomeText.setText("доход: ?");
+        } else {
+            incomeText.setText("доход: " + incomeAll + "₽");
+        }
     }
 }

@@ -69,17 +69,7 @@
                 android:orientation="vertical"
                 android:layout_below="@id/statsContainer"
                 android:layout_marginTop="10dp"
-                android:padding="8dp">
-
-                <Button
-                    android:id="@+id/btnIncomeList"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="быстрый список доходов"
-                    android:background="@drawable/button_selector_blue"
-                    android:textColor="@android:color/white"
-                    android:padding="10dp"/>
-            </LinearLayout>
+                android:padding="8dp"/>
 
             <!-- ListView для элементов -->
             <ListView

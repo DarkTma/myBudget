@@ -1,11 +1,9 @@
 package com.example.mybudget1;
 
 import static androidx.core.app.PendingIntentCompat.getActivity;
-import static androidx.core.content.ContextCompat.startActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.text.Html;
 import android.text.InputType;
@@ -19,7 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -32,6 +29,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DayItemAdapter extends ArrayAdapter<String> {
     private Context context;
@@ -201,47 +199,87 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         });
 
         buttonDelete.setOnClickListener(v -> {
-            DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-            // Действие для кнопки "Удалить"
-            String itemData = items.get(position); // Получаем имя элемента для удаления
-            String item = itemData.split("-")[1];
-            int itemCount = Integer.parseInt(item.replace("₽", ""));
+            // Создаем AlertDialog для подтверждения удаления
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(Html.fromHtml("<font color='#FF0000'>Вы уверены, что хотите удалить элемент?</font>"))
+                    .setPositiveButton("Да", (dialog, which) -> {
+                        DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
 
-            if (itemData.split("-")[2].matches("true")) {
-                databaseIncome.addIncome(itemCount);
-            }
+                        // Действие для кнопки "Удалить"
+                        String itemData = items.get(position); // Получаем имя элемента для удаления
+                        String item = itemData.split("-")[1];
+                        int itemCount = Integer.parseInt(item.replace("₽", ""));
 
-            String itemName = textViewItemName.getText().toString();
-            deleteItem(itemName, currentDay); // Вызываем метод для удаления
+                        if (itemData.split("-")[2].matches("true")) {
+                            databaseIncome.addIncome(itemCount);
+                        }
 
-            items.remove(position);
-            notifyDataSetChanged();
+                        String itemName = textViewItemName.getText().toString();
+                        deleteItem(itemName, currentDay); // Вызываем метод для удаления
 
-            Toast.makeText(context, "Удаление завершено", Toast.LENGTH_SHORT).show();
+                        items.remove(position);
+                        notifyDataSetChanged();
+
+                        Toast.makeText(context, "Удаление завершено", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Нет", (dialog, which) -> dialog.dismiss());
+
+            // Применяем стиль и показываем окно
+            AlertDialog dialog = builder.create();
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+            dialog.show();
+
+            // Изменение цвета кнопок
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
         });
+
 
 
         checkBox.setOnClickListener(v -> {
             String spent = textViewItemPrice.getText().toString();
             int day = currentDay;
             boolean isDone = checkBox.isChecked();
-            String value;
+            final String[] value = {""};
             DatabaseHelper databaseHelper = new DatabaseHelper(context);
             DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
             int currentMonthOffset = ((MainActivity) context).getoffset();
-            databaseHelper.setDone(name,day,currentMonthOffset,isDone);
-            if (isDone){
-                value = "true";
-                String count = spent.replace("₽", "");
-                databaseIncome.addSpent(Integer.parseInt(count));
-            }else {
-                value = "false";
-                String count = spent.replace("₽", "");
-                databaseIncome.addIncome(Integer.parseInt(count));
-            }
-            items.set(position, name + "-" + price + "-" + value);
-            notifyDataSetChanged();  // Обновляем список после изменения состояния
+
+            // Создаем AlertDialog
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(Html.fromHtml("<font color='#1EFF00'>вы хотите изменить статус на выполненое/невыпелноное(пойми по true false)</font>"))
+                    .setMessage("Вы уверены, что хотите изменить статус?")
+                    .setPositiveButton("Да", (dialog, which) -> {
+                        databaseHelper.setDone(name, day, currentMonthOffset, isDone);
+
+                        if (isDone) {
+                            value[0] = "true";
+                            String count = spent.replace("₽", "");
+                            databaseIncome.addSpent(Integer.parseInt(count));
+                        } else {
+                            value[0] = "false";
+                            String count = spent.replace("₽", "");
+                            databaseIncome.addIncome(Integer.parseInt(count));
+                        }
+
+                        items.set(position, name + "-" + price + "-" + value[0]);
+                        notifyDataSetChanged();  // Обновляем список после изменения состояния
+                    })
+                    .setNegativeButton("Нет", (dialog, which) -> {
+                        checkBox.setChecked(isChecked);
+                        dialog.dismiss();
+                    });
+
+            // Применяем стиль и показываем окно
+            AlertDialog dialog = builder.create();
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+            dialog.show();
+
+            // Изменение цвета кнопок
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
         });
+
 
 
 

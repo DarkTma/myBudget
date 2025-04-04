@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private ViewPager2 monthViewPager;
     private int currentDay;
+    private String monthName;
     private TextView selectedDayText;
     private int currentMonthOffset;
     private int currentDayIndex;
@@ -97,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        selectedDayText.setText("День " + choosenDay);
+        monthName = getMonthName(currentMonthOffset);
+        selectedDayText.setText(choosenDay + " " + monthName);
 
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
@@ -110,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onPageSelected(int position) {
-                selectedDayText.setText("День " + (position + 1));
+                selectedDayText.setText((position + 1) + " " + monthName);
                 selectedDay = position + 1;
             }
         });
@@ -133,6 +135,18 @@ public class MainActivity extends AppCompatActivity {
         });
 
         selectedDayText.setOnClickListener(v -> showDayPicker());
+    }
+
+    public String getMonthName(int monthOffset) {
+        Calendar calendar = Calendar.getInstance();
+
+        // Получаем текущий месяц и добавляем смещение
+        calendar.add(Calendar.MONTH, monthOffset);
+
+        // Форматируем дату, чтобы получить название месяца
+        SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM", java.util.Locale.getDefault());
+
+        return monthFormat.format(calendar.getTime());
     }
 
     private void showDayPicker() {
@@ -166,7 +180,8 @@ public class MainActivity extends AppCompatActivity {
         int daysInMonth = getDaysInMonth(currentMonthOffset);
         viewPager.setAdapter(new DayAdapter(this, daysInMonth, currentMonthOffset));
         viewPager.setCurrentItem(0, false);
-        selectedDayText.setText("День 1");
+        monthName = getMonthName(currentMonthOffset);
+        selectedDayText.setText( "1 " + monthName );
     }
 
     private String setStatsText(boolean donetext) {
