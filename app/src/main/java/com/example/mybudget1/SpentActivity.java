@@ -3,6 +3,7 @@ package com.example.mybudget1;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.InputType;

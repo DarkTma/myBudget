@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -198,6 +199,8 @@ public class MainActivity extends AppCompatActivity {
         EditText name = new EditText(this);
         name.setInputType(InputType.TYPE_CLASS_TEXT);
         name.setHint("Название траты");
+        name.setTextColor(Color.WHITE);
+        name.setHintTextColor(Color.WHITE);
         name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
         name.setBackgroundResource(R.drawable.edit_text_style);
 
@@ -212,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
         EditText spent = new EditText(this);
         spent.setInputType(InputType.TYPE_CLASS_NUMBER);
         spent.setHint("Сумма");
+        spent.setTextColor(Color.WHITE);
+        spent.setHintTextColor(Color.WHITE);
         spent.setPadding(0, 20, 0, 20);
         spent.setBackgroundResource(R.drawable.edit_text_style);
 
