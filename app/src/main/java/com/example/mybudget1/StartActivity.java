@@ -30,6 +30,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +50,10 @@ public class StartActivity extends AppCompatActivity {
     public Button monthlySpents;
     public Button lastMonths;
     public TextView budgetText;
+    public CursData curs;
+
+
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -71,6 +76,7 @@ public class StartActivity extends AppCompatActivity {
         lastMonths = findViewById(R.id.btnLastMonths);
         TextView podskazka = findViewById(R.id.textpodskazka);
 
+        curs = CursHelper.getCursData(databaseIncome.getCurs());
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
             @Override
@@ -79,6 +85,21 @@ public class StartActivity extends AppCompatActivity {
             }
         };
         this.getOnBackPressedDispatcher().addCallback(this, callback);
+
+
+        budgetText.setOnLongClickListener(v -> {
+            int original = databaseIncome.getBudget();
+
+            curs = CursHelper.getCursData(databaseIncome.getCurs());
+            double converted = original * curs.rate;
+            String result = String.format("%.2f %s", converted, curs.symbol);
+            budgetText.setText(result);
+
+            return true;
+        });
+
+
+
 
         //закрытие менюшки
         LinearLayout menuLayout = findViewById(R.id.menuLayout);
@@ -115,11 +136,19 @@ public class StartActivity extends AppCompatActivity {
             finish();
         });
 
+        Button btnCursGo = findViewById(R.id.btnCurs);
+        btnCursGo.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, CurrencyActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
         checkMonth();
 
 
         int spent = databaseHelper.checkAllSpents(0);
-        spentText.setText("расход: " + spent + "₽");
+        String result = String.format("%.2f %s", spent * curs.rate , curs.symbol);
+        spentText.setText("расход: " + result);
 
         //int budget = databaseIncome.controlBudget(income , spent);
         refreshBudgetText();
@@ -139,6 +168,7 @@ public class StartActivity extends AppCompatActivity {
         String nextDayName = DayAdapter.getDayName(nextDay);
 
 
+
         int prevDaySpent = databaseHelper.getDoneSpents(prevDay, prevDay);
         int prevDayMustDo = databaseHelper.getAllSpents(prevDay, prevDay);
         int todaySpent = databaseHelper.getDoneSpents(currentDayIndex, currentDayIndex);
@@ -146,11 +176,6 @@ public class StartActivity extends AppCompatActivity {
         int nextDaySpent = databaseHelper.getDoneSpents(nextDay, nextDay);
         int nextDayMustDo = databaseHelper.getAllSpents(nextDay, nextDay);
 
-
-
-        dataList.add(new WeekItem(prevDayName , "потрачено: " + prevDaySpent + "₽", "из: " + prevDayMustDo + "₽"));
-        dataList.add(new WeekItem(currentDayName + " (сегодня)", "потрачено: " + todaySpent + "₽", "из: " + todayMustDo + "₽"));
-        dataList.add(new WeekItem(nextDayName, "потрачено: " + nextDaySpent + "₽", "из: " + nextDayMustDo + "₽"));
 
 
         adapter = new WeekItemAdapter(this, dataList);
@@ -167,7 +192,11 @@ public class StartActivity extends AppCompatActivity {
             this.finishAffinity();
         });
 
+        DecimalFormat df = new DecimalFormat("0.##");
 
+        dataList.add(new WeekItem(prevDayName , "потрачено: " + df.format(prevDaySpent  * curs.rate) + curs.symbol, "из: " + df.format(prevDayMustDo  * curs.rate) + curs.symbol));
+        dataList.add(new WeekItem(currentDayName + " (сегодня)", "потрачено: " + df.format(todaySpent * curs.rate) + curs.symbol, "из: " + df.format(todayMustDo  * curs.rate) + curs.symbol));
+        dataList.add(new WeekItem(nextDayName, "потрачено: " + df.format(nextDaySpent * curs.rate) + curs.symbol, "из: " + df.format(nextDayMustDo * curs.rate) + curs.symbol));
 
         // Расширение списка
         btnExpandList.setOnClickListener(v -> {
@@ -175,9 +204,9 @@ public class StartActivity extends AppCompatActivity {
                 while (dataList.size() > 0) {
                     dataList.remove(dataList.size() - 1);
                 }
-                dataList.add(new WeekItem(prevDayName , "потрачено: " + prevDaySpent + "₽", "из: " + prevDayMustDo + "₽"));
-                dataList.add(new WeekItem(currentDayName + " (сегодня)", "потрачено: " + todaySpent + "₽", "из: " + todayMustDo + "₽"));
-                dataList.add(new WeekItem(nextDayName, "потрачено: " + nextDaySpent + "₽", "из: " + nextDayMustDo + "₽"));
+                dataList.add(new WeekItem(prevDayName , "потрачено: " + df.format(prevDaySpent  * curs.rate) + curs.symbol, "из: " + df.format(prevDayMustDo  * curs.rate) + curs.symbol));
+                dataList.add(new WeekItem(currentDayName + " (сегодня)", "потрачено: " + df.format(todaySpent * curs.rate) + curs.symbol, "из: " + df.format(todayMustDo  * curs.rate) + curs.symbol));
+                dataList.add(new WeekItem(nextDayName, "потрачено: " + df.format(nextDaySpent * curs.rate) + curs.symbol, "из: " + df.format(nextDayMustDo * curs.rate) + curs.symbol));
 
                 isExpanded = false;
                 podskazka.setVisibility(View.GONE);
@@ -191,7 +220,7 @@ public class StartActivity extends AppCompatActivity {
                 String[] weekDays = {"понедельник", "вторник", "среда", "четверг" , "пятница", "суббота", "воскресение"};
                 for (int i = 0; i < 7; i++) {
                     dataList.add(new WeekItem(weekDays[i] , "потрачено: " + databaseHelper.getDoneSpents(day+i, day+i)+"₽",
-                            "из: " + databaseHelper.getAllSpents(day+i, day+i) + "₽"));
+                            "из: " + df.format(databaseHelper.getAllSpents(day+i, day+i) * curs.rate) + curs.symbol));
                 }
                 listView.getLayoutParams().height += 700; // Возвращаем высоту
                 isExpanded = true;
@@ -310,10 +339,11 @@ public class StartActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     private void refreshBudgetText() {
-        DatabaseHelper2 databaseHelper2 = new DatabaseHelper2(this);
-        int budget = databaseHelper2.getBudget();
-        budgetText.setText("баланс: " + String.valueOf(budget) + "₽");
-
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        int original = databaseIncome.getBudget();
+        double converted = original * curs.rate;
+        String result = String.format("%.2f %s", converted, curs.symbol);
+        budgetText.setText(result);
     }
 
     private void showincomeList() {

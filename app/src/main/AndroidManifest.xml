@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".MyApp"
         android:allowBackup="true"
@@ -16,7 +18,7 @@
 
         <!-- Главная активность -->
         <activity
-            android:name=".StartActivity"
+            android:name=".SplashActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Base.Theme.MyBudget1"
@@ -29,13 +31,15 @@
     </activity>
 
     <!-- Остальные активности -->
-    <activity android:name=".MainActivity" />
+        <activity android:name=".StartActivity" />
+        <activity android:name=".MainActivity" />
         <activity android:name=".IncomeActivity"/>
         <activity android:name=".SpentActivity"/>
         <activity android:name=".MonthDetailActivity"/>
         <activity android:name=".MonthListActivity"/>
         <activity android:name=".CategoriesActivity"/>
         <activity android:name=".ExpensesActivity"/>
+        <activity android:name=".CurrencyActivity"/>
 
 </application>
 

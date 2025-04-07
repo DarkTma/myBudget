@@ -37,6 +37,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_NEXT = "next";
     private static final String COLUMN_LASTACTIVITY = "lastactivity";
     private static final String COLUMN_BUDGET = "budget";
+    private static final String COLUMN_CURS = "curs";
+
 
 
     public DatabaseHelper2(Context context) {
@@ -68,6 +70,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         String createTableBudget = "CREATE TABLE IF NOT EXISTS " + TABLE_BUDGET + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_BUDGET + " INTEGER DEFAULT 0, " +
+                COLUMN_CURS + " TEXT DEFAULT 'dram', " +
                 COLUMN_LASTACTIVITY + " TEXT)";
         db.execSQL(createTableBudget);
 
@@ -318,6 +321,28 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
 
         return  budget;
+    }
+
+    public void setCurs(String i){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues2 = new ContentValues();
+        contentValues2.put(COLUMN_CURS,i);
+
+        db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
+    }
+
+    public String getCurs(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor a = db.rawQuery("SELECT " + COLUMN_CURS + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
+
+        String curs = "";
+        if (a != null && a.moveToFirst()) {
+            curs = a.getString(a.getColumnIndexOrThrow(COLUMN_CURS));
+        }
+        if (a != null) {
+            a.close();
+        }
+        return curs;
     }
 
     public void addIncome(int income){

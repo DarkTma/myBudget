@@ -85,7 +85,7 @@ public class DayFragment extends Fragment {
                     boolean isDone = false;
                     String isDonestr = cursor.getString(cursor.getColumnIndexOrThrow("isdone"));
                     if (isDonestr.matches("1")) isDone = true;
-                    data.add(name + "-" + spent + "₽" + "-" + isDone);
+                    data.add(name + "-" + spent + "-" + isDone);
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {

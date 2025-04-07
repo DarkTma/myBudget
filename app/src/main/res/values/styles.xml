@@ -38,5 +38,11 @@
         <item name="android:textSize">16sp</item> <!-- размер текста в выпадающем списке -->
     </style>
 
+    <style name="SpinnerTheme" parent="Theme.AppCompat.Light">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:background">#2A2A2A</item>
+    </style>
+
+
 
 </resources>
