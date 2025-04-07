@@ -26,7 +26,7 @@ public class SplashActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
-                Log.e("SplashActivity", "Ошибка обновления курсов : " + message);
+                Log.e("SplashActivity", "Ошибка обновления курсов: " + message);
                 // Можно показать ошибку и всё равно перейти в MainActivity
                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
                 finish();
