@@ -1,5 +1,8 @@
 package com.example.mybudget1;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,15 +14,25 @@ import retrofit2.Response;
 
 public class SplashActivity extends AppCompatActivity {
 
+    private DatabaseHelper2 databaseHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Загружаем курсы валют
-        CursHelper.updateExchangeRates(new CursHelper.OnRatesUpdatedListener() {
+        databaseHelper = new DatabaseHelper2(this);
+
+        if (databaseHelper.getLastActivity().equals("")) {
+            showCurrencySelectionDialog();
+        } else {
+            updateRatesAndGoToStart(this);
+        }
+    }
+
+    private void updateRatesAndGoToStart(Context context) {
+        CursHelper.updateExchangeRates(context, new CursHelper.OnRatesUpdatedListener() {
             @Override
             public void onRatesUpdated() {
-                // После загрузки переходим на главный экран
                 startActivity(new Intent(SplashActivity.this, StartActivity.class));
                 finish();
             }
@@ -27,10 +40,35 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 Log.e("SplashActivity", "Ошибка обновления курсов: " + message);
-                // Можно показать ошибку и всё равно перейти в MainActivity
                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
                 finish();
             }
         });
     }
+
+
+    private void showCurrencySelectionDialog() {
+        final String[] currencies = {"Драм", "Рубли", "Доллар"};
+        final String[] currencyCodes = {"dram", "rubli", "dollar"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выберите основную валюту")
+                .setItems(currencies, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String selectedCurrencyCode = currencyCodes[which];
+
+                        databaseHelper.setDefaultCurrency(selectedCurrencyCode);
+                        databaseHelper.setCurs(selectedCurrencyCode);
+                        databaseHelper.setLastActivity();
+
+                        updateRatesAndGoToStart(SplashActivity.this); // ← контекст нужен здесь
+                    }
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+
 }
+

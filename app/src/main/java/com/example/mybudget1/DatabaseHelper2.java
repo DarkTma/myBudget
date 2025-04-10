@@ -38,6 +38,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_LASTACTIVITY = "lastactivity";
     private static final String COLUMN_BUDGET = "budget";
     private static final String COLUMN_CURS = "curs";
+    private static final String COLUMN_DEFAULT = "defolt";
 
 
 
@@ -54,7 +55,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 COLUMN_NEXT + " TEXT, " +
                 COLUMN_SPENTDAY + " INTEGER, " +
                 COLUMN_COUNT + " INTEGER, " +
-                COLUMN_SPENT + " INTEGER)";
+                COLUMN_SPENT + " REAL)";
         db.execSQL(createTableMonthlySpent);
 
         String createTableIncome = "CREATE TABLE IF NOT EXISTS " + TABLE_INCOME + " (" +
@@ -69,7 +70,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         String createTableBudget = "CREATE TABLE IF NOT EXISTS " + TABLE_BUDGET + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_BUDGET + " INTEGER DEFAULT 0, " +
+                COLUMN_BUDGET + " REAL DEFAULT 0.0, " +
+                COLUMN_DEFAULT + " TEXT, " +
                 COLUMN_CURS + " TEXT DEFAULT 'dram', " +
                 COLUMN_LASTACTIVITY + " TEXT)";
         db.execSQL(createTableBudget);
@@ -182,6 +184,28 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_COUNT, 0);
         db.update(tableName, contentValues, "count > 0", null);
+    }
+
+    public String getDefaultCurrency(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor a = db.rawQuery("SELECT " + COLUMN_CURS + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
+
+        String curs = "";
+        if (a != null && a.moveToFirst()) {
+            curs = a.getString(a.getColumnIndexOrThrow(COLUMN_CURS));
+        }
+        if (a != null) {
+            a.close();
+        }
+        return curs;
+    }
+
+    public void setDefaultCurrency(String currency){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues2 = new ContentValues();
+        contentValues2.put(COLUMN_DEFAULT , currency);
+
+        db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
     }
 
     public void resetMonthlySpents(){
@@ -487,13 +511,13 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         db.update(TABLE_BUDGET, contentValues2, COLUMN_ID + " = 1", null);
     }
 
-    public int getBudget(){
+    public double getBudget(){
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor a = db.rawQuery("SELECT " + COLUMN_BUDGET + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
 
-        int budget = 0; // Значение по умолчанию
+        double budget = 0; // Значение по умолчанию
         if (a != null && a.moveToFirst()) {
-            budget = a.getInt(a.getColumnIndexOrThrow(COLUMN_BUDGET));
+            budget = a.getDouble(a.getColumnIndexOrThrow(COLUMN_BUDGET));
         }
         if (a != null) {
             a.close();

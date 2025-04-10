@@ -88,11 +88,11 @@ public class StartActivity extends AppCompatActivity {
 
 
         budgetText.setOnLongClickListener(v -> {
-            int original = databaseIncome.getBudget();
+            double original = databaseIncome.getBudget();
 
-            curs = CursHelper.getCursData(databaseIncome.getCurs());
-            double converted = original * curs.rate;
-            String result = String.format("%.2f %s", converted, curs.symbol);
+//            curs = CursHelper.getCursData(databaseIncome.getCurs());
+//            double converted = original * curs.rate;
+            String result = String.format("%.2f %s", original, curs.symbol);
             budgetText.setText(result);
 
             return true;
@@ -340,7 +340,7 @@ public class StartActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void refreshBudgetText() {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-        int original = databaseIncome.getBudget();
+        double original = databaseIncome.getBudget();
         double converted = original * curs.rate;
         String result = String.format("%.2f %s", converted, curs.symbol);
         budgetText.setText(result);

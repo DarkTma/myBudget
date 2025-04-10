@@ -445,7 +445,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_DAY + " INTEGER, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_DONE + " BOOLEAN, " +
-                COLUMN_SPENT + " INTEGER)";
+                COLUMN_SPENT + " REAL)";
         db.execSQL(createTable);
     }
 
@@ -749,7 +749,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createSpentTableQuery = "CREATE TABLE IF NOT EXISTS " + prevMonthTable + "_spent (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT, " +
-                "monthly_spent INTEGER, " +
+                "monthly_spent REAL, " +
                 "day INTEGER)";
         db.execSQL(createSpentTableQuery);
     }

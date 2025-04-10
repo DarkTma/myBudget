@@ -82,19 +82,30 @@ public class CurrencyActivity extends AppCompatActivity {
         return "dram";
     }
 
+    @SuppressLint("DefaultLocale")
     private void showExchangeRates() {
-        double dramToDollar = CursHelper.getDramToDollar();
-        double dramToRub = CursHelper.getDramToRub();
+        // Получаем дефолтную валюту
+        String baseCurrencyCode = new DatabaseHelper2(this).getDefaultCurrency();
 
-        double dollarToRub = dramToDollar / dramToRub;
+        double baseToDollar = CursHelper.getToDollar();
+        double baseToRub = CursHelper.getToRub();
+        double baseToDram = CursHelper.getToDram();
 
-        String result = String.format(
-                "֏: %.2f → $: 1\n֏: %.2f → ₽: 1\n$: %.2f → ₽: 1",
-                dramToDollar, dramToRub, dollarToRub
+        // Определяем курс между двумя валютами
+        double dollarToRub = baseToDollar / baseToRub;
+
+
+        String result = "";
+
+        result = String.format(
+                "$ → ֏: %.2f\n$ → ₽: %.2f\n₽ → ֏: %.2f",
+                baseToDram, baseToRub, baseToDram / baseToRub
         );
+
 
         ratesText.setText(result);
     }
+
 
 
 }
