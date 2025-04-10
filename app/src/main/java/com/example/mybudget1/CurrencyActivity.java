@@ -95,9 +95,8 @@ public class CurrencyActivity extends AppCompatActivity {
         double dollarToRub = baseToDollar / baseToRub;
 
 
-        String result = "";
 
-        result = String.format(
+        String result = String.format(
                 "$ → ֏: %.2f\n$ → ₽: %.2f\n₽ → ֏: %.2f",
                 baseToDram, baseToRub, baseToDram / baseToRub
         );
