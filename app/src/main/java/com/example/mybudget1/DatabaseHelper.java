@@ -65,8 +65,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT, " +
                 "type TEXT, " +
-                "amount REAL, " +
-                "day INTEGER)";
+                "category_id INTEGER, " +
+                "amount REAL)";
         db.execSQL(createIncomeTableQuery);
     }
 
@@ -789,7 +789,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null) {
             cursor.close();
         }
-
+        DatabaseHelper2 databaseHelper2 = new DatabaseHelper2(context);
+        databaseHelper2.deleteAllOneTimeIncomes();
 
     }
 
@@ -925,12 +926,79 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public void createMaket(int type , String name , int amount , int day){
+    public void createMaket(int type, String name, double amount, int category_id) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+        ContentValues values = new ContentValues();
+        values.put("name", name);
+        values.put("type", type == 0 ? "Spent" : "Income");
+        values.put("amount", amount);
+        values.put("category_id", category_id);
+
+        db.insert(MAKET_TABLE, null, values);
+        db.close();
     }
 
 
+    public void deleteMaket(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(MAKET_TABLE, "id = ?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+
+    public List<Maket> getAllMakets() {
+        List<Maket> maketList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + MAKET_TABLE, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+                int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                String type = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+                double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"));
+
+                Maket maket = new Maket(id, name, type, amount , category_id);
+                maketList.add(maket);
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return maketList;
+    }
+
+
+    public int getCategoryId(String itemName, int day , int offset) {
+        int categoryId = -1; // Значение по умолчанию, если ничего не найдено
+        String tableName = "";
+        if (offset == -1){
+            tableName = prevMonthTable;
+        } else if (offset == 0) {
+            tableName = currentMonthTable;
+        } else if (offset == 1) {
+            tableName = nextMonthTable;
+        }
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                tableName,
+                new String[]{COLUMN_CATEGORY},
+                COLUMN_NAME + " = ? AND day = ?", // Условия WHERE
+                new String[]{itemName, String.valueOf(day)},
+                null, null, null
+        );
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                categoryId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY));
+            }
+            cursor.close();
+        }
+
+        return categoryId;
+    }
 
 }
 

@@ -6,6 +6,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import retrofit2.Call;
@@ -19,6 +23,11 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash);
+
+        ImageView logo = findViewById(R.id.logoImage);
+        Animation pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
+        logo.startAnimation(pulse);
 
         databaseHelper = new DatabaseHelper2(this);
 
@@ -34,12 +43,15 @@ public class SplashActivity extends AppCompatActivity {
         CursHelper.updateExchangeRates(context, new CursHelper.OnRatesUpdatedListener() {
             @Override
             public void onRatesUpdated() {
-                startActivity(new Intent(SplashActivity.this, StartActivity.class));
-                finish();
+                new android.os.Handler().postDelayed(() -> {
+                    startActivity(new Intent(SplashActivity.this, StartActivity.class));
+                    finish();
+                }, 1);
             }
 
             @Override
             public void onError(String message) {
+                new android.os.Handler().postDelayed(() -> {
                 Log.e("SplashActivity", "Ошибка обновления курсов: " + message);
                 DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                 databaseIncome.setCurs(databaseIncome.getDefaultCurrency());
@@ -47,6 +59,7 @@ public class SplashActivity extends AppCompatActivity {
                 intent.putExtra("error", "нет интернета , не меняйте курс валют");
                 startActivity(intent);
                 finish();
+                }, 1);
             }
         });
     }

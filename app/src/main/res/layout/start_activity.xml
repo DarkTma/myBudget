@@ -194,7 +194,7 @@
             android:layout_marginVertical="20dp"/>
 
         <Button
-            android:id="@+id/btnMaket"
+            android:id="@+id/btnMaketGo"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:gravity="center"

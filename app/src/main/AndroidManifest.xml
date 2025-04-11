@@ -40,6 +40,8 @@
         <activity android:name=".CategoriesActivity"/>
         <activity android:name=".ExpensesActivity"/>
         <activity android:name=".CurrencyActivity"/>
+        <activity android:name=".MaketListActivity"/>
+
 
 </application>
 

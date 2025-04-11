@@ -11,6 +11,9 @@
     <color name="my_blue">#0000FF</color>
     <color name="primary">#0A84FF</color>
     <color name="my_orange">#FF5500</color>
+    <color name="my_primary">#009688</color>
+    <color name="my_darkbtn">#1E1E1E</color>
+
 
     <style name="DarkListStyle">
         <item name="android:background">?attr/colorSurface</item>

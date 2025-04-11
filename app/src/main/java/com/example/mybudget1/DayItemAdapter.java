@@ -184,6 +184,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
             currencyParams.setMargins(0, 10, 0, 20); // сверху 10, снизу 20
+            currencySpinner.setPadding(20, 40, 40, 40);
             currencySpinner.setLayoutParams(currencyParams);
 
 
@@ -239,16 +240,21 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             categorySpinner.setAdapter(adapter);
             categorySpinner.setBackgroundResource(R.drawable.spinner_bg);
 
-            LinearLayout.LayoutParams categoryParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            categoryParams.setMargins(0, 10, 0, 20); // сверху 10, снизу 20
-            categorySpinner.setLayoutParams(categoryParams);
+            spinnerParams.setMargins(0, 20, 0, 20);
+            categorySpinner.setPadding(20, 40, 40, 40);
+            categorySpinner.setLayoutParams(spinnerParams);
 
 
             // Устанавливаем дефолтную категорию
-            categorySpinner.setSelection(categories.indexOf("other"));
+            DatabaseHelper databaseHelper = new DatabaseHelper(context);
+            int offset = ((MainActivity) context).getoffset();
+            int category_id = databaseHelper.getCategoryId(itemName, currentDay , offset);
+            List<String> list = fileHelper.readCategoriesFromFile();
+            categorySpinner.setSelection(categories.indexOf(list.get(category_id)));
 
             // Обработчик выбора категории
             categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -297,7 +303,6 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
 
                 // Обновляем запись в базе данных
-                DatabaseHelper databaseHelper = new DatabaseHelper(context);
                 int currentMonthOffset = ((MainActivity) context).getoffset();
                 databaseHelper.updateData(itemName, currentDay, newName, valueInX, currentMonthOffset , selectedCategoryId[0]);
 

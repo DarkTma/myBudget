@@ -262,7 +262,7 @@ public class IncomeActivity extends AppCompatActivity {
             do {
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
                 double incomeNum = income.getDouble(income.getColumnIndexOrThrow("income"));
-                String date = income.getString(income.getColumnIndexOrThrow("incomeday"));
+                int date = income.getInt(income.getColumnIndexOrThrow("incomeday"));
                 String once = income.getString(income.getColumnIndexOrThrow("onceincome"));
                 boolean x = false;
                 if (once.equals("1")) {

@@ -3,10 +3,10 @@ package com.example.mybudget1;
 public class IncomeItem {
     private String name;
     private double amount;
-    private String date;
+    private int date;
     boolean monthly;
 
-    public IncomeItem(String name, double amount, String date, boolean monthly) {
+    public IncomeItem(String name, double amount, int date, boolean monthly) {
         this.name = name;
         this.amount = amount;
         this.date = date;
@@ -19,13 +19,13 @@ public class IncomeItem {
 
     public double getAmount() {return amount;}
 
-    public String getDate() {
+    public int getDate() {
         return date;
     }
 
     public boolean getMonthly() {return monthly;}
 
-    public void change(String newName , double newAmount , String newDate){
+    public void change(String newName , double newAmount , int newDate){
         this.name = newName;
         this.amount = newAmount;
         this.date = newDate;

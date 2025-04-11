@@ -38,8 +38,8 @@ public class CursHelper {
 
     public static void updateExchangeRates(Context context, OnRatesUpdatedListener listener) {
         DatabaseHelper2 dbHelper = new DatabaseHelper2(context);
-        String baseCurrencyCode = dbHelper.getDefaultCurrency(); // "dram", "rubli", "dollar"
-        String baseForApi = getApiCode(baseCurrencyCode);        // "AMD", "RUB", "USD"
+        String baseCurrencyCode = dbHelper.getDefaultCurrency();
+        String baseForApi = getApiCode(baseCurrencyCode);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -89,6 +89,26 @@ public class CursHelper {
             @Override
             public void onFailure(Call<ExchangeRatesResponse> call, Throwable t) {
                 listener.onError("Сетевая ошибка: " + t.getMessage());
+                try {
+                    switch (baseCurrencyCode) {
+                        case "dram": // AMD → USD, RUB
+                            XtoDram = 1.0;
+                            break;
+
+                        case "rubli": // RUB → AMD, USD
+                            XtoRubli = 1.0;
+                            break;
+
+                        case "dollar": // USD → AMD, RUB
+                            XtoDollar = 1.0;
+                            break;
+                    }
+
+                    listener.onRatesUpdated();
+
+                } catch (Exception e) {
+                    listener.onError("Ошибка обработки курсов: " + e.getMessage());
+                }
             }
         });
     }

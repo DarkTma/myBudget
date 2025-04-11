@@ -129,6 +129,13 @@ public class StartActivity extends AppCompatActivity {
             dimLayer.setVisibility(View.GONE);
         });
 
+        Button btnMaketsGo = findViewById(R.id.btnMaketGo);
+        btnMaketsGo.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, MaketListActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
         Button btnIncomeActivityGo = findViewById(R.id.btnincomeData);
         btnIncomeActivityGo.setOnClickListener(v -> {
             Intent intent = new Intent(StartActivity.this, IncomeActivity.class);
@@ -304,7 +311,7 @@ public class StartActivity extends AppCompatActivity {
 
                     if (checkOnce) {
                         // Если checkOnce == true, вызываем функцию deleteIncome
-                        databaseIncome.deleteIncome(name , day); // Вызов функции deleteIncome
+                        databaseIncome.deactivateIncome(name , day); // Вызов функции deleteIncome
                     }
 
                 } catch (Exception e) {
@@ -439,7 +446,7 @@ public class StartActivity extends AppCompatActivity {
 
             builder.setPositiveButton("Да", (dialog, which) -> {
                 databaseIncome.addIncome(count);
-                databaseIncome.setIncomeGiven(name , String.valueOf(date));
+                databaseIncome.setIncomeGiven(name , date);
                 refreshBudgetText();
             });
 

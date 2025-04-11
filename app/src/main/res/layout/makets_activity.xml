@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/my_darkbg"
+    android:padding="16dp">
+
+    <ImageButton
+        android:id="@+id/buttonBackFromMakets"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="end"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="Edit"
+        android:scaleType="centerInside"
+        android:src="@drawable/arrow" />
+
+    <TextView
+        android:id="@+id/tvMaketsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Макеты"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewMakets"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/tvMaketsTitle"
+        android:layout_above="@+id/btnAddMaket"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/list_item_background"
+        android:layout_marginBottom="8dp"/>
+
+
+    <Button
+        android:id="@+id/btnAddMaket"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="10dp"
+        android:text="Добавить макет"
+        android:background="@drawable/button_selector_blue"
+        android:textColor="@android:color/white"/>
+</RelativeLayout>

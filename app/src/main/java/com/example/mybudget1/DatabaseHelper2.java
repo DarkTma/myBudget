@@ -336,6 +336,34 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     }
 
+    public void deleteAllOneTimeIncomes() {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String tableName = TABLE_INCOME;
+        String whereClause = COLUMN_ONCEINCOME + " = ?";
+        String[] whereArgs = new String[]{"1"};
+
+        db.delete(tableName, whereClause, whereArgs);
+    }
+
+
+    public void deactivateIncome(String name, int day) {
+        String tableName = TABLE_INCOME;
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Дата "очень в будущем" в формате dd-MM-yyyy
+        String nextDate = "01-01-3000";
+
+        ContentValues values = new ContentValues();
+        values.put("next", nextDate);
+
+        String whereClause = "name = ? AND incomeday = ?";
+        String[] whereArgs = new String[]{name, String.valueOf(day)};
+
+        db.update(tableName, values, whereClause, whereArgs);
+    }
+
+
     public int controlBudget(int income , int spent){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues2 = new ContentValues();
@@ -419,18 +447,18 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     }
 
 
-    public void setIncomeGiven(String name , String date) {
+    public void setIncomeGiven(String name , int date) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Получаем текущую дату из COLUMN_NEXT
-        Cursor cursor = db.query(TABLE_INCOME, new String[]{COLUMN_NEXT,COLUMN_COUNT}, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name,date}, null, null, null);
+        Cursor cursor = db.query(TABLE_INCOME, new String[]{COLUMN_NEXT,COLUMN_COUNT}, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name, String.valueOf(date)}, null, null, null);
 
         if (cursor != null && cursor.moveToFirst()) {
             String currentDate = cursor.getString(0);
             cursor.close();
 
             // 1. Получаем текущее значение count
-            Cursor cursorc = db.query(TABLE_INCOME, new String[]{COLUMN_COUNT}, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name,date}, null, null, null);
+            Cursor cursorc = db.query(TABLE_INCOME, new String[]{COLUMN_COUNT}, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name, String.valueOf(date)}, null, null, null);
 
             int count = 0;
             if (cursorc.moveToFirst()) {
@@ -468,7 +496,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
             contentValues.put(COLUMN_NEXT, nextDate);
             contentValues.put(COLUMN_COUNT , count);
 
-            db.update(TABLE_INCOME, contentValues, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name,date});
+            db.update(TABLE_INCOME, contentValues, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ? ", new String[]{name, String.valueOf(date)});
         }
 
         if (cursor != null) {

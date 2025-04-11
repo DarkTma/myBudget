@@ -265,7 +265,7 @@ public class IncomeAdapter extends BaseAdapter {
                 databaseIncome.addSpent(itemIncome);
                 databaseIncome.addIncome(finalIncome);
 
-                income.change(newName, finalIncome, String.valueOf(day));
+                income.change(newName, finalIncome, day);
                 notifyDataSetChanged();
 
                 Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
@@ -335,7 +335,7 @@ public class IncomeAdapter extends BaseAdapter {
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 if (checkBoxAsk.isChecked()) {
                     String name = income.getName();
-                    int day = Integer.parseInt(income.getDate());
+                    int day = income.getDate();
                     databaseIncome.deleteIncome(name, day);  // Удаление дохода из базы данных
                     incomeList.remove(position); // Удаляем объект из списка
                     notifyDataSetChanged(); // Обновляем адаптер
