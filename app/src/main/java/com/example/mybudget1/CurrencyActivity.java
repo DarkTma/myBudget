@@ -85,14 +85,10 @@ public class CurrencyActivity extends AppCompatActivity {
     @SuppressLint("DefaultLocale")
     private void showExchangeRates() {
         // Получаем дефолтную валюту
-        String baseCurrencyCode = new DatabaseHelper2(this).getDefaultCurrency();
 
         double baseToDollar = CursHelper.getToDollar();
         double baseToRub = CursHelper.getToRub();
         double baseToDram = CursHelper.getToDram();
-
-        // Определяем курс между двумя валютами
-        double dollarToRub = baseToDollar / baseToRub;
 
 
 

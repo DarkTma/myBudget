@@ -12,6 +12,7 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -19,6 +20,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +28,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -36,6 +39,7 @@ public class SpentActivity extends AppCompatActivity {
     private Button btnAddSpent;
     private ArrayList<SpentItem> spentList;
     private ImageButton btnBack;
+    private TextView tvSpent;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -48,6 +52,9 @@ public class SpentActivity extends AppCompatActivity {
         listViewIncome = findViewById(R.id.listViewSpent);
         btnBack = findViewById(R.id.buttonBackFromSpents);
         btnAddSpent = findViewById(R.id.btnAddMonthlySpent);
+        tvSpent = findViewById(R.id.tvSpentM);
+        refreshSpentText();
+
 
         btnAddSpent.setOnClickListener(v -> {
             TextView customTitle = new TextView(this);
@@ -89,11 +96,44 @@ public class SpentActivity extends AppCompatActivity {
             dayParams.setMargins(0, 10, 0, 20);
             dayPicker.setLayoutParams(dayParams);
 
+            // Создаем Spinner для выбора валюты
+            Spinner currencySpinner = new Spinner(this);
+            String[] currencies = {"֏", "$", "₽"};
+            ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
+            currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            currencySpinner.setAdapter(currencyAdapter);
+
+            // Применяем стиль к Spinner
+            currencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+            currencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
+
+            // Получаем текущую валюту из базы данных
+            String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты
+
+            // Преобразуем символ в валютный знак и выбираем в Spinner
+            int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
+            switch (currentCurrencySymbol) {
+                case "dollar":
+                    defaultCurrencyPosition = 1;
+                    break;
+                case "rubli":
+                    defaultCurrencyPosition = 2;
+                    break;
+                case "dram":
+                default:
+                    defaultCurrencyPosition = 0;
+                    break;
+            }
+            currencySpinner.setSelection(defaultCurrencyPosition); // Устанавливаем валюту по умолчанию
+
+            // Контейнер для всех элементов
             LinearLayout layout = new LinearLayout(this);
             layout.setOrientation(LinearLayout.VERTICAL);
+            layout.addView(customTitle);
             layout.addView(name);
             layout.addView(spent);
             layout.addView(dayPicker);
+            layout.addView(currencySpinner); // Добавляем Spinner для валюты
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -115,10 +155,27 @@ public class SpentActivity extends AppCompatActivity {
                             int spentValue = Integer.parseInt(spent.getText().toString());
                             int selectedDay = dayPicker.getValue();
 
-                            Calendar calendar = Calendar.getInstance();
-                            int today = calendar.get(Calendar.DAY_OF_MONTH);
+                            // Получаем выбранную валюту из Spinner
+                            String selectedCurrency = currencySpinner.getSelectedItem().toString();
+                            double finalAmount = 0;
 
-                            databaseIncome.addMonthlySpent(nameText, spentValue, selectedDay);
+                            // Конвертируем сумму в выбранную валюту
+                            switch (selectedCurrency) {
+                                case "֏":
+                                    finalAmount = spentValue / CursHelper.getToDram();
+                                    break;
+                                case "$":
+                                    finalAmount = spentValue / CursHelper.getToDollar();
+                                    break;
+                                case "₽":
+                                    finalAmount = spentValue / CursHelper.getToRub();
+                                    break;
+                            }
+
+                            finalAmount = Math.round(finalAmount * 100.0) / 100.0;
+
+                            // Обновляем запись в базе данных
+                            databaseIncome.addMonthlySpent(nameText, finalAmount, selectedDay);
                             dialog.dismiss();
 
                             Intent intent = new Intent(SpentActivity.this, SpentActivity.class);
@@ -135,6 +192,8 @@ public class SpentActivity extends AppCompatActivity {
             dialog.show();
         });
 
+
+
         btnBack.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(SpentActivity.this, StartActivity.class);
             startActivity(intentGoBack);
@@ -147,7 +206,7 @@ public class SpentActivity extends AppCompatActivity {
         if (income != null && income.moveToFirst()) {
             do {
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
-                int spentNum = income.getInt(income.getColumnIndexOrThrow("monthly_spent"));
+                double spentNum = income.getDouble(income.getColumnIndexOrThrow("monthly_spent"));
                 String date = income.getString(income.getColumnIndexOrThrow("spentday"));
                 spentList.add(new SpentItem(name, spentNum, date));
             } while (income.moveToNext());
@@ -156,6 +215,15 @@ public class SpentActivity extends AppCompatActivity {
         // Подключаем адаптер
         adapter = new SpentAdapter(this, spentList);
         listViewIncome.setAdapter(adapter);
+    }
+
+    private void refreshSpentText() {
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        double spent = databaseIncome.getMonthlySpentSum();
+        CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+        double converted = spent * curs.rate;
+        String result = String.format("%.2f %s", converted, curs.symbol);
+        tvSpent.setText("траты: " + result);
     }
 }
 

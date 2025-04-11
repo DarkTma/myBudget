@@ -67,9 +67,9 @@ public class FileHelper {
                 String[] categoryArray = line.split("-");
                 for (String category : categoryArray) {
                     if (!category.isEmpty()) {
-                        int price = databaseHelper.getAllExpenseByCategory(id , i);
+                        double price = databaseHelper.getAllExpenseByCategory(id , i);
                         int allprice = databaseHelper.getAllExpense(i);
-                        int procent = (allprice != 0) ? (price * 100) / allprice : 0;
+                        int procent = (allprice != 0) ? (int) ((price * 100) / allprice) : 0;
                         categories.add(new CategoryItem(id, category, price , procent));
                         id++;
                     }

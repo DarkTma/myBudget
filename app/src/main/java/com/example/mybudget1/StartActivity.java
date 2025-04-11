@@ -78,9 +78,16 @@ public class StartActivity extends AppCompatActivity {
 
         curs = CursHelper.getCursData(databaseIncome.getCurs());
 
+        Intent intenterr = getIntent();
+        String err = intenterr.getStringExtra("error");
+        if (err != null){
+            Toast.makeText(this, err, Toast.LENGTH_LONG).show();
+        }
+
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
             @Override
             public void handleOnBackPressed() {
+                Log.d("CurrencyDebug", "Saving currency: " + databaseIncome.getDefaultCurrency());
                 finishAffinity();
             }
         };
@@ -146,7 +153,7 @@ public class StartActivity extends AppCompatActivity {
         checkMonth();
 
 
-        int spent = databaseHelper.checkAllSpents(0);
+        double spent = databaseHelper.checkAllSpents(0);
         String result = String.format("%.2f %s", spent * curs.rate , curs.symbol);
         spentText.setText("расход: " + result);
 
@@ -169,12 +176,12 @@ public class StartActivity extends AppCompatActivity {
 
 
 
-        int prevDaySpent = databaseHelper.getDoneSpents(prevDay, prevDay);
-        int prevDayMustDo = databaseHelper.getAllSpents(prevDay, prevDay);
-        int todaySpent = databaseHelper.getDoneSpents(currentDayIndex, currentDayIndex);
-        int todayMustDo = databaseHelper.getAllSpents(currentDayIndex, currentDayIndex);
-        int nextDaySpent = databaseHelper.getDoneSpents(nextDay, nextDay);
-        int nextDayMustDo = databaseHelper.getAllSpents(nextDay, nextDay);
+        double prevDaySpent = databaseHelper.getDoneSpents(prevDay, prevDay);
+        double prevDayMustDo = databaseHelper.getAllSpents(prevDay, prevDay);
+        double todaySpent = databaseHelper.getDoneSpents(currentDayIndex, currentDayIndex);
+        double todayMustDo = databaseHelper.getAllSpents(currentDayIndex, currentDayIndex);
+        double nextDaySpent = databaseHelper.getDoneSpents(nextDay, nextDay);
+        double nextDayMustDo = databaseHelper.getAllSpents(nextDay, nextDay);
 
 
 
@@ -219,7 +226,7 @@ public class StartActivity extends AppCompatActivity {
                 int day = DayAdapter.getStartOfWeek();
                 String[] weekDays = {"понедельник", "вторник", "среда", "четверг" , "пятница", "суббота", "воскресение"};
                 for (int i = 0; i < 7; i++) {
-                    dataList.add(new WeekItem(weekDays[i] , "потрачено: " + databaseHelper.getDoneSpents(day+i, day+i)+"₽",
+                    dataList.add(new WeekItem(weekDays[i] , "потрачено: " + df.format(databaseHelper.getDoneSpents(day+i, day+i) * curs.rate) + curs.symbol,
                             "из: " + df.format(databaseHelper.getAllSpents(day+i, day+i) * curs.rate) + curs.symbol));
                 }
                 listView.getLayoutParams().height += 700; // Возвращаем высоту

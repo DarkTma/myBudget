@@ -22,6 +22,7 @@ public class SplashActivity extends AppCompatActivity {
 
         databaseHelper = new DatabaseHelper2(this);
 
+
         if (databaseHelper.getLastActivity().equals("")) {
             showCurrencySelectionDialog();
         } else {
@@ -40,7 +41,11 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void onError(String message) {
                 Log.e("SplashActivity", "Ошибка обновления курсов: " + message);
-                startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
+                databaseIncome.setCurs(databaseIncome.getDefaultCurrency());
+                Intent intent = new Intent(SplashActivity.this, StartActivity.class);
+                intent.putExtra("error", "нет интернета , не меняйте курс валют");
+                startActivity(intent);
                 finish();
             }
         });

@@ -2,11 +2,11 @@ package com.example.mybudget1;
 
 public class CategoryItem {
     private String name;
-    private int price;
+    private double price;
     private int id;
     private int procent;
 
-    public CategoryItem(int id, String name, int price , int procent) {
+    public CategoryItem(int id, String name, double price , int procent) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -21,7 +21,7 @@ public class CategoryItem {
         return name;
     }
 
-    public int getPrice() {
+    public double getPrice() {
         return price;
     }
 

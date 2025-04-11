@@ -81,7 +81,7 @@ public class DayFragment extends Fragment {
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    int spent = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                    double spent = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
                     boolean isDone = false;
                     String isDonestr = cursor.getString(cursor.getColumnIndexOrThrow("isdone"));
                     if (isDonestr.matches("1")) isDone = true;

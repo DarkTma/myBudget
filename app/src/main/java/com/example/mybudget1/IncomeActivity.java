@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -18,6 +21,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +29,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -49,16 +54,10 @@ public class IncomeActivity extends AppCompatActivity {
         btnAddIncome = findViewById(R.id.btnAddIncome);
         incomeText = findViewById(R.id.tvIncome);
 
-        int incomeAll = databaseIncome.getIncome();
-        if (incomeAll == 0){
-            incomeText.setText("доход: ?");
-        } else {
-            incomeText.setText("доход: " + incomeAll + "₽");
-        }
-
+        refreshIncomeText();
         refreshList();
 
-        btnAddIncome.setOnClickListener( v -> {
+        btnAddIncome.setOnClickListener(v -> {
             TextView customTitle = new TextView(this);
             customTitle.setText("Добавить доход");
             customTitle.setTextSize(20);
@@ -79,9 +78,10 @@ public class IncomeActivity extends AppCompatActivity {
             nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             name.setLayoutParams(nameParams);
 
+            // Создаем EditText для ввода дохода (с плавающей запятой)
             EditText income = new EditText(this);
-            income.setInputType(InputType.TYPE_CLASS_NUMBER);
-            income.setHint("доход");
+            income.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            income.setHint("Доход");
             income.setPadding(0, 30, 0, 10); // Добавляем больше отступов
             income.setBackgroundResource(R.drawable.edit_text_style);
 
@@ -92,6 +92,27 @@ public class IncomeActivity extends AppCompatActivity {
             incomeParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             income.setLayoutParams(nameParams);
 
+            // Ограничение ввода до 2 знаков после запятой
+            income.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    String text = editable.toString();
+                    if (text.contains(".")) {
+                        int dotIndex = text.indexOf(".");
+                        if (text.length() - dotIndex > 3) {
+                            editable.replace(dotIndex + 3, editable.length(), "");
+                        }
+                    }
+                }
+            });
+
+            // Создаем NumberPicker для дня
             NumberPicker day = new NumberPicker(this);
             day.setMinValue(1);
             day.setMaxValue(31);
@@ -104,9 +125,9 @@ public class IncomeActivity extends AppCompatActivity {
             dayParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             day.setLayoutParams(dayParams);
 
-
+            // Создаем CheckBox для ежемесячного дохода
             CheckBox checkBox = new CheckBox(this);
-            checkBox.setText("ежемесячный доход?");
+            checkBox.setText("Ежемесячный доход?");
             checkBox.setTextColor(ContextCompat.getColor(this, R.color.my_green));
             checkBox.setChecked(true);
             checkBox.setButtonDrawable(R.drawable.checkbox_style);
@@ -118,14 +139,43 @@ public class IncomeActivity extends AppCompatActivity {
             checkBoxParams.setMargins(0, 20, 0, 20); // Устанавливаем отступы
             checkBox.setLayoutParams(checkBoxParams);
 
+            // Создаем Spinner для выбора валюты
+            Spinner currencySpinner = new Spinner(this);
+            String[] currencies = {"֏", "$", "₽"};
+            ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
+            currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            currencySpinner.setAdapter(currencyAdapter);
+
+            // Получаем текущую валюту из базы данных
+            String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты
+
+            // Преобразуем символ в валютный знак и выбираем в Spinner
+            int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
+            switch (currentCurrencySymbol) {
+                case "dollar":
+                    defaultCurrencyPosition = 1;
+                    break;
+                case "rubli":
+                    defaultCurrencyPosition = 2;
+                    break;
+                case "dram":
+                default:
+                    defaultCurrencyPosition = 0;
+                    break;
+            }
+            currencySpinner.setSelection(defaultCurrencyPosition); // Устанавливаем валюту по умолчанию
+
+            // Создаем контейнер для всех элементов
             LinearLayout layout = new LinearLayout(this);
             layout.setOrientation(LinearLayout.VERTICAL);
+            layout.addView(customTitle);
             layout.addView(name);
             layout.addView(income);
             layout.addView(day);
             layout.addView(checkBox);
+            layout.addView(currencySpinner); // Добавляем Spinner для валюты
 
-            // Создаём AlertDialog
+            // Создаем и показываем AlertDialog
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
             SpannableString positiveButtonText = new SpannableString("Добавить");
@@ -133,16 +183,17 @@ public class IncomeActivity extends AppCompatActivity {
 
             SpannableString negativeButtonText = new SpannableString("Отмена");
             negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_green)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"));
-            builder.setView(layout)
+
+            builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"))
+                    .setView(layout)
                     .setPositiveButton(positiveButtonText, (dialog, which) -> {
-                        if (!income.getText().toString().isEmpty() && Integer.parseInt(income.getText().toString()) != 0) {
+                        if (!income.getText().toString().isEmpty() && Double.parseDouble(income.getText().toString()) != 0) {
                             String nameText = name.getText().toString().trim();
                             if (nameText.isEmpty()) {
-                                nameText = "доход";
+                                nameText = "Доход";
                             }
 
-                            int incomeText = Integer.parseInt(income.getText().toString());
+                            double incomeText = Double.parseDouble(income.getText().toString());
 
                             int dayText = day.getValue();
 
@@ -154,8 +205,27 @@ public class IncomeActivity extends AppCompatActivity {
 
                             boolean once = checkBox.isChecked(); // Обратная логика: если чекбокс НЕ отмечен, то once = false
 
+                            // Получаем выбранную валюту из Spinner
+                            String selectedCurrency = currencySpinner.getSelectedItem().toString();
+                            double finalIncome = 0;
+
+                            // Конвертируем сумму в выбранную валюту
+                            switch (selectedCurrency) {
+                                case "֏":
+                                    finalIncome = incomeText / CursHelper.getToDram();
+                                    break;
+                                case "$":
+                                    finalIncome = incomeText / CursHelper.getToDollar();
+                                    break;
+                                case "₽":
+                                    finalIncome = incomeText / CursHelper.getToRub();
+                                    break;
+                            }
+
+                            finalIncome = Math.round(finalIncome * 100.0) / 100.0;
+
                             // Записываем в базу
-                            databaseIncome.setIncome(incomeText, nameText, dayText, once);
+                            databaseIncome.setIncome(finalIncome, nameText, dayText, once);
 
                             dialog.dismiss();
 
@@ -172,6 +242,7 @@ public class IncomeActivity extends AppCompatActivity {
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background); // Устанавливаем фон
             dialog.show();
         });
+
 
         btnBack.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(IncomeActivity.this, StartActivity.class);
@@ -190,7 +261,7 @@ public class IncomeActivity extends AppCompatActivity {
         if (income != null && income.moveToFirst()) {
             do {
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
-                int incomeNum = income.getInt(income.getColumnIndexOrThrow("income"));
+                double incomeNum = income.getDouble(income.getColumnIndexOrThrow("income"));
                 String date = income.getString(income.getColumnIndexOrThrow("incomeday"));
                 String once = income.getString(income.getColumnIndexOrThrow("onceincome"));
                 boolean x = false;
@@ -209,10 +280,13 @@ public class IncomeActivity extends AppCompatActivity {
     private void refreshIncomeText() {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         int incomeAll = databaseIncome.getIncome();
+        CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+        double converted = incomeAll * curs.rate;
+        String result = String.format("%.2f %s", converted, curs.symbol);
         if (incomeAll == 0){
             incomeText.setText("доход: ?");
         } else {
-            incomeText.setText("доход: " + incomeAll + "₽");
+            incomeText.setText("доход: " + result);
         }
     }
 }

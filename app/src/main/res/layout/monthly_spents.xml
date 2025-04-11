@@ -5,6 +5,7 @@
     android:background="@color/my_darkbg"
     android:padding="16dp">
 
+    <!-- Назад кнопка -->
     <ImageButton
         android:id="@+id/buttonBackFromSpents"
         android:layout_width="40dp"
@@ -15,16 +16,29 @@
         android:scaleType="centerInside"
         android:src="@drawable/arrow" />
 
+    <!-- Жёлтый текст -->
+    <TextView
+        android:id="@+id/tvSpentM"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="fvg"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/yellow"
+        android:layout_marginTop="10dp"
+        android:layout_centerHorizontal="true"/>
+
     <!-- Заголовок -->
     <TextView
         android:id="@+id/tvSpentsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/tvSpentM"
+        android:layout_centerHorizontal="true"
         android:text="Список ежемесечных \n              расходов"
-        android:textSize="20sp"
-        android:textStyle="bold"
         android:textColor="@android:color/white"
-        android:layout_centerHorizontal="true"/>
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <!-- ListView для отображения доходов -->
     <ListView

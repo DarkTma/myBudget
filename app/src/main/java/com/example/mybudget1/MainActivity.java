@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -18,6 +19,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -26,11 +28,14 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -79,8 +84,8 @@ public class MainActivity extends AppCompatActivity {
         currentDayIndex = getCurrentDay() - 1;
 
         Intent intent = getIntent();
-        int day = intent.getIntExtra("day",0);
-        if (day == 0){
+        int day = intent.getIntExtra("day",-1);
+        if (day == -1){
             Toast.makeText(this, "этот день не в этом месяце , пожалуйста передите в ручную", Toast.LENGTH_SHORT).show();
             Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
             startActivity(intent2);
@@ -122,6 +127,15 @@ public class MainActivity extends AppCompatActivity {
             Intent intentGoBack = new Intent(MainActivity.this, StartActivity.class);
             startActivity(intentGoBack);
         });
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent intentGoBack = new Intent(MainActivity.this, StartActivity.class);
+                startActivity(intentGoBack);
+            }
+        };
+        this.getOnBackPressedDispatcher().addCallback(this, callback);
 
         monthViewPager = findViewById(R.id.monthSelectViewPager);
         monthViewPager.setAdapter(new MonthSelectAdapter(this, this::updateMonth));
@@ -228,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Сумма
         EditText spent = new EditText(this);
-        spent.setInputType(InputType.TYPE_CLASS_NUMBER);
+        spent.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         spent.setHint("Сумма");
         spent.setTextColor(Color.WHITE);
         spent.setHintTextColor(Color.WHITE);
@@ -241,6 +255,78 @@ public class MainActivity extends AppCompatActivity {
         );
         spentParams.setMargins(0, 20, 0, 20); // Устанавливаем отступы
         spent.setLayoutParams(spentParams);
+
+        spent.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+                String text = charSequence.toString();
+                if (text.contains(".")) {
+                    // Разрешаем только одну точку
+                    if (text.indexOf(".", text.indexOf(".") + 1) != -1) {
+                        spent.setText(text.substring(0, text.lastIndexOf(".")));
+                        spent.setSelection(spent.getText().length()); // Устанавливаем курсор в конец
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {}
+        });
+
+        Spinner currencySpinner = new Spinner(this);
+        String[] currencies = {"֏", "$", "₽"};
+        ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
+        currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        currencySpinner.setAdapter(currencyAdapter);
+        currencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+        currencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
+
+// Получаем текущую валюту из базы данных
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты (например, "dram", "dollar", "rubli")
+
+// Определяем валюту по символу
+        int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
+        final String[] selectedSymbol = {""}; // Строка для текущей валюты
+
+// Устанавливаем позицию в Spinner в зависимости от текущей валюты
+        switch (currentCurrencySymbol) {
+            case "dollar":
+                selectedSymbol[0] = "$";
+                defaultCurrencyPosition = 1;
+                break;
+            case "rubli":
+                selectedSymbol[0] = "₽";
+                defaultCurrencyPosition = 2;
+                break;
+            case "dram":
+            default:
+                selectedSymbol[0] = "֏";
+                defaultCurrencyPosition = 0;
+                break;
+        }
+
+        // Устанавливаем выбранную валюту в Spinner
+        currencySpinner.setSelection(defaultCurrencyPosition); // Устанавливаем валюту по умолчанию
+
+        // Обработчик выбора валюты
+        int finalDefaultCurrencyPosition = defaultCurrencyPosition;
+        currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // Обновляем выбранную валюту на основе выбранной позиции в Spinner
+                selectedSymbol[0] = currencies[position];
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // Если ничего не выбрано, можно оставить по умолчанию
+                selectedSymbol[0] = currencies[finalDefaultCurrencyPosition];
+            }
+        });
 
         CheckBox checkBox = new CheckBox(this);
         checkBox.setText("Выполнена?");
@@ -347,6 +433,7 @@ public class MainActivity extends AppCompatActivity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.addView(name);
         layout.addView(spent);
+        layout.addView(currencySpinner);
         layout.addView(dayTextView);
         layout.addView(categorySpinner);
         layout.addView(checkBox);
@@ -361,32 +448,51 @@ public class MainActivity extends AppCompatActivity {
         negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите данные</font>"));
+        String finalSelectedSymbol = selectedSymbol[0];
         builder.setView(layout)
                 .setPositiveButton(positiveButtonText, (dialog, which) -> {
                     String nameData = name.getText().toString().trim();
-                    String spentDataStr = spent.getText().toString().trim();
+                    String spentDataStr = spent.getText().toString().replaceAll("[^\\d.]", ""); // Убираем все, кроме цифр и точки
+                    double newitemSpent = 0;
+
+                    try {
+                        newitemSpent = Double.parseDouble(spentDataStr);  // Преобразуем строку в double
+                    } catch (NumberFormatException e) {
+                        // Обработка ошибки, если ввод некорректен
+                        e.printStackTrace();
+                    }
+
+                    // Переменная для финальной суммы
+                    double finalAmount = 0;
+
+                    double valueInX = newitemSpent;
+                    valueInX = Math.round(valueInX * 100.0) / 100.0;
+
+                    // Конвертируем введенную сумму в нужную валюту
+                    if (selectedSymbol[0].equals("֏")) { // Если текущая валюта "dram"
+                        finalAmount = valueInX / CursHelper.getToDram(); // Преобразуем в драм
+                    } else if (selectedSymbol[0].equals("$")) { // Если текущая валюта "dollar"
+                        finalAmount = valueInX / CursHelper.getToDollar(); // Конвертируем в доллары
+                    } else if (selectedSymbol[0].equals("₽")) { // Если текущая валюта "rubli"
+                        finalAmount = valueInX / CursHelper.getToRub(); // Конвертируем в рубли
+                    }
+
 
                     int dayData = selectedDay;  // Используем выбранный день
-                    Calendar calendar = Calendar.getInstance();
-                    int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-                        if (nameData.isEmpty()) nameData = "Трата";
-                        if (!spentDataStr.isEmpty() && Integer.parseInt(spentDataStr) != 0) {
-                            int spentData = Integer.parseInt(spentDataStr);
-                            boolean isDone = checkBox.isChecked();
+                    if (nameData.isEmpty()) nameData = "Трата";
+                    if (!spentDataStr.isEmpty() && Double.parseDouble(spentDataStr) != 0) {
+                        boolean isDone = checkBox.isChecked();
 
-                            // Используем выбранную категорию
-                            String selectedCategory = categories.get(selectedCategoryId[0]);
+                        // Вставляем данные в базу
+                        DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
+                        databaseHelper.insertData(dayData, nameData, finalAmount, offset[0], isDone, selectedCategoryId[0]); // Вставляем с id категории
 
-                            DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
-                            DatabaseHelper2 databaseIncome = new DatabaseHelper2(mainActivity);
-                            databaseHelper.insertData(dayData, nameData, spentData, offset[0], isDone , selectedCategoryId[0]); // Вставляем с id категории
+                        if (isDone) {
+                            databaseIncome.addSpent(finalAmount); // Добавляем в доходы, если отметка стоит
+                        }
 
-                            if (isDone){
-                                databaseIncome.addSpent(spentData);
-                            }
-
-                            updateAdapter();
+                        updateAdapter();
                     }
                 })
                 .setNegativeButton(negativeButtonText, null);

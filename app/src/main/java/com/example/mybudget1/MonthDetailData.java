@@ -3,11 +3,11 @@ package com.example.mybudget1;
 public class MonthDetailData {
     private String type;  // Income или Spent
     private String name;  // Имя категории
-    private int amount;   // Сумма (доход или расход)
+    private double amount;   // Сумма (доход или расход)
     private int day;      // День месяца
     private String category;
 
-    public MonthDetailData(String type, String name, int amount, int day , String category) {
+    public MonthDetailData(String type, String name, double amount, int day , String category) {
         this.type = type;
         this.name = name;
         this.amount = amount;
@@ -24,7 +24,7 @@ public class MonthDetailData {
         return name;
     }
 
-    public int getAmount() {
+    public double getAmount() {
         return amount;
     }
 

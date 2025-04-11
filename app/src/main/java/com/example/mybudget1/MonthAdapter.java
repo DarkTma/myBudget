@@ -43,9 +43,11 @@ public class MonthAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         String name = getName(monthData.getMonthName().split("_")[2]) + "  " + monthData.getMonthName().split("_")[1];
         monthName.setText(name);
         monthName.setTextColor(Color.WHITE);
-        income.setText("Income: " + monthData.getIncome());
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
+        CursData curs  =CursHelper.getCursData(databaseIncome.getCurs());
+        income.setText("Доход: " + monthData.getIncome() * curs.rate + " " + curs.symbol);
         income.setTextColor(Color.GREEN);
-        spent.setText("Spent: " + monthData.getSpent());
+        spent.setText("Расход: " + monthData.getSpent() * curs.rate + " " + curs.symbol);
         spent.setTextColor(Color.YELLOW);
 
         // Обработчик клика на элемент

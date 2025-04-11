@@ -58,10 +58,10 @@ public class WeekItemAdapter extends BaseAdapter {
 
         String spentNum = spent.getText().toString().replaceAll("[^0-9]", ""); // Удаляем все символы, кроме цифр
         String mustDoText = mustDo.getText().toString();
-        int spentN = Integer.parseInt(spentNum);
+        double spentN = Double.parseDouble(spentNum);
         String mustDoOnlyNum = mustDoText.replaceAll("[^0-9]", ""); // Удаляем все символы, кроме цифр
         int mustDoNum = Integer.parseInt(mustDoOnlyNum);
-        double procent = ((double) spentN / mustDoNum) * 100;
+        double procent = ( spentN / mustDoNum) * 100;
 
         if (mustDoNum == 0 || procent == 100){
             spent.setTextColor(Color.GREEN);

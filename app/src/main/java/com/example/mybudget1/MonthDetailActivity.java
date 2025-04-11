@@ -49,7 +49,7 @@ public class MonthDetailActivity extends AppCompatActivity {
         monthDetailDataList = databaseHelper.getMonthDetailData(db, MonthTable);
         filteredList.addAll(monthDetailDataList);
 
-        adapter = new MonthDetailAdapter(filteredList);
+        adapter = new MonthDetailAdapter(this ,filteredList);
         recyclerView.setAdapter(adapter);
 
         searchInput.addTextChangedListener(new TextWatcher() {

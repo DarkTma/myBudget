@@ -14,6 +14,7 @@ public class CategoryAdapter extends BaseAdapter {
     private Context context;
     private List<CategoryItem> categories;
     private OnCategoryActionListener listener;
+    private int selectedPosition = -1;
 
     public interface OnCategoryActionListener {
         void onEdit(int categoryId);
@@ -60,7 +61,11 @@ public class CategoryAdapter extends BaseAdapter {
 
         CategoryItem category = categories.get(position);
         holder.tvName.setText(category.getName());
-        holder.tvPrice.setText(String.valueOf(category.getPrice()) + "₽");
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
+        CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+        double converted = category.getPrice() * curs.rate;
+        String result = String.format("%.2f %s", converted, curs.symbol);
+        holder.tvPrice.setText(result);
         holder.tvProcent.setText(String.valueOf(category.getProcent()) + "%");
 
         holder.btnEdit.setOnClickListener(v -> listener.onEdit(category.getId()));
@@ -74,12 +79,24 @@ public class CategoryAdapter extends BaseAdapter {
             holder.btnEdit.setClickable(false);
             holder.btnDelete.setClickable(false);
         } else {
-            holder.btnEdit.setAlpha(1f);
-            holder.btnDelete.setAlpha(1f);
 
-            // Включаем возможность клика
-            holder.btnEdit.setClickable(true);
-            holder.btnDelete.setClickable(true);
+            if (position == selectedPosition) {
+                holder.btnEdit.setAlpha(1f);
+                holder.btnDelete.setAlpha(1f);
+                holder.btnEdit.setClickable(true);
+                holder.btnDelete.setClickable(true);
+            } else {
+                holder.btnEdit.setAlpha(0f);
+                holder.btnDelete.setAlpha(0f);
+                holder.btnEdit.setClickable(false);
+                holder.btnDelete.setClickable(false);
+            }
+
+            // Обработка клика по элементу
+            convertView.setOnClickListener(v -> {
+                selectedPosition = (selectedPosition == position) ? -1 : position;
+                notifyDataSetChanged(); // обновить список
+            });
         }
 
         holder.btnInfo.setOnClickListener(v -> {

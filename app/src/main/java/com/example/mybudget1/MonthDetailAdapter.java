@@ -1,5 +1,6 @@
 package com.example.mybudget1;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,8 +14,10 @@ import java.util.List;
 public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.MonthDetailViewHolder> {
 
     private List<MonthDetailData> monthDetailDataList;
+    private Context context; // добавляем поле
 
-    public MonthDetailAdapter(List<MonthDetailData> monthDetailDataList) {
+    public MonthDetailAdapter(Context context, List<MonthDetailData> monthDetailDataList) {
+        this.context = context;
         this.monthDetailDataList = monthDetailDataList;
     }
 
@@ -29,7 +32,7 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
         MonthDetailData data = monthDetailDataList.get(position);
 
         holder.type.setTextColor(Color.WHITE);
-        if (data.getType().matches("Income")){
+        if (data.getType().matches("Income")) {
             holder.type.setText("Доход");
             holder.name.setTextColor(Color.GREEN);
             holder.amount.setTextColor(Color.GREEN);
@@ -47,12 +50,18 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
             holder.day.setTextColor(Color.WHITE);
             holder.category.setVisibility(View.GONE);
         }
+
         holder.name.setText(data.getName());
-        holder.amount.setText("Сумма: " + data.getAmount() + "₽");
+
+        // Вот здесь можно теперь использовать context:
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
+        CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+
+        holder.amount.setText("Сумма: " + data.getAmount() * curs.rate + " " + curs.symbol);
         holder.day.setText("День: " + data.getDay());
         holder.category.setText("Котегория: " + data.getCategory());
 
-        if (data.getType().matches("Info")){
+        if (data.getType().matches("Info")) {
             holder.type.setText("Важно");
             holder.name.setText(data.getName());
             holder.name.setTextColor(Color.RED);
@@ -68,7 +77,7 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
     }
 
     public static class MonthDetailViewHolder extends RecyclerView.ViewHolder {
-        TextView type, name, amount, day , category;
+        TextView type, name, amount, day, category;
 
         public MonthDetailViewHolder(View itemView) {
             super(itemView);
@@ -80,4 +89,3 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
         }
     }
 }
-

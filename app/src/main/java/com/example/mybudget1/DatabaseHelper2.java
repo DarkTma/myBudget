@@ -61,7 +61,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         String createTableIncome = "CREATE TABLE IF NOT EXISTS " + TABLE_INCOME + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_NAME + " TEXT, " +
-                COLUMN_INCOME + " INTEGER, " +
+                COLUMN_INCOME + " REAL, " +
                 COLUMN_INCOMEDAY + " INTEGER, " +
                 COLUMN_NEXT + " TEXT, " +
                 COLUMN_COUNT + " INTEGER, " +
@@ -101,7 +101,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    public boolean setIncome(int value, String name, int day, boolean once) {
+    public boolean setIncome(double value, String name, int day, boolean once) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues2 = new ContentValues();
         contentValues2.put(COLUMN_NAME, name);
@@ -188,11 +188,11 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     public String getDefaultCurrency(){
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor a = db.rawQuery("SELECT " + COLUMN_CURS + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
+        Cursor a = db.rawQuery("SELECT " + COLUMN_DEFAULT + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
 
         String curs = "";
         if (a != null && a.moveToFirst()) {
-            curs = a.getString(a.getColumnIndexOrThrow(COLUMN_CURS));
+            curs = a.getString(a.getColumnIndexOrThrow(COLUMN_DEFAULT));
         }
         if (a != null) {
             a.close();
@@ -272,7 +272,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         cursor.close();
     }
 
-    public boolean updateData(String itemName, int incomeDay, String newName, int newIncome) {
+    public boolean updateData(String itemName, int incomeDay, String newName, double newIncome) {
         String tableName = TABLE_INCOME;
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -369,7 +369,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return curs;
     }
 
-    public void addIncome(int income){
+    public void addIncome(double income){
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Получаем курсор с данными
@@ -377,8 +377,8 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         // Проверяем, что курсор не пуст и переходим на первую строку
         if (budgetData != null && budgetData.moveToFirst()) {
-            int budget = budgetData.getInt(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
-            int newBudget = income + budget;
+            double budget = budgetData.getInt(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
+            double newBudget = income + budget;
 
             ContentValues contentValues2 = new ContentValues();
             contentValues2.put(COLUMN_BUDGET, newBudget);
@@ -394,15 +394,15 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     }
 
-    public void addSpent(int spent){
+    public void addSpent(double spent){
         SQLiteDatabase db = this.getWritableDatabase();
 
         Cursor budgetData = db.rawQuery("SELECT " + COLUMN_BUDGET + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
 
         // Проверяем, что курсор не пуст и переходим на первую строку
         if (budgetData != null && budgetData.moveToFirst()) {
-            int budget = budgetData.getInt(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
-            int newBudget = budget - spent;
+            double budget = budgetData.getDouble(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
+            double newBudget = budget - spent;
 
             ContentValues contentValues2 = new ContentValues();
             contentValues2.put(COLUMN_BUDGET, newBudget);
@@ -552,7 +552,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return result != 1;
     }
 
-    public boolean addMonthlySpent(String name, int spent, int day) {
+    public boolean addMonthlySpent(String name, double spent, int day) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues2 = new ContentValues();
         contentValues2.put(COLUMN_NAME, name);
@@ -630,6 +630,23 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + tableName, null);
     }
 
+    public double getMonthlySpentSum() {
+        double result = 0;
+        String tableName = TABLE_MONTHLY_SPENT;
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT SUM(" + COLUMN_SPENT + ") FROM " + tableName, null);
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                result = cursor.getDouble(0);
+            }
+            cursor.close();
+        }
+
+        return result;
+    }
+
+
     public Cursor getMonthlySpentListForSQL() {
         String tableName = TABLE_MONTHLY_SPENT;
         SQLiteDatabase db = this.getWritableDatabase();
@@ -689,7 +706,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
 
 
-    public boolean updateMonthlySpent(String itemName, int spentDay, String newName, int newSpent) {
+    public boolean updateMonthlySpent(String itemName, int spentDay, String newName, double newSpent) {
         String tableName = TABLE_MONTHLY_SPENT;
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();

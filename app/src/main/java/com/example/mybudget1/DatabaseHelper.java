@@ -29,6 +29,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private String currentMonthTable;
     private String nextMonthTable;
 
+    private static final String MAKET_TABLE = "makets";
+
 
     // Колонки таблицы
     private static final String COLUMN_ID = "id";
@@ -55,7 +57,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createTable(db, nextMonthTable);
         createIncomeTable(db, prevMonthTable);
         createSpentTable(db, prevMonthTable);
+        createMaketTable(db);
     }
+
+    private void createMaketTable(SQLiteDatabase db) {
+        String createIncomeTableQuery = "CREATE TABLE IF NOT EXISTS " + MAKET_TABLE + " (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "name TEXT, " +
+                "type TEXT, " +
+                "amount REAL, " +
+                "day INTEGER)";
+        db.execSQL(createIncomeTableQuery);
+    }
+
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -217,9 +231,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return expenseDataList;
     }
 
-    public int getAllExpenseByCategory(int categoryId, int i) {
+    public double getAllExpenseByCategory(int categoryId, int i) {
         SQLiteDatabase db = this.getWritableDatabase();
-        int sum = 0;
+        double sum = 0;
 
         // Строим запрос в зависимости от значения i
         if (i == 3) {
@@ -476,7 +490,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Метод для добавления данных
-    public boolean insertData(int day, String name, int spent, int offset , boolean isDone , int category) {
+    public boolean insertData(int day, String name, double spent, int offset , boolean isDone , int category) {
         String tableName;
         if (offset == -1) {
             tableName = prevMonthTable;
@@ -495,7 +509,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(day), name + "%"} // Ищем совпадения по имени
         );
 
-        int spentData = 0;
+        double spentData = 0;
         boolean exists = false;
         boolean waschanged = false;
         int count = 0;
@@ -617,7 +631,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public boolean updateData(String itemName, int currentDay, String newName, int newSpent , int offset , int category) {
+    public boolean updateData(String itemName, int currentDay, String newName, double newSpent , int offset , int category) {
         String tableName;
         if (offset == -1) {
             tableName = prevMonthTable;
@@ -666,19 +680,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public int checkAllSpents(int offset){
+    public double checkAllSpents(int offset){
         String tableNameforDay = currentMonthTable;
         if (offset == -1) {
             tableNameforDay = prevMonthTable;
         }
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor spenti;
-        int sum = 0;
+        double sum = 0;
         for (int i = 0; i < 31; i++) {
             spenti = db.rawQuery("SELECT " + COLUMN_SPENT + " FROM " + tableNameforDay + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(i)});
 
             if (spenti.moveToFirst()) {
-                sum += spenti.getInt(0);
+                sum += spenti.getDouble(0);
             }
 
             spenti.close();
@@ -687,7 +701,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return sum;
     }
 
-    public int getDoneSpents(int start , int end){
+    public double getDoneSpents(int start , int end){
         String tableName = currentMonthTable;
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -695,16 +709,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 " WHERE isdone = 1 AND day BETWEEN ? AND ?";
 
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(start), String.valueOf(end)});
-        int totalSpent = 0;
+        double totalSpent = 0;
 
         if (cursor.moveToFirst()) {
-            totalSpent = cursor.getInt(0);
+            totalSpent = cursor.getDouble(0);
         }
         cursor.close();
         return totalSpent;
     }
 
-    public int getNotDoneSpents(int start , int end){
+    public double getNotDoneSpents(int start , int end){
         String tableName = currentMonthTable;
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -712,17 +726,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 " WHERE isdone = 0 AND day BETWEEN ? AND ?";
 
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(start), String.valueOf(end)});
-        int totalSpent = 0;
+        double totalSpent = 0;
 
         if (cursor.moveToFirst()) {
-            totalSpent = cursor.getInt(0);
+            totalSpent = cursor.getDouble(0);
         }
         cursor.close();
         return totalSpent;
     }
 
-    public int getAllSpents(int start, int end){
-        int all = getNotDoneSpents(start , end) + getDoneSpents(start , end);
+    public double getAllSpents(int start, int end){
+        double all = getNotDoneSpents(start , end) + getDoneSpents(start , end);
 
         return  all;
     }
@@ -739,7 +753,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createIncomeTableQuery = "CREATE TABLE IF NOT EXISTS " + prevMonthTable + "_income (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "name TEXT, " +
-                "income INTEGER, " +
+                "income REAL, " +
                 "day INTEGER)";
         db.execSQL(createIncomeTableQuery);
     }
@@ -761,7 +775,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null && cursor.moveToFirst()) {
             do {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                int income = cursor.getInt(cursor.getColumnIndexOrThrow("income"));
+                double income = cursor.getDouble(cursor.getColumnIndexOrThrow("income"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("incomeday"));
                 int count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
 
@@ -785,7 +799,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null && cursor.moveToFirst()) {
             do {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                int spent = cursor.getInt(cursor.getColumnIndexOrThrow("monthly_spent"));
+                double spent = cursor.getDouble(cursor.getColumnIndexOrThrow("monthly_spent"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("spentday"));
                 int count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
 
@@ -818,7 +832,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Итерируем по всем записям с DONE = true
             do {
                 String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                int spent = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                double spent = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
 
                 // Записываем эти данные в таблицу month_xxxx_x_spent
@@ -850,7 +864,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    int amount = cursor.getInt(cursor.getColumnIndexOrThrow("income"));
+                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("income"));
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
                     detailList.add(new MonthDetailData("Income", name, amount, day, "доход"));
                 } while (cursor.moveToNext());
@@ -910,6 +924,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return detailList;
     }
 
+
+    public void createMaket(int type , String name , int amount , int day){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+    }
 
 
 

@@ -4,21 +4,25 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +32,7 @@ import androidx.core.content.ContextCompat;
 import com.example.mybudget1.IncomeItem;
 import com.example.mybudget1.R;
 
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.List;
 
@@ -35,6 +40,7 @@ public class IncomeAdapter extends BaseAdapter {
     private Context context;
     private List<IncomeItem> incomeList;
     private boolean isMonthly;
+    private int selectedPosition = -1;
 
     public IncomeAdapter(Context context, List<IncomeItem> incomeList) {
         this.context = context;
@@ -79,8 +85,24 @@ public class IncomeAdapter extends BaseAdapter {
         checkBox.setFocusable(false);
 
         tvName.setText(income.getName());
-        tvAmount.setText("Сумма: " + income.getAmount() + " ₽");
+        CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+        double amaunt = Math.round((income.getAmount() * curs.rate) * 100.0) / 100.0;
+        tvAmount.setText("Сумма: " + amaunt + " " + curs.symbol);
         tvDate.setText("Дата: " + income.getDate());
+
+        if (position == selectedPosition) {
+            btnedit.setVisibility(View.VISIBLE);
+            btndelete.setVisibility(View.VISIBLE);
+        } else {
+            btnedit.setVisibility(View.GONE);
+            btndelete.setVisibility(View.GONE);
+        }
+
+        // Обработка клика по элементу
+        convertView.setOnClickListener(v -> {
+            selectedPosition = (selectedPosition == position) ? -1 : position;
+            notifyDataSetChanged(); // обновить список
+        });
 
         String a = income.getName().trim();
         Cursor cursor = databaseIncome.getMonthly(a);
@@ -116,7 +138,7 @@ public class IncomeAdapter extends BaseAdapter {
 
         btnedit.setOnClickListener(view -> {
             String itemName = income.getName(); // "Coffee"
-            int itemIncome = income.getAmount(); // "100"
+            double itemIncome = income.getAmount(); // "100.00"
 
             // Создаем всплывающее окно
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -136,12 +158,32 @@ public class IncomeAdapter extends BaseAdapter {
             nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             inputName.setLayoutParams(nameParams);
 
-            // Создаем `EditText` для суммы
+            // Создаем `EditText` для суммы (с плавающей запятой, до 2 знаков после запятой)
             EditText inputSpent = new EditText(context);
-            inputSpent.setInputType(InputType.TYPE_CLASS_NUMBER);
-            inputSpent.setText(String.valueOf(itemIncome));
+            inputSpent.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+            inputSpent.setText(String.format("%.2f", itemIncome));  // Отображаем число с двумя знаками после запятой
             inputSpent.setPadding(0, 30, 0, 10); // Добавляем больше отступов
             inputSpent.setBackgroundResource(R.drawable.edit_text_style_orange);
+
+            // Ограничение до двух знаков после запятой
+            inputSpent.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    String text = editable.toString();
+                    if (text.contains(".")) {
+                        int dotIndex = text.indexOf(".");
+                        if (text.length() - dotIndex > 3) {
+                            editable.replace(dotIndex + 3, editable.length(), "");
+                        }
+                    }
+                }
+            });
 
             LinearLayout.LayoutParams spentParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -150,7 +192,7 @@ public class IncomeAdapter extends BaseAdapter {
             spentParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             inputSpent.setLayoutParams(nameParams);
 
-            //Создаем `EditText` для дня получения
+            // Создаем `NumberPicker` для дня получения
             NumberPicker inputDay = new NumberPicker(context);
             inputDay.setMinValue(1);
             inputDay.setMaxValue(31);
@@ -163,6 +205,18 @@ public class IncomeAdapter extends BaseAdapter {
             inputParams.setMargins(0, 10, 0, 20);
             inputDay.setLayoutParams(inputParams);
 
+            // Создаем спиннер для выбора валюты
+            Spinner currencySpinner = new Spinner(context);
+            ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Dram", "Dollar", "Rubli"});
+            currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            currencySpinner.setAdapter(currencyAdapter);
+
+            LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            currencySpinner.setLayoutParams(spinnerParams);
+
             // Контейнер для `EditText`
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
@@ -170,6 +224,7 @@ public class IncomeAdapter extends BaseAdapter {
             layout.addView(inputName);
             layout.addView(inputSpent);
             layout.addView(inputDay);
+            layout.addView(currencySpinner);  // Добавляем спиннер для валюты
 
             builder.setView(layout);
 
@@ -182,20 +237,35 @@ public class IncomeAdapter extends BaseAdapter {
             // Кнопка "Сохранить"
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 String newName = inputName.getText().toString();
-                int newIncome = Integer.parseInt(inputSpent.getText().toString());
+                double newIncome = Double.parseDouble(inputSpent.getText().toString());
                 int day = Integer.parseInt(String.valueOf(inputDay.getValue()));
 
-                // Обновляем запись в базе данных
+                // Получаем выбранную валюту из спиннера
+                String selectedCurrency = currencySpinner.getSelectedItem().toString();
 
-                databaseIncome.updateData(itemName, day, newName, newIncome);
+                double finalIncome = 0;
+                // Преобразуем сумму в выбранную валюту
+                switch (selectedCurrency) {
+                    case "Dram":
+                        finalIncome = newIncome / CursHelper.getToDram();
+                        break;
+                    case "Dollar":
+                        finalIncome = newIncome / CursHelper.getToDollar();
+                        break;
+                    case "Rubli":
+                        finalIncome = newIncome / CursHelper.getToRub();
+                        break;
+                }
+
+                finalIncome = Math.round(finalIncome * 100.0) / 100.0;
+
+                // Обновляем запись в базе данных
+                databaseIncome.updateData(itemName, day, newName, finalIncome);
 
                 databaseIncome.addSpent(itemIncome);
-                databaseIncome.addIncome(newIncome);
+                databaseIncome.addIncome(finalIncome);
 
-
-
-                // Обновляем данные в списке и уведомляем адаптер
-                income.change(newName , newIncome , String.valueOf(day));
+                income.change(newName, finalIncome, String.valueOf(day));
                 notifyDataSetChanged();
 
                 Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
@@ -207,8 +277,10 @@ public class IncomeAdapter extends BaseAdapter {
             AlertDialog dialog = builder.create();
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background_edit); // Устанавливаем фон
             dialog.show();
-
         });
+
+
+
 
         btndelete.setOnClickListener( view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);

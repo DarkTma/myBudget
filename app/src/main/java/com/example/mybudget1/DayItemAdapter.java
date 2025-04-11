@@ -41,6 +41,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
     private List<String> items;
     private int currentDay; // Добавляем текущий день, для которого отображаются элементы
     private Context activity;
+    private int selectedPosition = -1;
 
     public DayItemAdapter(Context context, List<String> items, int currentDay) {
         super(context, R.layout.list_item, items);
@@ -78,7 +79,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
         CursData data = CursHelper.getCursData(databaseIncome.getCurs());
         String priceString = price.replaceAll("[^\\d.]", "");
-        int DefaultSpent = Integer.parseInt(priceString);
+        double DefaultSpent = Double.parseDouble(priceString);
         double converted = DefaultSpent * data.rate;
         String result = String.format("%.2f %s", converted, data.symbol);
 
@@ -92,6 +93,20 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         textViewItemName.setTextColor(textColor);
         textViewItemPrice.setTextColor(textColor);
 
+        if (position == selectedPosition) {
+            buttonEdit.setVisibility(View.VISIBLE);
+            buttonDelete.setVisibility(View.VISIBLE);
+        } else {
+            buttonEdit.setVisibility(View.GONE);
+            buttonDelete.setVisibility(View.GONE);
+        }
+
+        // Обработка клика по элементу
+        convertView.setOnClickListener(v -> {
+            selectedPosition = (selectedPosition == position) ? -1 : position;
+            notifyDataSetChanged(); // обновить список
+        });
+
         // Обработчики для кнопок
         buttonEdit.setOnClickListener(v -> {
             // Получаем текущий элемент
@@ -100,7 +115,6 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             String[] parts = itemData.split("-"); // Разделяем строку
             String itemName = parts[0]; // "Coffee"
             String spentString = parts[1].replaceAll("[^\\d.]", "");
-            int itemSpent = Integer.parseInt(spentString); // Преобразуем строку в число
 
             // Создаем всплывающее окно
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -120,7 +134,6 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             inputName.setLayoutParams(nameParams);
 
-            // Создаем `EditText` для суммы
             // Создаем EditText для суммы
             EditText inputSpent = new EditText(context);
             inputSpent.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
@@ -164,15 +177,24 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, currencies);
             currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             currencySpinner.setAdapter(currencyAdapter);
+            currencySpinner.setBackgroundResource(R.drawable.spinner_bg);
 
-// Получаем текущую валюту из базы данных
+            LinearLayout.LayoutParams currencyParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            currencyParams.setMargins(0, 10, 0, 20); // сверху 10, снизу 20
+            currencySpinner.setLayoutParams(currencyParams);
+
+
+            // Получаем текущую валюту из базы данных
             String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты (например, "dram", "dollar", "rubli")
 
-// Преобразуем символ в валютный знак и выбираем в Spinner
+            // Преобразуем символ в валютный знак и выбираем в Spinner
             String selectedSymbol = currentCurrencySymbol; // Получаем символ текущей валюты
             int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
 
-// Определяем валюту по символу
+            // Определяем валюту по символу
             switch (selectedSymbol) {
                 case "dollar":
                     selectedSymbol = "$";
@@ -207,12 +229,23 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                 public void onNothingSelected(AdapterView<?> parent) {}
             });
 
+
+
             FileHelper fileHelper = new FileHelper(context);
             List<String> categories = fileHelper.readCategoriesFromFile(); // Чтение категорий
             Spinner categorySpinner = new Spinner(context);
             ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             categorySpinner.setAdapter(adapter);
+            categorySpinner.setBackgroundResource(R.drawable.spinner_bg);
+
+            LinearLayout.LayoutParams categoryParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            categoryParams.setMargins(0, 10, 0, 20); // сверху 10, снизу 20
+            categorySpinner.setLayoutParams(categoryParams);
+
 
             // Устанавливаем дефолтную категорию
             categorySpinner.setSelection(categories.indexOf("other"));
@@ -259,25 +292,26 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                     e.printStackTrace();
                 }
                 double rate = CursHelper.getCursData(selectedCurrency[0]).rate;
-                int valueInDrams = (int) Math.round(newitemSpent / rate);
+                double valueInX = newitemSpent / rate;
+                valueInX = Math.round(valueInX * 100.0) / 100.0;
 
 
                 // Обновляем запись в базе данных
                 DatabaseHelper databaseHelper = new DatabaseHelper(context);
                 int currentMonthOffset = ((MainActivity) context).getoffset();
-                databaseHelper.updateData(itemName, currentDay, newName, valueInDrams, currentMonthOffset , selectedCategoryId[0]);
+                databaseHelper.updateData(itemName, currentDay, newName, valueInX, currentMonthOffset , selectedCategoryId[0]);
 
                 // Обновляем данные в списке и уведомляем адаптер
                 String end = "-false";
                 if (checkBox.isChecked()) {
                     end = "-true";
                     databaseIncome.addIncome(DefaultSpent);
-                    databaseIncome.addSpent(valueInDrams);
+                    databaseIncome.addSpent(valueInX);
                 }
                 CursData dataa = CursHelper.getCursData(databaseIncome.getCurs());
-                items.set(position, newName + "-" + valueInDrams + dataa.symbol + end);
+                items.set(position, newName + "-" + valueInX + dataa.symbol + end);
                 textViewItemName.setText(newName);
-                textViewItemPrice.setText(valueInDrams * dataa.rate + dataa.symbol);
+                textViewItemPrice.setText(valueInX * dataa.rate + dataa.symbol);
 
                 notifyDataSetChanged();
 
@@ -302,10 +336,9 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                         // Действие для кнопки "Удалить"
                         String itemData = items.get(position); // Получаем имя элемента для удаления
                         String item = itemData.split("-")[1];
-                        int itemCount = DefaultSpent;
 
                         if (itemData.split("-")[2].matches("true")) {
-                            databaseIncome.addIncome(itemCount);
+                            databaseIncome.addIncome(DefaultSpent);
                         }
 
                         String itemName = textViewItemName.getText().toString();
