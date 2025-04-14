@@ -1,6 +1,7 @@
 package com.example.mybudget1;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import java.util.Map;
 
@@ -55,24 +56,27 @@ public class CursHelper {
                 if (response.isSuccessful() && response.body() != null) {
                     Map<String, Double> rates = response.body().getRates();
 
+                    // ✅ Сохраняем локально
+                    saveRatesLocally(context, baseCurrencyCode, rates);
+
                     try {
                         switch (baseCurrencyCode) {
-                            case "dram": // AMD → USD, RUB
+                            case "dram":
                                 XtoDram = 1.0;
                                 XtoDollar = rates.get("USD");
                                 XtoRubli = rates.get("RUB");
                                 break;
 
-                            case "rubli": // RUB → AMD, USD
+                            case "rubli":
+                                XtoRubli = 1.0;
                                 XtoDram = rates.get("AMD");
                                 XtoDollar = rates.get("USD");
-                                XtoRubli = 1.0;
                                 break;
 
-                            case "dollar": // USD → AMD, RUB
+                            case "dollar":
+                                XtoDollar = 1.0;
                                 XtoDram = rates.get("AMD");
                                 XtoRubli = rates.get("RUB");
-                                XtoDollar = 1.0;
                                 break;
                         }
 
@@ -81,37 +85,71 @@ public class CursHelper {
                     } catch (Exception e) {
                         listener.onError("Ошибка обработки курсов: " + e.getMessage());
                     }
+
                 } else {
                     listener.onError("Ошибка ответа: " + response.code());
                 }
             }
-
             @Override
             public void onFailure(Call<ExchangeRatesResponse> call, Throwable t) {
                 listener.onError("Сетевая ошибка: " + t.getMessage());
+
                 try {
                     switch (baseCurrencyCode) {
-                        case "dram": // AMD → USD, RUB
+                        case "dram":
                             XtoDram = 1.0;
+                            XtoDollar = getSavedRate(context, "dram", "USD");
+                            XtoRubli = getSavedRate(context, "dram", "RUB");
+
+                            if (XtoDollar == -1) XtoDollar = 0.0025;
+                            if (XtoRubli == -1)  XtoRubli = 0.23;
                             break;
 
-                        case "rubli": // RUB → AMD, USD
+                        case "rubli":
                             XtoRubli = 1.0;
+                            XtoDram = getSavedRate(context, "rubli", "AMD");
+                            XtoDollar = getSavedRate(context, "rubli", "USD");
+
+                            if (XtoDram == -1)   XtoDram = 5.0;
+                            if (XtoDollar == -1) XtoDollar = 0.011;
                             break;
 
-                        case "dollar": // USD → AMD, RUB
+                        case "dollar":
                             XtoDollar = 1.0;
+                            XtoDram = getSavedRate(context, "dollar", "AMD");
+                            XtoRubli = getSavedRate(context, "dollar", "RUB");
+
+                            if (XtoDram == -1)  XtoDram = 400.0;
+                            if (XtoRubli == -1) XtoRubli = 90.0;
                             break;
                     }
 
                     listener.onRatesUpdated();
 
                 } catch (Exception e) {
-                    listener.onError("Ошибка обработки курсов: " + e.getMessage());
+                    listener.onError("Ошибка при использовании кэша: " + e.getMessage());
                 }
             }
         });
     }
+
+
+    private static void saveRatesLocally(Context context, String baseCurrency, Map<String, Double> rates) {
+        SharedPreferences prefs = context.getSharedPreferences("exchange_rates", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        for (Map.Entry<String, Double> entry : rates.entrySet()) {
+            editor.putFloat(baseCurrency + "_" + entry.getKey(), entry.getValue().floatValue());
+        }
+
+        editor.apply();
+    }
+
+    private static double getSavedRate(Context context, String baseCurrency, String targetCurrency) {
+        SharedPreferences prefs = context.getSharedPreferences("exchange_rates", Context.MODE_PRIVATE);
+        return prefs.getFloat(baseCurrency + "_" + targetCurrency, -1f);
+    }
+
 
 
     private static String getApiCode(String code) {

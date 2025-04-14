@@ -70,6 +70,16 @@ public class CurrencyActivity extends AppCompatActivity {
                     .show();
         });
 
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this); // уже есть выше
+        CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+        String currentSymbol = curs.symbol;
+
+        // Устанавливаем позицию в Spinner
+        int position = adapter.getPosition(currentSymbol);
+        if (position >= 0) {
+            currencySpinner.setSelection(position);
+        }
+
         showExchangeRates();
     }
 

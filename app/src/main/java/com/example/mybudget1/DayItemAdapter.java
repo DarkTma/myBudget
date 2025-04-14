@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
+import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -32,6 +33,7 @@ import android.text.TextWatcher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,6 +65,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         ImageButton buttonEdit = convertView.findViewById(R.id.buttonEdit);
         ImageButton buttonDelete = convertView.findViewById(R.id.buttonDelete);
         CheckBox checkBox = convertView.findViewById(R.id.isComplete);
+
+
 
         // Получаем данные элемента
         String itemText = items.get(position);
@@ -106,6 +110,49 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             selectedPosition = (selectedPosition == position) ? -1 : position;
             notifyDataSetChanged(); // обновить список
         });
+
+        convertView.setOnLongClickListener(v -> {
+            CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+            String message = "Вы хотите создать шаблон: " + name + " - " + converted + curs.symbol + " ?";
+            SpannableString spannableMessage = new SpannableString(message);
+            spannableMessage.setSpan(
+                    new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)),
+                    0, message.length(),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+
+            SpannableString positiveButtonText = new SpannableString("Добавить");
+            positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            SpannableString negativeButtonText = new SpannableString("Отмена");
+            negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                    .setTitle(Html.fromHtml("<font color='#E0E0E0'>Создание шаблона</font>"))
+                    .setMessage(spannableMessage)
+                    .setPositiveButton(positiveButtonText, (dialog, which) -> {
+                        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                        int offset = ((MainActivity) context).getoffset();
+                        int category_id = databaseHelper.getCategoryId(name, currentDay , offset);
+
+                        boolean added = databaseHelper.createMaket(0,name,DefaultSpent,category_id);
+
+                        if (added) {
+                            Toast.makeText(context, "Шаблон добавлен", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "Такой шаблон уже существует", Toast.LENGTH_SHORT).show();
+                        }
+
+                    })
+                    .setNegativeButton(negativeButtonText, null);
+
+            AlertDialog dialog = builder.create();
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background); // Устанавливаем фон
+            dialog.show();
+
+            return true;
+        });
+
 
         // Обработчики для кнопок
         buttonEdit.setOnClickListener(v -> {

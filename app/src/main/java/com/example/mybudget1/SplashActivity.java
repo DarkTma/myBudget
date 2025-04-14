@@ -56,7 +56,7 @@ public class SplashActivity extends AppCompatActivity {
                 DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                 databaseIncome.setCurs(databaseIncome.getDefaultCurrency());
                 Intent intent = new Intent(SplashActivity.this, StartActivity.class);
-                intent.putExtra("error", "нет интернета , не меняйте курс валют");
+                intent.putExtra("error", "нет интернета , невозможно обновить курс валют");
                 startActivity(intent);
                 finish();
                 }, 1);

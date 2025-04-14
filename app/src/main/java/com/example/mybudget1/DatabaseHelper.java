@@ -926,9 +926,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public void createMaket(int type, String name, double amount, int category_id) {
+    public boolean createMaket(int type, String name, double amount, int category_id) {
         SQLiteDatabase db = this.getWritableDatabase();
 
+        // Проверка: существует ли шаблон с таким же name и amount
+        Cursor cursor = db.rawQuery("SELECT * FROM " + MAKET_TABLE + " WHERE name = ? AND amount = ?",
+                new String[]{name, String.valueOf(amount)});
+
+        boolean exists = cursor.moveToFirst();
+        cursor.close();
+
+        if (exists) {
+            db.close();
+            return false; // уже существует
+        }
+
+        // Вставка нового шаблона
         ContentValues values = new ContentValues();
         values.put("name", name);
         values.put("type", type == 0 ? "Spent" : "Income");
@@ -937,7 +950,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.insert(MAKET_TABLE, null, values);
         db.close();
+        return true;
     }
+
 
 
     public void deleteMaket(int id) {
