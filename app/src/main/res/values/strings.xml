@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">myBudget</string>
     <string name="btn1">Добавить</string>
+    <string-array name="chart_types">
+        <item>По месяцам</item>
+        <item>По дням недели</item>
+    </string-array>
+    <string-array name="chart_types_category">
+        <item>Текуший месяц</item>
+        <item>Прошлый месяц</item>
+        <item>все месяцы</item>
+    </string-array>
+
 </resources>

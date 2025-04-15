@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/my_darkbg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Назад -->
+    <ImageButton
+        android:id="@+id/buttonBackFromGraf"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:scaleType="centerInside"
+        android:src="@drawable/arrow" />
+
+    <!-- Спиннер для типа графика (день/месяц) -->
+    <Spinner
+        android:id="@+id/typeSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/spinner_background_cyan"
+        android:popupBackground="@drawable/spinner_background_cyan"
+        android:textColor="@android:color/white"
+        android:entries="@array/chart_types"/>
+
+    <!-- Спиннер для периода в PieChart -->
+    <Spinner
+        android:id="@+id/categorySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/spinner_background_cyan"
+        android:popupBackground="@drawable/spinner_background_cyan"
+        android:textColor="@android:color/white"
+        android:visibility="gone"
+        android:entries="@array/chart_types_category"/>
+
+    <!-- Кнопка переключения -->
+    <Button
+        android:id="@+id/switchChartButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Показать круг"
+        android:backgroundTint="@color/my_primary"
+        android:textColor="@android:color/white"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Контейнер для графиков -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- BarChart -->
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/barChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="16dp" />
+
+        <!-- PieChart -->
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="16dp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+</LinearLayout>

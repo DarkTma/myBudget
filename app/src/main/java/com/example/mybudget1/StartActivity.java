@@ -129,6 +129,13 @@ public class StartActivity extends AppCompatActivity {
             dimLayer.setVisibility(View.GONE);
         });
 
+        Button btnGrafGo = findViewById(R.id.btnGrafGo);
+        btnGrafGo.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, GraphActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
         Button btnMaketsGo = findViewById(R.id.btnMaketGo);
         btnMaketsGo.setOnClickListener(v -> {
             Intent intent = new Intent(StartActivity.this, MaketListActivity.class);
