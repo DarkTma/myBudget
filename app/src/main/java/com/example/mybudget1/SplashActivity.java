@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.animation.Animation;
@@ -29,6 +31,14 @@ public class SplashActivity extends AppCompatActivity {
         Animation pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
         logo.startAnimation(pulse);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
+            }
+        }
+
+        AlarmScheduler.scheduleDailyReminder(this);
+
         databaseHelper = new DatabaseHelper2(this);
 
 
@@ -38,6 +48,19 @@ public class SplashActivity extends AppCompatActivity {
             updateRatesAndGoToStart(this);
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("SplashActivity", "Разрешение на уведомления предоставлено");
+            } else {
+                Log.d("SplashActivity", "Разрешение на уведомления ОТКАЗАНО");
+            }
+        }
+    }
+
 
     private void updateRatesAndGoToStart(Context context) {
         CursHelper.updateExchangeRates(context, new CursHelper.OnRatesUpdatedListener() {

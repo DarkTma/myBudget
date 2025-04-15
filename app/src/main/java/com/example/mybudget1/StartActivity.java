@@ -64,6 +64,8 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
+        AlarmScheduler.scheduleDailyReminder(this);
+
         // Инициализация элементов
         menuLayout = findViewById(R.id.menuLayout);
         btnOpenMenu = findViewById(R.id.btnOpenMenu);

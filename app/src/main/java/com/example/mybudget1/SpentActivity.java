@@ -49,6 +49,8 @@ public class SpentActivity extends AppCompatActivity {
 
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
+
+
         listViewIncome = findViewById(R.id.listViewSpent);
         btnBack = findViewById(R.id.buttonBackFromSpents);
         btnAddSpent = findViewById(R.id.btnAddMonthlySpent);
