@@ -6,8 +6,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -18,6 +22,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.github.mikephil.charting.animation.ChartAnimator;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -32,7 +37,11 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.IPieDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.renderer.PieChartRenderer;
+import com.github.mikephil.charting.utils.MPPointF;
+import com.github.mikephil.charting.utils.ViewPortHandler;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -44,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import yuku.ambilwarna.AmbilWarnaDialog;
 
 public class GraphActivity extends AppCompatActivity {
 
@@ -52,9 +62,11 @@ public class GraphActivity extends AppCompatActivity {
     private DatabaseHelper databaseHelper;
     private DatabaseHelper2 databaseIncome;
     private ImageButton btnBack;
+    private GestureDetector gestureDetector;
+
     private DecimalFormat df = new DecimalFormat("#.##");
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,6 +115,12 @@ public class GraphActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
+        pieChart.setOnTouchListener((v, event) -> {
+            gestureDetector.onTouchEvent(event);
+            return false; // позволяем PieChart тоже обрабатывать события
+        });
+
+
         // Переключение графиков
         switchChartButton.setOnClickListener(v -> {
             isPieChartVisible[0] = !isPieChartVisible[0];
@@ -113,7 +131,7 @@ public class GraphActivity extends AppCompatActivity {
                 barChart.setVisibility(View.GONE);
                 categorySpinner.setVisibility(View.VISIBLE);
                 typeSpinner.setVisibility(View.GONE);
-                switchChartButton.setText("Показать столбики");
+                switchChartButton.setText("назад");
 
                 categorySpinner.setSelection(0); // по умолчанию текущий месяц
                 showPieChart(pieChart, 1);
@@ -123,7 +141,7 @@ public class GraphActivity extends AppCompatActivity {
                 barChart.setVisibility(View.VISIBLE);
                 categorySpinner.setVisibility(View.GONE);
                 typeSpinner.setVisibility(View.VISIBLE);
-                switchChartButton.setText("Показать круг");
+                switchChartButton.setText("категории");
 
                 int selectedType = typeSpinner.getSelectedItemPosition();
                 if (selectedType == 0) {
@@ -183,10 +201,10 @@ public class GraphActivity extends AppCompatActivity {
         dataSet.setColors(colors);
         dataSet.setValueTextColor(Color.WHITE);
         dataSet.setValueTextSize(12f);
-        dataSet.setSliceSpace(0.5f); // минимальное расстояние между секторами
+        dataSet.setSliceSpace(0.8f); // минимальное расстояние между секторами
         dataSet.setSelectionShift(2f); // меньше выдвигается при выборе
-        dataSet.setValueLinePart1Length(0.3f); // линия от центра
-        dataSet.setValueLinePart2Length(0.3f); // линия до текста
+        dataSet.setValueLinePart1Length(0.1f); // линия от центра
+        dataSet.setValueLinePart2Length(0.1f); // линия до текста
         dataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         dataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
 
@@ -204,6 +222,7 @@ public class GraphActivity extends AppCompatActivity {
 
         PieData data = new PieData(dataSet);
         pieChart.setData(data);
+        pieChart.setRenderer(new CustomPieChartRenderer(pieChart, pieChart.getAnimator(), pieChart.getViewPortHandler()));
         pieChart.setDrawEntryLabels(false);
         pieChart.getLegend().setEnabled(false);
         pieChart.getDescription().setEnabled(false);
@@ -215,7 +234,7 @@ public class GraphActivity extends AppCompatActivity {
         pieChart.getDescription().setEnabled(false);
 
         pieChart.setDrawHoleEnabled(true);
-        pieChart.setHoleColor(Color.parseColor("#121212")); // Центр — тёмный
+        pieChart.setHoleColor(getResources().getColor(R.color.my_darkbg)); // Центр — тёмный
         pieChart.setTransparentCircleRadius(0f);
         pieChart.setHoleRadius(90f); // Увеличим центр — сектора станут "уже"
 
@@ -244,6 +263,31 @@ public class GraphActivity extends AppCompatActivity {
         pieChart.setExtraOffsets(24f, 24f, 24f, 24f);
         Legend legend = pieChart.getLegend();
         legend.setEnabled(false);
+
+        gestureDetector = new GestureDetector(pieChart.getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                Highlight highlight = pieChart.getHighlightByTouchPoint(e.getX(), e.getY());
+                if (highlight != null) {
+                    Entry entry = pieChart.getData().getDataSetByIndex(highlight.getDataSetIndex()).getEntryForIndex((int) highlight.getX());
+                    if (entry instanceof PieEntry) {
+                        String categoryName = ((PieEntry) entry).getLabel();
+
+                        // Найти соответствующий CategoryItem
+                        for (CategoryItem item : categories) {
+                            if (item.getName().equals(categoryName)) {
+                                showColorPickerDialog(pieChart.getContext(), item.getId(), pieChart, i);
+                                break;
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+        });
+
+
+
         pieChart.invalidate(); // Обновление
     }
 
@@ -410,6 +454,30 @@ public class GraphActivity extends AppCompatActivity {
         return map;
     }
 
+    public void showColorPickerDialog(Context context, int categoryId, PieChart pieChart, int i) {
+        SharedPreferences prefs = context.getSharedPreferences("category_colors", Context.MODE_PRIVATE);
+        int currentColor = prefs.getInt("color_" + categoryId, Color.GRAY);
+
+        AmbilWarnaDialog colorPicker = new AmbilWarnaDialog(context, currentColor, new AmbilWarnaDialog.OnAmbilWarnaListener() {
+            @Override
+            public void onOk(AmbilWarnaDialog dialog, int color) {
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putInt("color_" + categoryId, color);
+                editor.apply();
+                showPieChart(pieChart, i); // Обновляем график
+            }
+
+            @Override
+            public void onCancel(AmbilWarnaDialog dialog) {
+                // Ничего не делаем
+            }
+        });
+
+        colorPicker.show();
+    }
+
+
+
     public static void updateCategoryColor(int categoryId, int red, int green, int blue, Context context) {
         int color = Color.rgb(red, green, blue);
         SharedPreferences prefs = context.getSharedPreferences("category_colors", Context.MODE_PRIVATE);
@@ -504,4 +572,52 @@ class CurrencyValueFormatter extends ValueFormatter {
         return formatter.format(convertedValue) + " " + currencySymbol;
     }
 }
+
+class CustomPieChartRenderer extends PieChartRenderer {
+    public CustomPieChartRenderer(PieChart chart, ChartAnimator animator, ViewPortHandler viewPortHandler) {
+        super(chart, animator, viewPortHandler);
+    }
+
+    @Override
+    public void drawValues(Canvas c) {
+        super.drawValues(c); // рисует суммы как раньше
+
+        PieData data = mChart.getData();
+        float radius = mChart.getRadius();
+        MPPointF center = mChart.getCenterCircleBox();
+        float rotationAngle = mChart.getRotationAngle();
+
+        float[] drawAngles = mChart.getDrawAngles();
+        float[] absoluteAngles = mChart.getAbsoluteAngles();
+
+        List<PieEntry> entries = data.getDataSet().getEntriesForXValue(0f);
+        IPieDataSet dataSet = data.getDataSet();
+
+        float angle = 0;
+
+        for (int i = 0; i < dataSet.getEntryCount(); i++) {
+            PieEntry entry = dataSet.getEntryForIndex(i);
+            float sliceAngle = drawAngles[i];
+            float valueAngle = angle + sliceAngle / 2f;
+
+            float transformedAngle = rotationAngle + valueAngle;
+
+            float percentage = entry.getValue() / data.getYValueSum() * 100;
+            String percentText = String.format("%.0f%%", percentage);
+
+            float x = (float) (center.x + (radius * 0.5f) * Math.cos(Math.toRadians(transformedAngle)));
+            float y = (float) (center.y + (radius * 0.5f) * Math.sin(Math.toRadians(transformedAngle)));
+
+            mValuePaint.setColor(Color.LTGRAY);
+            mValuePaint.setTextSize(35f);
+            mValuePaint.setColor(Color.YELLOW);
+            mValuePaint.setTextAlign(Paint.Align.CENTER);
+
+            c.drawText(percentText, x, y, mValuePaint);
+
+            angle += sliceAngle;
+        }
+    }
+}
+
 
