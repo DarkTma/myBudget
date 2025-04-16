@@ -47,6 +47,7 @@
         <activity android:name=".CurrencyActivity"/>
         <activity android:name=".MaketListActivity"/>
         <activity android:name=".GraphActivity"/>
+        <activity android:name=".ReminderListActivity"/>
 
 
 </application>

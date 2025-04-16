@@ -58,6 +58,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createIncomeTable(db, prevMonthTable);
         createSpentTable(db, prevMonthTable);
         createMaketTable(db);
+        createReminder(db);
+    }
+
+    private void createReminder(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS reminders (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "timestamp LONG, " +
+                "requestCode INTEGER, " +
+                "name TEXT)");
     }
 
     private void createMaketTable(SQLiteDatabase db) {
@@ -984,6 +993,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return maketList;
     }
 
+    public void saveReminder(long timestamp, String name , int requestCode) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("timestamp", timestamp);
+        values.put("name", name);
+        values.put("requestCode", requestCode);
+        db.insert("reminders", null, values);
+        db.close();
+    }
+
+
 
     public int getCategoryId(String itemName, int day , int offset) {
         int categoryId = -1; // Значение по умолчанию, если ничего не найдено
@@ -1015,6 +1035,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return categoryId;
     }
 
+    public void deleteReminder(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.delete("reminders", "id=?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+
+    public Cursor getReminderList() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM reminders", null);
+        return cursor;
+    }
 }
 
 

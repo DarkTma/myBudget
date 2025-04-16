@@ -341,10 +341,11 @@ public class MainActivity extends AppCompatActivity {
         checkBoxParams.setMargins(0, 20, 0, 20); // Устанавливаем отступы
         checkBox.setLayoutParams(checkBoxParams);
 
+        offset[0] = currentMonthOffset;
 
         // Выбор дня (календарь)
         final TextView dayTextView = new TextView(this);
-        dayTextView.setText("день: " + selectedDay );  // Изначально показываем выбранный день
+        dayTextView.setText("день: " + selectedDay + " " + monthName);  // Изначально показываем выбранный день
         dayTextView.setPadding(0, 20, 0, 20);
         dayTextView.setTextColor(ContextCompat.getColor(this, R.color.my_cyan));
         dayTextView.setTextSize(18);
@@ -364,6 +365,7 @@ public class MainActivity extends AppCompatActivity {
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
             long maxDate = calendar.getTimeInMillis();
 
+
             // Устанавливаем DatePickerDialog с ограничениями на месяц
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     this,
@@ -371,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
                         // Обновляем день, если пользователь выбрал новый
                         offset[0] = (monthOfYear < currentMonth) ? -1 : (monthOfYear > currentMonth) ? 1 : 0;
                         selectedDay = dayOfMonth;
-                        dayTextView.setText("Выбран день: " + selectedDay); // Обновляем отображаемый текст
+                        dayTextView.setText("день: " + selectedDay + " " + monthName); // Обновляем отображаемый текст
                     },
                     currentYear, currentMonth + currentMonthOffset, selectedDay);
 

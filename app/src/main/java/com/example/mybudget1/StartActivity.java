@@ -19,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
@@ -64,7 +65,6 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
-        AlarmScheduler.scheduleDailyReminder(this);
 
         // Инициализация элементов
         menuLayout = findViewById(R.id.menuLayout);
@@ -107,6 +107,12 @@ public class StartActivity extends AppCompatActivity {
             return true;
         });
 
+        ImageButton btnNotif = findViewById(R.id.notifications);
+        btnNotif.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, ReminderListActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
 
 

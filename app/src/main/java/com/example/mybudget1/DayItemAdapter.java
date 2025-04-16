@@ -3,6 +3,7 @@ package com.example.mybudget1;
 import static androidx.core.app.PendingIntentCompat.getActivity;
 
 import android.annotation.SuppressLint;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.Editable;
@@ -34,6 +35,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
@@ -64,6 +66,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         TextView textViewItemPrice = convertView.findViewById(R.id.textViewItemPrice);
         ImageButton buttonEdit = convertView.findViewById(R.id.buttonEdit);
         ImageButton buttonDelete = convertView.findViewById(R.id.buttonDelete);
+        ImageButton buttonNotif = convertView.findViewById(R.id.buttonNotifications);
         CheckBox checkBox = convertView.findViewById(R.id.isComplete);
 
 
@@ -100,9 +103,11 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         if (position == selectedPosition) {
             buttonEdit.setVisibility(View.VISIBLE);
             buttonDelete.setVisibility(View.VISIBLE);
+            buttonNotif.setVisibility(View.VISIBLE);
         } else {
             buttonEdit.setVisibility(View.GONE);
             buttonDelete.setVisibility(View.GONE);
+            buttonNotif.setVisibility(View.GONE);
         }
 
         // Обработка клика по элементу
@@ -378,6 +383,52 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             dialog.show();
 
         });
+
+        buttonNotif.setOnClickListener(v -> {
+            int currentMonthOffset = ((MainActivity) context).getoffset();
+            if (currentMonthOffset != 0) {
+                Toast.makeText(context, "Можно установить уведомление только для текущего месяца", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Диалог выбора времени
+            Calendar currentTime = Calendar.getInstance();
+            int hour = currentTime.get(Calendar.HOUR_OF_DAY);
+            int minute = currentTime.get(Calendar.MINUTE);
+
+            TimePickerDialog timePickerDialog = new TimePickerDialog(context, (view, hourOfDay, minute1) -> {
+                // Установим дату и время для уведомления
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                calendar.set(Calendar.MINUTE, minute1);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+                calendar.set(Calendar.DAY_OF_MONTH, currentDay);
+
+                // Проверим, не в прошлом ли
+                if (calendar.getTimeInMillis() < System.currentTimeMillis()) {
+                    Toast.makeText(context, "Это время уже прошло", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Создаём уникальный requestCode
+                int requestCode = (int) System.currentTimeMillis();
+
+                // Планируем уведомление
+                AlarmScheduler.scheduleReminder(context, calendar.getTimeInMillis(), name, requestCode);
+
+                // Сохраняем в базу
+                DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                databaseHelper.saveReminder(calendar.getTimeInMillis(), name, requestCode);
+
+                Toast.makeText(context, "Уведомление установлено", Toast.LENGTH_SHORT).show();
+
+            }, hour, minute, true);
+
+            timePickerDialog.show();
+        });
+
+
 
         buttonDelete.setOnClickListener(v -> {
             // Создаем AlertDialog для подтверждения удаления

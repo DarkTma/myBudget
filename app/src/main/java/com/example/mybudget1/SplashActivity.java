@@ -37,6 +37,7 @@ public class SplashActivity extends AppCompatActivity {
             }
         }
 
+        // Устанавливаем уведомление
         AlarmScheduler.scheduleDailyReminder(this);
 
         databaseHelper = new DatabaseHelper2(this);
