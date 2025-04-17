@@ -21,6 +21,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -489,6 +490,11 @@ public class MainActivity extends AppCompatActivity {
                         // Вставляем данные в базу
                         DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
                         databaseHelper.insertData(dayData, nameData, finalAmount, offset[0], isDone, selectedCategoryId[0]); // Вставляем с id категории
+
+                        CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        databaseHelper.saveNote(currentDate, "добавлен новый рассход: " + nameData + " - " + finalAmount + curs.symbol, "Spent", "add" );
 
                         if (isDone) {
                             databaseIncome.addSpent(finalAmount); // Добавляем в доходы, если отметка стоит

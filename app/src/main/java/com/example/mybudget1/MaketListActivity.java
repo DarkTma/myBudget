@@ -36,9 +36,12 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MaketListActivity extends AppCompatActivity {
 
@@ -109,12 +112,23 @@ public class MaketListActivity extends AppCompatActivity {
                     if (maket.getType().equals("Spent")){
                         databaseHelper.insertData(selectedDay, maket.getName(), maket.getAmount(), 0, true, maket.getCategory_id());
                         databaseIncome.addSpent(maket.getAmount());
+                        DatabaseHelper databaseHelper = new DatabaseHelper(MaketListActivity.this);
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        databaseHelper.saveNote(currentDate, "выполнен расход:\n" + maket.getName() + " - " + maket.getAmount() + cursd.symbol , "Spent", "add" );
                     } else{
                         databaseIncome.setIncome(maket.getAmount() , maket.getName() , selectedDay ,false);
 
                         databaseIncome.setIncomeGiven(maket.getName() , selectedDay);
                         databaseIncome.addIncome(maket.getAmount());
                         databaseIncome.deactivateIncome(maket.getName() , selectedDay);
+
+                        DatabaseHelper databaseHelper = new DatabaseHelper(MaketListActivity.this);
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        databaseHelper.saveNote(currentDate, "получен доход:\n" + maket.getName() + " - " + maket.getAmount() + cursd.symbol , "Income", "add" );
                     }
                 });
 

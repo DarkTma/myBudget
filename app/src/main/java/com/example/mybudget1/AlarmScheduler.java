@@ -15,23 +15,6 @@ import java.util.Calendar;
 public class AlarmScheduler {
 
     public static void scheduleReminder(Context context, long triggerAtMillis, String name, int requestCode) {
-        // Создание канала уведомлений для Android 8.0 и выше
-        String channelId = "budget_channel_id";
-        String channelName = "Напоминания о бюджете";
-
-        NotificationManager notificationManager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    channelName,
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            channel.setDescription("Напоминания записывать траты");
-            notificationManager.createNotificationChannel(channel);
-        }
-
         // Планируем уведомление
         Intent intent = new Intent(context, ReminderReceiver.class);
         intent.putExtra("reminder_name", name); // Передаем имя через Intent
@@ -54,6 +37,7 @@ public class AlarmScheduler {
         }
     }
 
+
     public static void scheduleDailyReminder(Context context) {
         String channelId = "budget_channel_id";
         String channelName = "Напоминания о бюджете";
@@ -65,8 +49,10 @@ public class AlarmScheduler {
             NotificationChannel channel = new NotificationChannel(
                     channelId,
                     channelName,
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    NotificationManager.IMPORTANCE_HIGH
             );
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{0, 500, 250, 500}); // вибрация
             channel.setDescription("Напоминания записывать траты");
             notificationManager.createNotificationChannel(channel);
         }

@@ -59,6 +59,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createSpentTable(db, prevMonthTable);
         createMaketTable(db);
         createReminder(db);
+        createNotes(db);
     }
 
     private void createReminder(SQLiteDatabase db) {
@@ -66,6 +67,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "timestamp LONG, " +
                 "requestCode INTEGER, " +
+                "name TEXT)");
+    }
+
+    private void createNotes(SQLiteDatabase db) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS notes (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "timestamp TEXT, " +
+                "type TEXT, " +
+                context.getString(R.string.action_text) +
                 "name TEXT)");
     }
 
@@ -1003,6 +1013,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    public void saveNote(String timestamp, String name , String type , String action) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("timestamp", timestamp);
+        values.put("name", name);
+        values.put("type", type);
+        values.put("action", action);
+        db.insert("notes", null, values);
+        db.close();
+    }
+
 
 
     public int getCategoryId(String itemName, int day , int offset) {
@@ -1045,6 +1066,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM reminders", null);
         return cursor;
+    }
+
+    public Cursor getNoteList() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM notes ORDER BY timestamp DESC", null);
     }
 }
 

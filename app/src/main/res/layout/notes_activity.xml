@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/my_darkbg"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ImageButton
+        android:id="@+id/buttonBackFromNotes"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="16dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:contentDescription="Back"
+        android:scaleType="centerInside"
+        android:src="@drawable/arrow" />
+
+    <!-- Строка поиска -->
+    <EditText
+        android:id="@+id/searchEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/edit_text_style"
+        android:hint="Поиск заметок"
+        android:padding="10dp"
+        android:textColor="@android:color/white"
+        android:textColorHint="#CCCCCC" />
+
+    <!-- Спиннер для фильтрации -->
+    <Spinner
+        android:id="@+id/filterSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/spinner_background" />
+
+    <!-- RecyclerView для заметок -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/notesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/list_background"
+        android:layout_weight="1"
+        android:paddingTop="10dp" />
+
+    <!-- Кнопка добавить -->
+    <Button
+        android:id="@+id/buttonAddNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/button_selector_blue"
+        android:text="Добавить заметку"
+        android:textColor="@android:color/white" />
+</LinearLayout>

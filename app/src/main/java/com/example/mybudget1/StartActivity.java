@@ -31,6 +31,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -95,6 +96,9 @@ public class StartActivity extends AppCompatActivity {
         };
         this.getOnBackPressedDispatcher().addCallback(this, callback);
 
+        deleteOldNotifications();
+        showNotifCount();
+
 
         budgetText.setOnLongClickListener(v -> {
             double original = databaseIncome.getBudget();
@@ -115,6 +119,12 @@ public class StartActivity extends AppCompatActivity {
         });
 
 
+        ImageButton buttonHistory = findViewById(R.id.buttonHistory);
+        buttonHistory.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, NotesActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
         //закрытие менюшки
         LinearLayout menuLayout = findViewById(R.id.menuLayout);
@@ -294,6 +304,42 @@ public class StartActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void deleteOldNotifications() {
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        Cursor cursor = databaseHelper.getReminderList();
+
+        long currentTime = System.currentTimeMillis();
+        long thresholdTime = currentTime + 5 * 60 * 1000; // 5 минут в миллисекундах
+
+        while (cursor.moveToNext()) {
+            int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+            long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow("timestamp"));
+
+            if (timestamp < thresholdTime) {
+                databaseHelper.deleteReminder(id);
+            }
+        }
+
+        cursor.close();
+    }
+
+    private void showNotifCount(){
+        TextView badge = findViewById(R.id.notification_badge);
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        Cursor cursor = databaseHelper.getReminderList();
+
+        int count = cursor.getCount();
+        cursor.close();
+
+        if (count > 0) {
+            badge.setText(String.valueOf(count));
+            badge.setVisibility(View.VISIBLE);
+        } else {
+            badge.setVisibility(View.GONE);
+        }
+    }
+
 
 
     //если пришло время дабавляем сумму дохода

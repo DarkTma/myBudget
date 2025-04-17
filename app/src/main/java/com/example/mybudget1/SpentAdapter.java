@@ -31,8 +31,11 @@ import com.example.mybudget1.IncomeItem;
 import com.example.mybudget1.R;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class SpentAdapter extends BaseAdapter {
     private Context context;
@@ -229,11 +232,15 @@ public class SpentAdapter extends BaseAdapter {
 
                 // Обновляем запись в базе данных
                 databaseIncome.updateMonthlySpent(itemName, day, newName, finalAmount);
-                databaseIncome.addSpent(itemIncome);
-                databaseIncome.addIncome( finalAmount);
 
                 // Обновляем данные в списке и уведомляем адаптер
                 spent.change(newName , finalAmount , String.valueOf(day));
+
+                CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                String currentDate = sdf.format(new Date());
+                DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                databaseHelper.saveNote(currentDate, "Изменен ежемесячный расход\n" + itemName + " - " + itemIncome + cursd.symbol + "\nна: " + newName + " - " + finalAmount + cursd.symbol, "Spent", "edit" );
                 notifyDataSetChanged();
 
                 Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
@@ -245,19 +252,32 @@ public class SpentAdapter extends BaseAdapter {
         });
 
 
-        btndelete.setOnClickListener( view -> {
-                    Calendar calendar = Calendar.getInstance();
-                    int today = calendar.get(Calendar.DAY_OF_MONTH);
-                    String name = spent.getName();
-                    double count = spent.getAmount();
-                    int day = Integer.parseInt(spent.getDate());
-                    databaseIncome.deleteMonthlySpent(name, day);
-                    if (day <= today){
-                        databaseIncome.addIncome(count);
-                    }
-                    incomeList.remove(position);
-                    notifyDataSetChanged();
-            });
+        btndelete.setOnClickListener(view -> {
+            new AlertDialog.Builder(view.getContext())
+                    .setTitle("Подтверждение удаления")
+                    .setMessage("Вы точно хотите удалить этот ежемесячный расход?")
+                    .setPositiveButton("Удалить", (dialog, which) -> {
+                        Calendar calendar = Calendar.getInstance();
+                        int today = calendar.get(Calendar.DAY_OF_MONTH);
+                        String name = spent.getName();
+                        double count = spent.getAmount();
+                        int day = Integer.parseInt(spent.getDate());
+
+                        databaseIncome.deleteMonthlySpent(name, day);
+
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                        databaseHelper.saveNote(currentDate, "удален ежемесячный расход:\n" + spent.getName() + " - " + spent.getAmount() + cursd.symbol, "Spent", "delete" );
+
+                        incomeList.remove(position);
+                        notifyDataSetChanged();
+                    })
+                    .setNegativeButton("Отмена", null)
+                    .show();
+        });
+
 
 
         return convertView;
@@ -267,11 +287,16 @@ public class SpentAdapter extends BaseAdapter {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
         builder.setTitle("Выпалнение траты")
-                .setMessage("Хотите сейчас же выполнить трату?")
+                .setMessage("Хотите сейчас же выполнить ежемесячный расход?")
                 .setPositiveButton("Да", (dialog, which) -> {
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                     databaseIncome.setMonthlySpentGiven(spent.getName(), spent.getDate());
                     databaseIncome.addSpent(spent.getAmount());
+                    CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                    String currentDate = sdf.format(new Date());
+                    DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                    databaseHelper.saveNote(currentDate, "сделан ежемесячный расход: " + spent.getName() + " - " + spent.getAmount() + cursd.symbol, "Spent", "add" );
                     Toast.makeText(context, "Успех", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());

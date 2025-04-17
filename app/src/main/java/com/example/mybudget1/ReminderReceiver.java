@@ -19,21 +19,16 @@ public class ReminderReceiver extends BroadcastReceiver {
 
         String channelId = "budget_channel_id";
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    "Напоминания о бюджете",
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            notificationManager.createNotificationChannel(channel);
-        }
-
+        // Канал уже должен быть создан в Activity, здесь просто создаем уведомление
         String name = intent.getStringExtra("reminder_name");
         boolean isDefault = intent.getBooleanExtra("default_reminder", false);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_logo)
-                .setContentTitle("Не забудь!");
+                .setContentTitle("Не забудь!")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setVibrate(new long[]{0, 500, 250, 500}); // вибрация
 
         if (isDefault) {
             builder.setContentText("Запиши сегодняшние траты.");
@@ -43,9 +38,6 @@ public class ReminderReceiver extends BroadcastReceiver {
             builder.setContentText("Что-то важное, проверь приложение!");
         }
 
-        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT).setAutoCancel(true);
-
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
-
 }

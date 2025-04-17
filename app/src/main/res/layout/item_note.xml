@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/list_item_background"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp">
+
+    <!-- Цветной флажок с датой -->
+    <TextView
+        android:id="@+id/noteDate"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="50dp"
+        android:background="@drawable/date_banner_bg"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:paddingStart="8dp"
+        android:text="01.04.2025"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/noteDate"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Тип (квадрат, 1/6 ширины) -->
+        <TextView
+            android:id="@+id/noteType"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/type_background"
+            android:gravity="center"
+            android:text="Т"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:minHeight="31dp"
+            android:padding="4dp" />
+
+        <!-- Имя (5/6 ширины, многострочный) -->
+        <TextView
+            android:id="@+id/noteName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:layout_marginStart="8dp"
+            android:text="Покупка кофе, очень длинное описание чтобы проверить перенос текста и рост блока"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="5"
+            android:ellipsize="end"
+            android:lineSpacingExtra="2dp"
+            android:padding="4dp" />
+    </LinearLayout>
+
+</RelativeLayout>

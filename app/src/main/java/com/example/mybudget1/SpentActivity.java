@@ -29,8 +29,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class SpentActivity extends AppCompatActivity {
 
@@ -178,6 +181,11 @@ public class SpentActivity extends AppCompatActivity {
 
                             // Обновляем запись в базе данных
                             databaseIncome.addMonthlySpent(nameText, finalAmount, selectedDay);
+                            CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                            String currentDate = sdf.format(new Date());
+                            DatabaseHelper databaseHelper = new DatabaseHelper(this);
+                            databaseHelper.saveNote(currentDate, "добавлен новый рассход: " + nameText + " - " + finalAmount + curs.symbol, "Spent", "add" );
                             dialog.dismiss();
 
                             Intent intent = new Intent(SpentActivity.this, SpentActivity.class);

@@ -41,16 +41,55 @@
                 android:textColor="@color/white"
                 android:textSize="18sp" />
 
-            <ImageButton
-                android:id="@+id/notifications"
+            <FrameLayout
+                android:id="@+id/notification_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_notifications"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_alignParentEnd="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="10dp" />
+                android:layout_alignParentTop="true" >
+
+                <!-- Твоя иконка уведомлений -->
+                <ImageButton
+                    android:id="@+id/notifications"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_notifications"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp" />
+
+                <!-- Красный кружок с числом -->
+                <TextView
+                    android:id="@+id/notification_badge"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="end|top"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/badge_background"
+                    android:textColor="#FFFFFF"
+                    android:gravity="center"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    android:padding="2dp" />
+            </FrameLayout>
+
+
+
+
+            <ImageButton
+                android:id="@+id/buttonHistory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/notification_container"
+                android:layout_alignParentEnd="true"
+                android:layout_margin="12dp"
+                android:layout_marginTop="-38dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="История"
+                android:src="@drawable/baseline_history_24" />
+
 
             <LinearLayout
                 android:id="@+id/statsContainer"

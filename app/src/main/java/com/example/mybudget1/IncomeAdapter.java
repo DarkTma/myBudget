@@ -33,8 +33,11 @@ import com.example.mybudget1.IncomeItem;
 import com.example.mybudget1.R;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class IncomeAdapter extends BaseAdapter {
     private Context context;
@@ -265,6 +268,12 @@ public class IncomeAdapter extends BaseAdapter {
                 databaseIncome.addSpent(itemIncome);
                 databaseIncome.addIncome(finalIncome);
 
+                DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                String currentDate = sdf.format(new Date());
+                databaseHelper.saveNote(currentDate, "Изменен доход:\n" + itemName + " - " + itemIncome + cursd.symbol + "\nна: " + newName + " - " + finalIncome + cursd.symbol, "Income", "edit" );
+
                 income.change(newName, finalIncome, day);
                 notifyDataSetChanged();
 
@@ -336,7 +345,15 @@ public class IncomeAdapter extends BaseAdapter {
                 if (checkBoxAsk.isChecked()) {
                     String name = income.getName();
                     int day = income.getDate();
+                    double incomen = income.getAmount();
                     databaseIncome.deleteIncome(name, day);  // Удаление дохода из базы данных
+
+                    DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                    CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                    String currentDate = sdf.format(new Date());
+                    databaseHelper.saveNote(currentDate, "удален доход:\n" + name + " - " + incomen + cursd.symbol, "Income", "delete" );
+
                     incomeList.remove(position); // Удаляем объект из списка
                     notifyDataSetChanged(); // Обновляем адаптер
                 } else {
@@ -355,12 +372,35 @@ public class IncomeAdapter extends BaseAdapter {
             dialog.show();
         });
 
-            checkBox.setOnClickListener( view -> {
+        checkBox.setOnClickListener(view -> {
             String name = income.getName();
             boolean isMonthlyy = checkBox.isChecked();
-            databaseIncome.setMonthly(name , isMonthlyy);
-            notifyDataSetChanged();
+            double incomen = income.getAmount();
+
+            new AlertDialog.Builder(view.getContext())
+                    .setTitle("Подтвердите действие")
+                    .setMessage(isMonthlyy
+                            ? "Сделать эту запись ежемесячной?"
+                            : "Сделать эту запись одноразовой?")
+                    .setPositiveButton("Подтвердить", (dialog, which) -> {
+                        databaseIncome.setMonthly(name, isMonthlyy);
+
+                        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        String stat = isMonthlyy ? "ежемесячный" : "одноразовый";
+                        databaseHelper.saveNote(currentDate, "Статус дохода:\n" + name + " - " + incomen + cursd.symbol + "\nизменен на " + stat, "Income", "edit" );
+
+                        notifyDataSetChanged();
+                    })
+                    .setNegativeButton("Отмена", (dialog, which) -> {
+                        // Отменяем изменение чекбокса визуально
+                        checkBox.setChecked(!isMonthlyy);
+                    })
+                    .show();
         });
+
 
 
 

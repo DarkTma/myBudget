@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">myBudget</string>
     <string name="btn1">Добавить</string>
+    <string name="action_text">"action TEXT, "</string>
     <string-array name="chart_types">
         <item>По месяцам</item>
         <item>По дням недели</item>

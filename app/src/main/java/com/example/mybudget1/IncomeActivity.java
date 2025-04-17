@@ -30,8 +30,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class IncomeActivity extends AppCompatActivity {
 
@@ -226,6 +229,11 @@ public class IncomeActivity extends AppCompatActivity {
 
                             // Записываем в базу
                             databaseIncome.setIncome(finalIncome, nameText, dayText, once);
+                            CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                            String currentDate = sdf.format(new Date());
+                            DatabaseHelper databaseHelper = new DatabaseHelper(this);
+                            databaseHelper.saveNote(currentDate, "добавлен новый доход: " + nameText + " - " + finalIncome + curs.symbol, "Income", "add" );
 
                             dialog.dismiss();
 

@@ -34,8 +34,10 @@ import android.text.TextWatcher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
@@ -370,6 +372,11 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                 textViewItemName.setText(newName);
                 textViewItemPrice.setText(valueInX * dataa.rate + dataa.symbol);
 
+                CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                String currentDate = sdf.format(new Date());
+                databaseHelper.saveNote(currentDate, "Изменена трата\n" + itemName + " - " + DefaultSpent + cursd.symbol + "\nна: " + newName + " - " + valueInX + cursd.symbol, "Spent", "edit" );
+
                 notifyDataSetChanged();
 
                 Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
@@ -447,6 +454,12 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                         String itemName = textViewItemName.getText().toString();
                         deleteItem(itemName, currentDay); // Вызываем метод для удаления
 
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                        databaseHelper.saveNote(currentDate, "удален расход:\n" + itemName + " - " + DefaultSpent + cursd.symbol, "Spent", "delete" );
+
                         items.remove(position);
                         notifyDataSetChanged();
 
@@ -480,16 +493,23 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                     .setMessage("Вы уверены, что хотите изменить статус?")
                     .setPositiveButton("Да", (dialog, which) -> {
                         databaseHelper.setDone(name, day, currentMonthOffset, isDone);
-
+                        boolean x = false;
                         if (isDone) {
                             value[0] = "true";
                             String count = spent.replace("₽", "");
                             databaseIncome.addSpent(DefaultSpent);
+                            x = true;
                         } else {
                             value[0] = "false";
                             String count = spent.replace("₽", "");
                             databaseIncome.addIncome(DefaultSpent);
                         }
+
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        String stat = x ? "выполнен" : "невыполнен";
+                        databaseHelper.saveNote(currentDate, "Статус расхода:\n" + name + " - " + DefaultSpent + cursd.symbol + "изменен на " + stat, "Spent", "edit" );
 
                         items.set(position, name + "-" + price + "-" + value[0]);
                         notifyDataSetChanged();  // Обновляем список после изменения состояния

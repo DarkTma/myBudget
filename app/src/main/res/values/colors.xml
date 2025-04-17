@@ -9,6 +9,11 @@
     <color name="my_red">#FF0000</color>
     <color name="my_cyan">#00FF82</color>
     <color name="my_blue">#0000FF</color>
+    <color name="my_yellow">#FFFB00</color>
+    <color name="my_dark_green">#327500</color>
+    <color name="my_dark_red">#AD0000</color>
+    <color name="my_dark_orange">#C84300</color>
+    <color name="my_dark_yellow">#FFD700</color>
     <color name="primary">#0A84FF</color>
     <color name="my_orange">#FF5500</color>
     <color name="my_primary">#009688</color>
