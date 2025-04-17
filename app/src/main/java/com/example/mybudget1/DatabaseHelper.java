@@ -39,6 +39,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_NAME = "name";
     private static final String COLUMN_DONE = "isdone";
     private static final String COLUMN_SPENT = "spent";
+    private static final String COLUMN_DESCR = "descr";
 
     private Context context; // Добавляем поле
 
@@ -477,6 +478,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_CATEGORY + " INTEGER DEFAULT 0, " +
                 COLUMN_DAY + " INTEGER, " +
                 COLUMN_NAME + " TEXT, " +
+                COLUMN_DESCR + " TEXT DEFAULT '', " +
                 COLUMN_DONE + " BOOLEAN, " +
                 COLUMN_SPENT + " REAL)";
         db.execSQL(createTable);
@@ -1072,6 +1074,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM notes ORDER BY timestamp DESC", null);
     }
+
+    public String getDescription(String name, int day, int offset) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String tableName = "";
+        if (offset == -1) {
+            tableName = prevMonthTable;
+        } else if (offset == 0) {
+            tableName = currentMonthTable;
+        } else if (offset == 1) {
+            tableName = nextMonthTable;
+        }
+
+        String description = "";
+        Cursor cursor = db.query(
+                tableName,
+                new String[]{COLUMN_DESCR},
+                "name = ? AND day = ?",
+                new String[]{name, String.valueOf(day)},
+                null, null, null
+        );
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCR));
+            }
+            cursor.close();
+        }
+
+        return description;
+    }
+
+
+    public void updateDescription(String name, int day, String newDescription, int offset ) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String tableName = "";
+        if (offset == -1){
+            tableName = prevMonthTable;
+        } else if(offset == 0){
+            tableName = currentMonthTable;
+        } else if(offset == 1){
+            tableName = nextMonthTable;
+        }
+
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_DESCR, newDescription);
+
+        db.update(tableName, values, "name=? AND day=?", new String[]{name, String.valueOf(day)});
+        db.close();
+    }
+
 }
 
 

@@ -8,12 +8,16 @@ import android.content.Context;
 import android.graphics.Color;
 import android.text.Editable;
 import android.text.Html;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -113,52 +117,80 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         }
 
         // Обработка клика по элементу
-        convertView.setOnClickListener(v -> {
-            selectedPosition = (selectedPosition == position) ? -1 : position;
-            notifyDataSetChanged(); // обновить список
+//        convertView.setOnClickListener(v -> {
+//            selectedPosition = (selectedPosition == position) ? -1 : position;
+//            notifyDataSetChanged(); // обновить список
+//        });
+
+
+        GestureDetector gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+
+            @Override
+            public boolean onSingleTapConfirmed(MotionEvent e) {
+                // Обычное нажатие
+                selectedPosition = (selectedPosition == position) ? -1 : position;
+                notifyDataSetChanged();
+                return true;
+            }
+
+            @Override
+            public void onLongPress(MotionEvent e) {
+                // Долгое нажатие
+                CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
+                String message = "Вы хотите создать шаблон: " + name + " - " + converted + curs.symbol + " ?";
+                SpannableString spannableMessage = new SpannableString(message);
+                spannableMessage.setSpan(
+                        new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)),
+                        0, message.length(),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+
+                SpannableString positiveButtonText = new SpannableString("Добавить");
+                positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                SpannableString negativeButtonText = new SpannableString("Отмена");
+                negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(context)
+                        .setTitle(Html.fromHtml("<font color='#E0E0E0'>Создание шаблона</font>"))
+                        .setMessage(spannableMessage)
+                        .setPositiveButton(positiveButtonText, (dialog, which) -> {
+                            DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                            int offset = ((MainActivity) context).getoffset();
+                            int category_id = databaseHelper.getCategoryId(name, currentDay , offset);
+
+                            boolean added = databaseHelper.createMaket(0,name,DefaultSpent,category_id);
+
+                            Toast.makeText(context,
+                                    added ? "Шаблон добавлен" : "Такой шаблон уже существует",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        })
+                        .setNegativeButton(negativeButtonText, null);
+
+                AlertDialog dialog = builder.create();
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+                dialog.show();
+            }
+
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                // Двойное нажатие
+                DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                int currentMonthOffset = ((MainActivity) context).getoffset();
+                String descr = databaseHelper.getDescription(name, currentDay, currentMonthOffset);
+                showDescriptionDialog(context, name, currentDay, descr);
+                return true;
+            }
         });
 
-        convertView.setOnLongClickListener(v -> {
-            CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
-            String message = "Вы хотите создать шаблон: " + name + " - " + converted + curs.symbol + " ?";
-            SpannableString spannableMessage = new SpannableString(message);
-            spannableMessage.setSpan(
-                    new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)),
-                    0, message.length(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-
-            SpannableString positiveButtonText = new SpannableString("Добавить");
-            positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-            SpannableString negativeButtonText = new SpannableString("Отмена");
-            negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                    .setTitle(Html.fromHtml("<font color='#E0E0E0'>Создание шаблона</font>"))
-                    .setMessage(spannableMessage)
-                    .setPositiveButton(positiveButtonText, (dialog, which) -> {
-                        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-                        int offset = ((MainActivity) context).getoffset();
-                        int category_id = databaseHelper.getCategoryId(name, currentDay , offset);
-
-                        boolean added = databaseHelper.createMaket(0,name,DefaultSpent,category_id);
-
-                        if (added) {
-                            Toast.makeText(context, "Шаблон добавлен", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(context, "Такой шаблон уже существует", Toast.LENGTH_SHORT).show();
-                        }
-
-                    })
-                    .setNegativeButton(negativeButtonText, null);
-
-            AlertDialog dialog = builder.create();
-            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background); // Устанавливаем фон
-            dialog.show();
-
-            return true;
+// Подключаем gestureDetector к convertView
+        convertView.setOnTouchListener((v, event) -> {
+            gestureDetector.onTouchEvent(event);
+            return true; // важно
         });
+
+
 
 
         // Обработчики для кнопок
@@ -572,5 +604,56 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
         items.remove(itemName);
     }
+
+    private void showDescriptionDialog(Context context, String name, int day, String currentDescription) {
+        // Создание поля для ввода
+        EditText editText = new EditText(context);
+        editText.setText(currentDescription);
+        editText.setHint("Введите описание...");
+        editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        editText.setLines(4);
+        editText.setGravity(Gravity.TOP | Gravity.START);
+        editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(300)});
+
+        // Установка отступов
+        int padding = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, 20, context.getResources().getDisplayMetrics());
+        editText.setPadding(padding, padding, padding, padding);
+
+        // Фон layout
+        LinearLayout layout = new LinearLayout(context);
+        layout.setBackground(ContextCompat.getDrawable(context, R.drawable.dialog_background));
+        layout.setPadding(20, 20, 20, 20);
+        layout.addView(editText);
+
+        // Создание диалога
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle("Описание")
+                .setView(layout)
+                .setPositiveButton("Сохранить", null)
+                .setNegativeButton("Отмена", null)
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            positiveButton.setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                    .setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
+
+            positiveButton.setOnClickListener(view -> {
+                String newDescription = editText.getText().toString().trim();
+                if (!newDescription.equals(currentDescription)) {
+                    DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                    int currentMonthOffset = ((MainActivity) context).getoffset();
+                    databaseHelper.updateDescription(name, day, newDescription,currentMonthOffset);
+                    Toast.makeText(context, "Описание обновлено", Toast.LENGTH_SHORT).show();
+                }
+                dialog.dismiss();
+            });
+        });
+
+        dialog.show();
+    }
+
 }
 
