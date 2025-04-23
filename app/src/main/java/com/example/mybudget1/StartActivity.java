@@ -43,7 +43,7 @@ import java.util.Locale;
 
 public class StartActivity extends AppCompatActivity {
     private LinearLayout menuLayout;
-    private Button btnOpenMenu, btnCloseMenu, btnExpandList;
+    private Button btnOpenMenu, btnExpandList;
     private ListView listView;
     private WeekItemAdapter adapter;
     private List<String> dataList;
@@ -70,7 +70,6 @@ public class StartActivity extends AppCompatActivity {
         // Инициализация элементов
         menuLayout = findViewById(R.id.menuLayout);
         btnOpenMenu = findViewById(R.id.btnOpenMenu);
-        btnCloseMenu = findViewById(R.id.btnCloseMenu);
         btnExpandList = findViewById(R.id.btnExpandList);
         spentText = findViewById(R.id.tvSpent);
         listView = findViewById(R.id.listView);
@@ -78,6 +77,8 @@ public class StartActivity extends AppCompatActivity {
         budgetText = findViewById(R.id.tvBudget);
         lastMonths = findViewById(R.id.btnLastMonths);
         TextView podskazka = findViewById(R.id.textpodskazka);
+        ImageButton btnScan = findViewById(R.id.buttonScan);
+
 
         curs = CursHelper.getCursData(databaseIncome.getCurs());
 
@@ -99,6 +100,12 @@ public class StartActivity extends AppCompatActivity {
         deleteOldNotifications();
         showNotifCount();
 
+        Button btnGoalGo = findViewById(R.id.btnGoalGo);
+        btnGoalGo.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, GoalActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
         budgetText.setOnLongClickListener(v -> {
             double original = databaseIncome.getBudget();
@@ -226,9 +233,10 @@ public class StartActivity extends AppCompatActivity {
             dimLayer.setVisibility(View.VISIBLE);
         });
 
-        // Закрыть меню
-        btnCloseMenu.setOnClickListener(v -> {
-            this.finishAffinity();
+        btnScan.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, ScanReceiptActivity.class);
+            startActivity(intent);
+            finish();
         });
 
         DecimalFormat df = new DecimalFormat("0.##");

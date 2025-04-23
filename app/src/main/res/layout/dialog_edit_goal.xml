@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Поле для ввода нового названия цели -->
+    <EditText
+        android:id="@+id/editGoalName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="новое имя цели"
+        android:textSize="16sp"
+        android:layout_marginBottom="30dp"/>
+
+    <EditText
+        android:id="@+id/editGoalSum"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="новая сумма цели"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"
+        android:inputType="numberDecimal"/>
+
+
+    <!-- Предпросмотр изображения -->
+    <ImageView
+        android:id="@+id/imagePreview"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:src="@drawable/default_goal"
+        android:scaleType="centerCrop"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Кнопка для выбора нового изображения -->
+    <Button
+        android:id="@+id/buttonSelectImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Выбрать изображение"
+        android:layout_marginBottom="16dp"/>
+
+    <Spinner
+        android:id="@+id/currencySpinnerGoal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"/>
+
+</LinearLayout>

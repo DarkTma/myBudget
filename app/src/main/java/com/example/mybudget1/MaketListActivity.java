@@ -238,7 +238,33 @@ public class MaketListActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parentView) {}
         });
 
-        // Анимация смены цвета
+        // Создаем Spinner для выбора валюты
+        Spinner currencySpinner = new Spinner(this);
+        String[] currencies = {"֏", "$", "₽"};
+        ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
+        currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        currencySpinner.setAdapter(currencyAdapter);
+
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        String currentCurrencySymbol = databaseIncome.getCurs();
+
+        int defaultCurrencyPosition = 0;
+        switch (currentCurrencySymbol) {
+            case "dollar":
+                defaultCurrencyPosition = 1;
+                break;
+            case "rubli":
+                defaultCurrencyPosition = 2;
+                break;
+            case "dram":
+            default:
+                defaultCurrencyPosition = 0;
+                break;
+        }
+        currencySpinner.setSelection(defaultCurrencyPosition);
+
+        currencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+        currencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
 
         btnExpense.setOnClickListener(v -> {
             selectedType[0] = 0;
@@ -286,6 +312,7 @@ public class MaketListActivity extends AppCompatActivity {
         layout.addView(name);
         layout.addView(amountEdit);
         layout.addView(categorySpinner);
+        layout.addView(currencySpinner);
 
         builder.setView(layout);
 
@@ -301,10 +328,29 @@ public class MaketListActivity extends AppCompatActivity {
 
             if (!itemName.isEmpty() && !amountStr.isEmpty()) {
                 double amount = Double.parseDouble(amountStr);
+
+                String selectedCurrency = currencySpinner.getSelectedItem().toString();
+                double finalAmount = 0;
+
+                // Конвертируем сумму в выбранную валюту
+                switch (selectedCurrency) {
+                    case "֏":
+                        finalAmount = amount / CursHelper.getToDram();
+                        break;
+                    case "$":
+                        finalAmount = amount / CursHelper.getToDollar();
+                        break;
+                    case "₽":
+                        finalAmount = amount / CursHelper.getToRub();
+                        break;
+                }
+
+                finalAmount = Math.round(finalAmount * 100.0) / 100.0;
+
                 if(selectedType[0] == 1){
                     selectedCategoryId[0] = -1;
                 }
-                databaseHelper.createMaket(selectedType[0], itemName, amount , selectedCategoryId[0]);
+                databaseHelper.createMaket(selectedType[0], itemName, finalAmount , selectedCategoryId[0]);
                 loadMakets();
             }
         });

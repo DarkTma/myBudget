@@ -40,7 +40,7 @@ public class MonthListActivity extends AppCompatActivity {
 
             // Получаем данные о месяцах (список объектов MonthData)
             SQLiteDatabase db = databaseHelper.getWritableDatabase();
-            monthDataList = databaseHelper.getMonthData(db);  // Здесь мы получаем список MonthData
+            monthDataList = databaseHelper.getMonthData(db);
 
             // Устанавливаем адаптер для RecyclerView
             adapter = new MonthAdapter(this ,monthDataList);  // Передаем список MonthData

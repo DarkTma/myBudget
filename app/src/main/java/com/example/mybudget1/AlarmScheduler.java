@@ -58,7 +58,7 @@ public class AlarmScheduler {
         }
 
         Intent intent = new Intent(context, ReminderReceiver.class);
-        intent.putExtra("default_reminder", true); // чтобы отличать тип в onReceive
+        intent.putExtra("default_reminder", true);
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(
                 context,

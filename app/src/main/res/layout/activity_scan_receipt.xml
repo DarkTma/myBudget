@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/rootLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Назад -->
+        <ImageButton
+            android:id="@+id/buttonBackFromScan"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:scaleType="centerInside"
+            android:src="@drawable/arrow" />
+
+        <Button
+            android:id="@+id/buttonSelectImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_selector_blue"
+            android:text="Загрузить изображение из галереи" />
+
+        <LinearLayout
+            android:id="@+id/progressLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:layout_marginTop="24dp">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="200dp"
+                android:layout_height="20dp"
+                android:progressDrawable="@drawable/blood_progress"
+                android:indeterminate="false"
+                android:max="100" />
+
+            <TextView
+                android:id="@+id/progressText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0%"
+                android:textColor="#FF4444"
+                android:textStyle="bold"
+                android:layout_marginStart="12dp"
+                android:textSize="18sp"
+                android:shadowColor="#880000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/buttonContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            android:paddingHorizontal="10dp">
+
+            <Button
+                android:id="@+id/btnExpense"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="10dp"
+                android:background="@drawable/button_primary"
+                android:text="Расход"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:padding="12dp"/>
+
+            <Button
+                android:id="@+id/btnIncome"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="10dp"
+                android:background="@drawable/button_black"
+                android:text="Доход"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+
+                android:padding="12dp"/>
+        </LinearLayout>
+
+
+        <EditText
+            android:id="@+id/nameText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:hint="название"
+            android:textColorHint="#888888"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/edit_text_style"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/podskazkatext"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="итоговая сумма"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/editSum"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="Общая сумма"
+            android:textColorHint="#888888"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/edit_text_style"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/infoRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Описание" />
+
+            <!-- Контейнер для EditText с правильным поведением скролла -->
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="200dp"
+                android:layout_weight="1">
+
+                <EditText
+                    android:id="@+id/textResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/edit_text_multiple"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#888888"
+                    android:hint="Результат анализа"
+                    android:gravity="start|top"
+                    android:padding="12dp"
+                    android:textSize="16sp"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:maxLines="10"
+                    android:scrollbars="vertical"
+                    android:overScrollMode="always"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true" />
+
+            </FrameLayout>
+
+            <ImageButton
+                android:id="@+id/infoButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_dialog_info"
+                android:contentDescription="Инфо"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+        </LinearLayout>
+
+        <Spinner
+            android:id="@+id/categorySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <Spinner
+            android:id="@+id/currencySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/buttonAddIncome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Добавить доход"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/button_selector_blue"
+            android:visibility="gone" />
+    </LinearLayout>
+</ScrollView>
+

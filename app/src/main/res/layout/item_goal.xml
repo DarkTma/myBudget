@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    android:backgroundTint="@color/my_darkbg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Изображение цели -->
+        <ImageView
+            android:id="@+id/goalImage"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:src="@drawable/default_goal"
+            android:scaleType="centerCrop"
+            android:contentDescription="Goal Image"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/rounded_image_bg" />
+
+        <!-- Суммы по краям прогресса -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="4dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/goalCompletedAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50 000 ֏"
+                android:textSize="14sp"
+                android:textColor="@android:color/white" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/goalTargetAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1 000 000 ֏"
+                android:textSize="14sp"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
+        <!-- Прогресс с процентом внутри -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:layout_marginBottom="12dp">
+
+            <!-- Сам прогресс-бар -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:progress="50"
+                android:max="100"
+                android:progressDrawable="@drawable/custom_progressbar"
+                android:indeterminate="false" />
+
+            <!-- Текст с процентом -->
+            <TextView
+                android:id="@+id/progressText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="50%"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+
+        <!-- Название цели -->
+        <TextView
+            android:id="@+id/goalName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Моя цель"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Кнопка для добавления денег -->
+            <ImageButton
+                android:id="@+id/btnAddMoney"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_income"
+                android:contentDescription="Add Money"
+                android:background="?android:attr/selectableItemBackground"
+                android:layout_marginEnd="16dp"/>
+
+            <!-- Кнопка для изменения цели -->
+            <ImageButton
+                android:id="@+id/btnEditGoal"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_edit"
+                android:background="?android:attr/selectableItemBackground" />
+
+            <!-- Кнопка для удаления цели -->
+            <ImageButton
+                android:id="@+id/btnDeleteGoal"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_delete"
+                android:background="?android:attr/selectableItemBackground" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

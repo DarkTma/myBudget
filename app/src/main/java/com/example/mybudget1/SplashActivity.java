@@ -88,13 +88,11 @@ public class SplashActivity extends AppCompatActivity {
                 Toast.makeText(this, "Разрешение на уведомления не предоставлено.", Toast.LENGTH_SHORT).show();
             }
 
-            // Логика, которая будет выполнена после запроса разрешения
             continueAfterPermissionGranted();
         }
     }
 
     private void continueAfterPermissionGranted() {
-        // Этот метод будет вызван после того, как разрешение будет предоставлено (или отклонено)
         if (databaseHelper.getLastActivity().equals("")) {
             showCurrencySelectionDialog();
         } else {

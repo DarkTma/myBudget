@@ -19,6 +19,10 @@ public class MonthData {
         return income;
     }
 
+    public void setIncome(double income) {
+        this.income = income;
+    }
+
     public double getSpent() {
         return spent;
     }

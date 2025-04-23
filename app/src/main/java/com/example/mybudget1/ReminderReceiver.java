@@ -19,7 +19,6 @@ public class ReminderReceiver extends BroadcastReceiver {
 
         String channelId = "budget_channel_id";
 
-        // Канал уже должен быть создан в Activity, здесь просто создаем уведомление
         String name = intent.getStringExtra("reminder_name");
         boolean isDefault = intent.getBooleanExtra("default_reminder", false);
 

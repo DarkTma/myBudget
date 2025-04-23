@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <solid android:color="@color/my_darkw" /> <!-- Тёмный фон -->
+    <stroke android:width="2dp" android:color="@color/my_cyan" /> <!-- Обводка -->
+    <corners android:radius="10dp" /> <!-- Скруглённые углы -->
+</shape>
