@@ -266,7 +266,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
 
         // СПИННЕР ВАЛЮТЫ
         Spinner currencySpinner = findViewById(R.id.currencySpinner);
-        String[] currencies = {"֏", "$", "₽"};
+        String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
         ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
         currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
         currencySpinner.setAdapter(currencyAdapter);
@@ -333,14 +333,36 @@ public class ScanReceiptActivity extends AppCompatActivity {
             double valueInX = newitemSpent;
             valueInX = Math.round(valueInX * 100.0) / 100.0;
 
-            // Конвертируем введенную сумму в нужную валюту
-            if (selectedSymbol[0].equals("֏")) { // Если текущая валюта "dram"
-                finalAmount = valueInX / CursHelper.getToDram(); // Преобразуем в драм
-            } else if (selectedSymbol[0].equals("$")) { // Если текущая валюта "dollar"
-                finalAmount = valueInX / CursHelper.getToDollar(); // Конвертируем в доллары
-            } else if (selectedSymbol[0].equals("₽")) { // Если текущая валюта "rubli"
-                finalAmount = valueInX / CursHelper.getToRub(); // Конвертируем в рубли
+// Конвертируем введенную сумму в нужную валюту
+            switch (selectedSymbol[0]) {
+                case "֏": // Драм
+                    finalAmount = valueInX / CursHelper.getToDram();
+                    break;
+                case "$": // Доллар
+                    finalAmount = valueInX / CursHelper.getToDollar();
+                    break;
+                case "₽": // Рубль
+                    finalAmount = valueInX / CursHelper.getToRub();
+                    break;
+                case "元": // Юань
+                    finalAmount = valueInX / CursHelper.getToJuan();
+                    break;
+                case "€": // Евро
+                    finalAmount = valueInX / CursHelper.getToEur();
+                    break;
+                case "¥": // Йена
+                    finalAmount = valueInX / CursHelper.getToJen();
+                    break;
+                case "₾": // Лари
+                    finalAmount = valueInX / CursHelper.getToLari();
+                    break;
+                default:
+                    finalAmount = valueInX; // Если валюта неизвестна — оставить как есть
+                    break;
             }
+
+            finalAmount = Math.round(finalAmount * 100.0) / 100.0;
+
 
             if(selectedType[0] == 0) {
                 databaseHelper.insertData(day, nameT, finalAmount, 0, true, selectedCategoryId[0], mainText);

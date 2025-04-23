@@ -288,7 +288,7 @@ public class GoalActivity extends AppCompatActivity {
 
         Spinner currencySpinner = dialogView.findViewById(R.id.currencySpinneraddGoal);
 
-        String[] currencies = {"֏", "$", "₽"};
+        String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
 
         ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
         currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -299,7 +299,8 @@ public class GoalActivity extends AppCompatActivity {
 
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         String currentCurrencySymbol = databaseIncome.getCurs();
-        int defaultCurrencyPosition = 0;
+
+        int defaultCurrencyPosition;
 
         switch (currentCurrencySymbol) {
             case "dollar":
@@ -307,6 +308,18 @@ public class GoalActivity extends AppCompatActivity {
                 break;
             case "rubli":
                 defaultCurrencyPosition = 2;
+                break;
+            case "yuan":
+                defaultCurrencyPosition = 3;
+                break;
+            case "eur":
+                defaultCurrencyPosition = 4;
+                break;
+            case "jen":
+                defaultCurrencyPosition = 5;
+                break;
+            case "lari":
+                defaultCurrencyPosition = 6;
                 break;
             case "dram":
             default:
@@ -325,16 +338,30 @@ public class GoalActivity extends AppCompatActivity {
                 String selectedCurrency = currencySpinner.getSelectedItem().toString();
                 double finalAmount = 0;
 
-                // Конвертируем сумму в выбранную валюту
                 switch (selectedCurrency) {
-                    case "֏":
+                    case "֏": // Армянский драм
                         finalAmount = amount / CursHelper.getToDram();
                         break;
-                    case "$":
+                    case "$": // Доллар США
                         finalAmount = amount / CursHelper.getToDollar();
                         break;
-                    case "₽":
+                    case "₽": // Российский рубль
                         finalAmount = amount / CursHelper.getToRub();
+                        break;
+                    case "元": // Китайский юань
+                        finalAmount = amount / CursHelper.getToJuan();
+                        break;
+                    case "€": // Евро
+                        finalAmount = amount / CursHelper.getToEur();
+                        break;
+                    case "¥": // Японская иена
+                        finalAmount = amount / CursHelper.getToJen();
+                        break;
+                    case "₾": // Грузинский лари
+                        finalAmount = amount / CursHelper.getToLari();
+                        break;
+                    default:
+                        finalAmount = amount;
                         break;
                 }
 

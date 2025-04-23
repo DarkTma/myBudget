@@ -22,8 +22,10 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -277,57 +279,58 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable editable) {}
         });
 
+        // Создаём Spinner и список валют по символам
         Spinner currencySpinner = new Spinner(this);
-        String[] currencies = {"֏", "$", "₽"};
+        String[] currencies = {"֏", "$", "₽", "¥", "€", "元", "₾"}; // драм, доллар, рубль, йена, евро, юань, лари
+
+// Создаём адаптер и задаём стиль
         ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
-        currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         currencySpinner.setAdapter(currencyAdapter);
         currencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
         currencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
 
-// Получаем текущую валюту из базы данных
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-        String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты (например, "dram", "dollar", "rubli")
+        CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
 
-// Определяем валюту по символу
-        int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
-        final String[] selectedSymbol = {""}; // Строка для текущей валюты
+        Map<String, String> currencySymbols = new HashMap<>();
+        currencySymbols.put("dram", "֏");
+        currencySymbols.put("dollar", "$");
+        currencySymbols.put("rubli", "₽");
+        currencySymbols.put("jen", "¥");
+        currencySymbols.put("eur", "€");
+        currencySymbols.put("yuan", "元");
+        currencySymbols.put("lari", "₾");
 
-// Устанавливаем позицию в Spinner в зависимости от текущей валюты
-        switch (currentCurrencySymbol) {
-            case "dollar":
-                selectedSymbol[0] = "$";
-                defaultCurrencyPosition = 1;
+        String currentSymbol = curs.symbol;
+
+        int defaultCurrencyPosition = 0;
+        for (int i = 0; i < currencies.length; i++) {
+            if (currencies[i].equals(currentSymbol)) {
+                defaultCurrencyPosition = i;
                 break;
-            case "rubli":
-                selectedSymbol[0] = "₽";
-                defaultCurrencyPosition = 2;
-                break;
-            case "dram":
-            default:
-                selectedSymbol[0] = "֏";
-                defaultCurrencyPosition = 0;
-                break;
+            }
         }
 
-        // Устанавливаем выбранную валюту в Spinner
-        currencySpinner.setSelection(defaultCurrencyPosition); // Устанавливаем валюту по умолчанию
+// Устанавливаем валюту по умолчанию
+        currencySpinner.setSelection(defaultCurrencyPosition);
 
-        // Обработчик выбора валюты
+// Обработчик выбора валюты
+        final String[] selectedSymbol = {currentSymbol}; // Используем для хранения выбранной валюты
+
         int finalDefaultCurrencyPosition = defaultCurrencyPosition;
         currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                // Обновляем выбранную валюту на основе выбранной позиции в Spinner
-                selectedSymbol[0] = currencies[position];
+                selectedSymbol[0] = currencies[position]; // Обновляем выбранный символ
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
-                // Если ничего не выбрано, можно оставить по умолчанию
-                selectedSymbol[0] = currencies[finalDefaultCurrencyPosition];
+                selectedSymbol[0] = currencies[finalDefaultCurrencyPosition]; // Оставляем текущий
             }
         });
+
 
         CheckBox checkBox = new CheckBox(this);
         checkBox.setText("Выполнена?");
@@ -471,14 +474,34 @@ public class MainActivity extends AppCompatActivity {
                     double valueInX = newitemSpent;
                     valueInX = Math.round(valueInX * 100.0) / 100.0;
 
-                    // Конвертируем введенную сумму в нужную валюту
-                    if (selectedSymbol[0].equals("֏")) { // Если текущая валюта "dram"
-                        finalAmount = valueInX / CursHelper.getToDram(); // Преобразуем в драм
-                    } else if (selectedSymbol[0].equals("$")) { // Если текущая валюта "dollar"
-                        finalAmount = valueInX / CursHelper.getToDollar(); // Конвертируем в доллары
-                    } else if (selectedSymbol[0].equals("₽")) { // Если текущая валюта "rubli"
-                        finalAmount = valueInX / CursHelper.getToRub(); // Конвертируем в рубли
+
+                    switch (selectedSymbol[0]) {
+                        case "֏": // драм
+                            finalAmount = valueInX / CursHelper.getToDram();
+                            break;
+                        case "$": // доллар
+                            finalAmount = valueInX / CursHelper.getToDollar();
+                            break;
+                        case "₽": // рубль
+                            finalAmount = valueInX / CursHelper.getToRub();
+                            break;
+                        case "¥": // йена
+                            finalAmount = valueInX / CursHelper.getToJen();
+                            break;
+                        case "€": // евро
+                            finalAmount = valueInX / CursHelper.getToEur();
+                            break;
+                        case "元": // юань
+                            finalAmount = valueInX / CursHelper.getToJuan();
+                            break;
+                        case "₾": // лари
+                            finalAmount = valueInX / CursHelper.getToLari();
+                            break;
+                        default:
+                            finalAmount = valueInX; // Если что-то не так — не конвертируем
+                            break;
                     }
+
 
 
                     int dayData = selectedDay;  // Используем выбранный день
@@ -491,10 +514,10 @@ public class MainActivity extends AppCompatActivity {
                         DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
                         databaseHelper.insertData(dayData, nameData, finalAmount, offset[0], isDone, selectedCategoryId[0]); // Вставляем с id категории
 
-                        CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                         String currentDate = sdf.format(new Date());
-                        databaseHelper.saveNote(currentDate, "добавлен новый рассход: " + nameData + " - " + finalAmount + curs.symbol, "Spent", "add" );
+                        databaseHelper.saveNote(currentDate, "добавлен новый рассход: " + nameData + " - " + finalAmount + cursd.symbol, "Spent", "add" );
 
                         if (isDone) {
                             databaseIncome.addSpent(finalAmount); // Добавляем в доходы, если отметка стоит

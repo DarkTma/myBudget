@@ -101,22 +101,19 @@ public class SpentActivity extends AppCompatActivity {
             dayParams.setMargins(0, 10, 0, 20);
             dayPicker.setLayoutParams(dayParams);
 
-            // Создаем Spinner для выбора валюты
             Spinner currencySpinner = new Spinner(this);
-            String[] currencies = {"֏", "$", "₽"};
+            String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
+
             ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
             currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             currencySpinner.setAdapter(currencyAdapter);
-
-            // Применяем стиль к Spinner
-            currencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
-            currencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
 
             // Получаем текущую валюту из базы данных
             String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты
 
             // Преобразуем символ в валютный знак и выбираем в Spinner
-            int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
+            int defaultCurrencyPosition;
+
             switch (currentCurrencySymbol) {
                 case "dollar":
                     defaultCurrencyPosition = 1;
@@ -124,12 +121,25 @@ public class SpentActivity extends AppCompatActivity {
                 case "rubli":
                     defaultCurrencyPosition = 2;
                     break;
+                case "yuan":
+                    defaultCurrencyPosition = 3;
+                    break;
+                case "eur":
+                    defaultCurrencyPosition = 4;
+                    break;
+                case "jen":
+                    defaultCurrencyPosition = 5;
+                    break;
+                case "lari":
+                    defaultCurrencyPosition = 6;
+                    break;
                 case "dram":
                 default:
                     defaultCurrencyPosition = 0;
                     break;
             }
-            currencySpinner.setSelection(defaultCurrencyPosition); // Устанавливаем валюту по умолчанию
+
+            currencySpinner.setSelection(defaultCurrencyPosition);
 
             // Контейнер для всех элементов
             LinearLayout layout = new LinearLayout(this);
@@ -164,7 +174,7 @@ public class SpentActivity extends AppCompatActivity {
                             String selectedCurrency = currencySpinner.getSelectedItem().toString();
                             double finalAmount = 0;
 
-                            // Конвертируем сумму в выбранную валюту
+// Конвертируем сумму в выбранную валюту
                             switch (selectedCurrency) {
                                 case "֏":
                                     finalAmount = spentValue / CursHelper.getToDram();
@@ -175,9 +185,25 @@ public class SpentActivity extends AppCompatActivity {
                                 case "₽":
                                     finalAmount = spentValue / CursHelper.getToRub();
                                     break;
+                                case "元":
+                                    finalAmount = spentValue / CursHelper.getToJuan();
+                                    break;
+                                case "€":
+                                    finalAmount = spentValue / CursHelper.getToEur();
+                                    break;
+                                case "¥":
+                                    finalAmount = spentValue / CursHelper.getToJen();
+                                    break;
+                                case "₾":
+                                    finalAmount = spentValue / CursHelper.getToLari();
+                                    break;
+                                default:
+                                    finalAmount = spentValue; // На случай, если символ неизвестен
+                                    break;
                             }
 
                             finalAmount = Math.round(finalAmount * 100.0) / 100.0;
+
 
                             // Обновляем запись в базе данных
                             databaseIncome.addMonthlySpent(nameText, finalAmount, selectedDay);

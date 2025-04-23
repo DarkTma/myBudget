@@ -94,7 +94,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         String priceString = price.replaceAll("[^\\d.]", "");
         double DefaultSpent = Double.parseDouble(priceString);
         double converted = DefaultSpent * data.rate;
-        String result = String.format("%.2f %s", converted, data.symbol);
+        double finalA = Math.round(converted * 100.0) / 100.0;
+        String result = finalA + " " + data.symbol;
 
         // Устанавливаем данные в View
         textViewItemName.setText(name);
@@ -184,10 +185,9 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             }
         });
 
-// Подключаем gestureDetector к convertView
         convertView.setOnTouchListener((v, event) -> {
             gestureDetector.onTouchEvent(event);
-            return true; // важно
+            return true;
         });
 
 
@@ -259,7 +259,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
             // Инициализация Spinner для выбора валюты
             Spinner currencySpinner = new Spinner(context);
-            String[] currencies = {"֏", "$", "₽"};
+            String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
             ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, currencies);
             currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             currencySpinner.setAdapter(currencyAdapter);
@@ -281,7 +281,6 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             String selectedSymbol = currentCurrencySymbol; // Получаем символ текущей валюты
             int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
 
-            // Определяем валюту по символу
             switch (selectedSymbol) {
                 case "dollar":
                     selectedSymbol = "$";
@@ -291,32 +290,31 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                     selectedSymbol = "₽";
                     defaultCurrencyPosition = 2;
                     break;
+                case "yuan":
+                    selectedSymbol = "元";
+                    defaultCurrencyPosition = 3;
+                    break;
+                case "evro":
+                    selectedSymbol = "€";
+                    defaultCurrencyPosition = 4;
+                    break;
+                case "jen":
+                    selectedSymbol = "¥";
+                    defaultCurrencyPosition = 5;
+                    break;
+                case "lari":
+                    selectedSymbol = "₾";
+                    defaultCurrencyPosition = 6;
+                    break;
                 case "dram":
                 default:
                     selectedSymbol = "֏";
                     defaultCurrencyPosition = 0;
                     break;
             }
-
-// Устанавливаем выбранную валюту в Spinner
             currencySpinner.setSelection(defaultCurrencyPosition); // Устанавливаем валюту по умолчанию
 
-// Обработчик выбора валюты
             final String[] selectedCurrency = {selectedSymbol}; // Храним выбранную валюту
-            currencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    selectedCurrency[0] = currencies[position];
-                    double rate = CursHelper.getCursData(selectedCurrency[0]).rate;
-                    double value = DefaultSpent * rate; // Конвертируем в выбранную валюту
-                    inputSpent.setText(String.format(Locale.US, "%.2f", value)); // Устанавливаем в EditText значение
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
-
-
 
             FileHelper fileHelper = new FileHelper(context);
             List<String> categories = fileHelper.readCategoriesFromFile(); // Чтение категорий
@@ -383,9 +381,40 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                     // Обработка ошибки, если ввод некорректен
                     e.printStackTrace();
                 }
-                double rate = CursHelper.getCursData(selectedCurrency[0]).rate;
-                double valueInX = newitemSpent / rate;
-                valueInX = Math.round(valueInX * 100.0) / 100.0;
+
+                double finalAmount = 0;
+
+                String selectednewCurrency = currencySpinner.getSelectedItem().toString();
+
+                switch (selectednewCurrency) {
+                    case "֏": // Армянский драм
+                        finalAmount = newitemSpent / CursHelper.getToDram();
+                        break;
+                    case "$": // Доллар США
+                        finalAmount = newitemSpent / CursHelper.getToDollar();
+                        break;
+                    case "₽": // Российский рубль
+                        finalAmount = newitemSpent / CursHelper.getToRub();
+                        break;
+                    case "元": // Китайский юань
+                        finalAmount = newitemSpent / CursHelper.getToJuan();
+                        break;
+                    case "€": // Евро
+                        finalAmount = newitemSpent / CursHelper.getToEur();
+                        break;
+                    case "¥": // Японская иена
+                        finalAmount = newitemSpent / CursHelper.getToJen();
+                        break;
+                    case "₾": // Грузинский лари
+                        finalAmount = newitemSpent / CursHelper.getToLari();
+                        break;
+                    default:
+                        finalAmount = newitemSpent;
+                        break;
+                }
+
+                finalAmount = Math.round(finalAmount * 100.0) / 100.0;
+                double valueInX = finalAmount;
 
 
                 // Обновляем запись в базе данных

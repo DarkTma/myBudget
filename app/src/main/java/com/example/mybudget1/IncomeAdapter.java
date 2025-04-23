@@ -210,7 +210,8 @@ public class IncomeAdapter extends BaseAdapter {
 
             // Создаем спиннер для выбора валюты
             Spinner currencySpinner = new Spinner(context);
-            ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, new String[]{"Dram", "Dollar", "Rubli"});
+            String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
+            ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, currencies);
             currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             currencySpinner.setAdapter(currencyAdapter);
 
@@ -243,25 +244,37 @@ public class IncomeAdapter extends BaseAdapter {
                 double newIncome = Double.parseDouble(inputSpent.getText().toString());
                 int day = Integer.parseInt(String.valueOf(inputDay.getValue()));
 
-                // Получаем выбранную валюту из спиннера
                 String selectedCurrency = currencySpinner.getSelectedItem().toString();
-
                 double finalIncome = 0;
-                // Преобразуем сумму в выбранную валюту
+
                 switch (selectedCurrency) {
-                    case "Dram":
+                    case "֏": // Армянский драм
                         finalIncome = newIncome / CursHelper.getToDram();
                         break;
-                    case "Dollar":
+                    case "$": // Доллар США
                         finalIncome = newIncome / CursHelper.getToDollar();
                         break;
-                    case "Rubli":
+                    case "₽": // Российский рубль
                         finalIncome = newIncome / CursHelper.getToRub();
+                        break;
+                    case "元": // Китайский юань
+                        finalIncome = newIncome / CursHelper.getToJuan();
+                        break;
+                    case "€": // Евро
+                        finalIncome = newIncome / CursHelper.getToEur();
+                        break;
+                    case "¥": // Японская иена
+                        finalIncome = newIncome / CursHelper.getToJen();
+                        break;
+                    case "₾": // Грузинский лари
+                        finalIncome = newIncome / CursHelper.getToLari();
+                        break;
+                    default:
+                        finalIncome = newIncome;
                         break;
                 }
 
                 finalIncome = Math.round(finalIncome * 100.0) / 100.0;
-
                 // Обновляем запись в базе данных
                 databaseIncome.updateData(itemName, day, newName, finalIncome);
 

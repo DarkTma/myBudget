@@ -160,7 +160,7 @@ public class SpentAdapter extends BaseAdapter {
 
             // Создаем `Spinner` для выбора валюты
             Spinner currencySpinner = new Spinner(context);
-            String[] currencies = {"֏", "$", "₽"};
+            String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
             ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, currencies);
             currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             currencySpinner.setAdapter(currencyAdapter);
@@ -172,8 +172,8 @@ public class SpentAdapter extends BaseAdapter {
             // Получаем текущую валюту из базы данных
             String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты
 
-            // Преобразуем символ в валютный знак и выбираем в Spinner
-            int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
+            int defaultCurrencyPosition;
+
             switch (currentCurrencySymbol) {
                 case "dollar":
                     defaultCurrencyPosition = 1;
@@ -181,12 +181,25 @@ public class SpentAdapter extends BaseAdapter {
                 case "rubli":
                     defaultCurrencyPosition = 2;
                     break;
+                case "yuan":
+                    defaultCurrencyPosition = 3;
+                    break;
+                case "eur":
+                    defaultCurrencyPosition = 4;
+                    break;
+                case "jen":
+                    defaultCurrencyPosition = 5;
+                    break;
+                case "lari":
+                    defaultCurrencyPosition = 6;
+                    break;
                 case "dram":
                 default:
                     defaultCurrencyPosition = 0;
                     break;
             }
-            currencySpinner.setSelection(defaultCurrencyPosition); // Устанавливаем валюту по умолчанию
+
+            currencySpinner.setSelection(defaultCurrencyPosition);
 
             // Контейнер для `EditText` и `Spinner`
             LinearLayout layout = new LinearLayout(context);
@@ -215,16 +228,30 @@ public class SpentAdapter extends BaseAdapter {
                 String selectedCurrency = currencySpinner.getSelectedItem().toString();
                 double finalAmount = 0;
 
-                // Конвертируем сумму в выбранную валюту
                 switch (selectedCurrency) {
-                    case "֏":
+                    case "֏": // Армянский драм
                         finalAmount = newIncome / CursHelper.getToDram();
                         break;
-                    case "$":
+                    case "$": // Доллар США
                         finalAmount = newIncome / CursHelper.getToDollar();
                         break;
-                    case "₽":
+                    case "₽": // Российский рубль
                         finalAmount = newIncome / CursHelper.getToRub();
+                        break;
+                    case "元": // Китайский юань
+                        finalAmount = newIncome / CursHelper.getToJuan();
+                        break;
+                    case "€": // Евро
+                        finalAmount = newIncome / CursHelper.getToEur();
+                        break;
+                    case "¥": // Японская иена
+                        finalAmount = newIncome / CursHelper.getToJen();
+                        break;
+                    case "₾": // Грузинский лари
+                        finalAmount = newIncome / CursHelper.getToLari();
+                        break;
+                    default:
+                        finalAmount = newIncome;
                         break;
                 }
 

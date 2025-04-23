@@ -151,11 +151,16 @@ public class SplashActivity extends AppCompatActivity {
 
 
     private void showCurrencySelectionDialog() {
-        final String[] currencies = {"Драм", "Рубли", "Доллар"};
-        final String[] currencyCodes = {"dram", "rubli", "dollar"};
+        final String[] currencies = {
+                "Драм", "Доллар", "Рубли", "Юань", "Евро", "Йена", "Лари"
+        };
+
+        final String[] currencyCodes = {
+                "dram", "dollar", "rubli", "yuan", "evro", "jen", "lari"
+        };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Выберите основную валюту")
+        builder.setTitle("Выберите вашу основную валюту")
                 .setItems(currencies, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -165,12 +170,13 @@ public class SplashActivity extends AppCompatActivity {
                         databaseHelper.setCurs(selectedCurrencyCode);
                         databaseHelper.setLastActivity();
 
-                        updateRatesAndGoToStart(SplashActivity.this); // ← контекст нужен здесь
+                        updateRatesAndGoToStart(SplashActivity.this);
                     }
                 })
                 .setCancelable(false)
                 .show();
     }
+
 
 
 }
