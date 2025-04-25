@@ -3,7 +3,7 @@ package com.example.mybudget1;
 import java.util.List;
 
 public class GeminiRequest {
-    private String model = "gemini-chat"; // Используем модель Gemini
+    private String model = "gemini-chat";
     private String prompt;
     private int max_tokens = 500;
 

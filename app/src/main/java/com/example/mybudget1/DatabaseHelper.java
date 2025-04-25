@@ -18,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -267,6 +268,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         cursor.close();
+        return expenseDataList;
+    }
+
+    public List<ExpenseData> getExpensesByCategory(int categoryId , int i) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        List<ExpenseData> expenseDataList = new ArrayList<>();
+
+
+            String tableName = currentMonthTable;
+
+            // Строим запрос для получения расходов для данной категории
+            String query = "SELECT * FROM " + tableName + " WHERE " + COLUMN_CATEGORY + " = ? ";
+            Cursor expenseCursor = db.rawQuery(query, new String[]{String.valueOf(categoryId)});
+
+            // Обрабатываем результаты запроса
+            while (expenseCursor.moveToNext()) {
+                String expenseName = expenseCursor.getString(expenseCursor.getColumnIndexOrThrow("name"));
+                double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
+                int expenseDate = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("day"));
+
+                String date = String.valueOf(expenseDate) + "." + tableName.split("_")[2] + "." + tableName.split("_")[1];
+                // Добавляем данные в список
+                expenseDataList.add(new ExpenseData(expenseName, expenseAmount , date));
+            }
+
+            expenseCursor.close();
+
+
         return expenseDataList;
     }
 
@@ -1019,7 +1048,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 do {
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                     int amount = cursor.getInt(cursor.getColumnIndexOrThrow("monthly_spent"));
-                    int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+                    int day = cursor.getInt(cursor.getColumnIndexOrThrow("spentday"));
                     detailList.add(new MonthDetailData("MSpent", name, amount, day, "ежемесечная трата"));
                 } while (cursor.moveToNext());
             }
@@ -1076,7 +1105,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     do {
                         String name = SpentCursor.getString(SpentCursor.getColumnIndexOrThrow("name"));
                         int amount = SpentCursor.getInt(SpentCursor.getColumnIndexOrThrow("monthly_spent"));
-                        int day = SpentCursor.getInt(SpentCursor.getColumnIndexOrThrow("day"));
+                        int day = SpentCursor.getInt(SpentCursor.getColumnIndexOrThrow("spentday"));
                         detailList.add(new MonthDetailData("MSpent", name, amount, day, "ежемесечная трата"));
                     } while (SpentCursor.moveToNext());
                 }
@@ -1089,6 +1118,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return detailList;
     }
+
+
+    public List<MonthDetailData> getIncomesAndMonthlySpents() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        List<MonthDetailData> detailList = new ArrayList<>();
+
+            DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
+
+            // Доходы
+            Cursor incomeCursor = databaseIncome.getIncomeListForSQL();
+            if (incomeCursor.moveToFirst()) {
+                do {
+                    String name = incomeCursor.getString(incomeCursor.getColumnIndexOrThrow("name"));
+                    double amount = incomeCursor.getDouble(incomeCursor.getColumnIndexOrThrow("income"));
+                    int count = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("count"));
+                    int day = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("incomeday"));
+                    for (int i = 0; i < count; i++) {
+                        detailList.add(new MonthDetailData("Income", name, amount, day, "доход"));
+                    }
+                } while (incomeCursor.moveToNext());
+            }
+            incomeCursor.close();
+
+            // Ежемесячные траты
+            Cursor spentCursor = databaseIncome.getMonthlySpentListForSQL();
+            if (spentCursor.moveToFirst()) {
+                do {
+                    String name = spentCursor.getString(spentCursor.getColumnIndexOrThrow("name"));
+                    int amount = spentCursor.getInt(spentCursor.getColumnIndexOrThrow("monthly_spent"));
+                    int day = spentCursor.getInt(spentCursor.getColumnIndexOrThrow("spentday"));
+                    detailList.add(new MonthDetailData("MSpent", name, amount, day, "ежемесечная трата"));
+                } while (spentCursor.moveToNext());
+            }
+            spentCursor.close();
+
+
+        Collections.sort(detailList, Comparator.comparingInt(MonthDetailData::getDay));
+        return detailList;
+    }
+
 
 
     public boolean createMaket(int type, String name, double amount, int category_id) {

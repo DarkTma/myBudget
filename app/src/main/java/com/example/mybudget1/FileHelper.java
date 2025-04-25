@@ -61,7 +61,7 @@ public class FileHelper {
             FileInputStream fis = context.openFileInput(FILE_NAME);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
             String line;
-            int id = 0; // Условный ID для категорий
+            int id = 0;
 
             while ((line = reader.readLine()) != null) {
                 String[] categoryArray = line.split("-");

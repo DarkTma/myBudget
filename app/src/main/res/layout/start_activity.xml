@@ -301,7 +301,7 @@
             android:id="@+id/btnGeminiGo"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
-            android:text="Накапления"
+            android:text="Асистент myBudget"
             android:background="@drawable/btn_menu_dark"
             android:textColor="@android:color/white"
             android:gravity="center_vertical"
