@@ -260,8 +260,8 @@ public class SpentAdapter extends BaseAdapter {
                 // Обновляем запись в базе данных
                 databaseIncome.updateMonthlySpent(itemName, day, newName, finalAmount);
 
-                // Обновляем данные в списке и уведомляем адаптер
-                spent.change(newName , finalAmount , String.valueOf(day));
+
+                spent.change(newName , finalAmount , day);
 
                 CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                 SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
@@ -280,30 +280,80 @@ public class SpentAdapter extends BaseAdapter {
 
 
         btndelete.setOnClickListener(view -> {
-            new AlertDialog.Builder(view.getContext())
-                    .setTitle("Подтверждение удаления")
-                    .setMessage("Вы точно хотите удалить этот ежемесячный расход?")
-                    .setPositiveButton("Удалить", (dialog, which) -> {
-                        Calendar calendar = Calendar.getInstance();
-                        int today = calendar.get(Calendar.DAY_OF_MONTH);
-                        String name = spent.getName();
-                        double count = spent.getAmount();
-                        int day = Integer.parseInt(spent.getDate());
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(Html.fromHtml("<font color='#FF5500'>Внимание</font>"));
 
-                        databaseIncome.deleteMonthlySpent(name, day);
+            // Текст для описания
+            TextView textView = new TextView(context);
+            textView.setText("Хотите полностью удалить расход? В этом месяце, если он был, он обнулится. Если не хотите этого — не нажимайте на чекбокс.");
+            textView.setTextColor(ContextCompat.getColor(context, R.color.white));
+            textView.setTextSize(24);
 
-                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
-                        String currentDate = sdf.format(new Date());
-                        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-                        databaseHelper.saveNote(currentDate, "удален ежемесячный расход:\n" + spent.getName() + " - " + spent.getAmount() + cursd.symbol, "Spent", "delete" );
+            LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            textParams.setMargins(0, 20, 0, 20);
+            textView.setLayoutParams(textParams);
 
-                        incomeList.remove(position);
-                        notifyDataSetChanged();
-                    })
-                    .setNegativeButton("Отмена", null)
-                    .show();
+            // Чекбокс
+            CheckBox checkBoxAsk = new CheckBox(context);
+            checkBoxAsk.setText("Удалить полностью?");
+            checkBoxAsk.setTextColor(ContextCompat.getColor(context, R.color.my_red));
+            checkBoxAsk.setChecked(false);
+            checkBoxAsk.setButtonDrawable(R.drawable.checkbox_style);
+
+            LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            checkBoxParams.setMargins(0, 20, 0, 20);
+            checkBoxAsk.setLayoutParams(checkBoxParams);
+
+            // Layout для текста и чекбокса
+            LinearLayout layout = new LinearLayout(context);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.addView(textView);
+            layout.addView(checkBoxAsk);
+
+            builder.setView(layout);
+
+            SpannableString positiveButtonText = new SpannableString("далее");
+            positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_orange)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            SpannableString negativeButtonText = new SpannableString("Отмена");
+            negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.my_orange)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
+                String name = spent.getName();
+                int day = spent.getDate();
+                double amount = spent.getAmount();
+
+                if (checkBoxAsk.isChecked()) {
+                    int cnt = databaseIncome.deleteMonthlySpent(name, day);
+                    databaseIncome.addIncome(cnt * amount);
+
+                    DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                    CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                    String currentDate = sdf.format(new Date());
+                    databaseHelper.saveNote(currentDate, "удален расход:\n" + name + " - " + amount + cursd.symbol, "Spent", "delete");
+
+                    incomeList.remove(position);
+                    notifyDataSetChanged();
+                } else {
+                    databaseIncome.deactivateSpent(name, day);
+                    notifyDataSetChanged();
+                }
+            });
+
+            builder.setNegativeButton(negativeButtonText, (dialog, which) -> dialog.dismiss());
+
+            AlertDialog dialog = builder.create();
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+            dialog.show();
         });
+
 
 
 

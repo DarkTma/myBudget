@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@color/my_darkbg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Шапка -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/textTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ассистент myBudget"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#222222" />
+
+        <TextView
+            android:id="@+id/textStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Проверка статуса..."
+            android:textSize="14sp"
+            android:textColor="#888888" />
+    </LinearLayout>
+
+    <!-- Чат -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewChat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp" />
+
+    <!-- Команды -->
+    <LinearLayout
+        android:id="@+id/commandContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        android:weightSum="3">
+
+        <Button
+            android:id="@+id/buttonMonth"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Анализ месяца" />
+
+        <Button
+            android:id="@+id/buttonWeek"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="Анализ недели" />
+
+        <Button
+            android:id="@+id/buttonAll"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="Анализ всех трат" />
+    </LinearLayout>
+</LinearLayout>

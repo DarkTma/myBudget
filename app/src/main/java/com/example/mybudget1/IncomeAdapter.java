@@ -310,7 +310,7 @@ public class IncomeAdapter extends BaseAdapter {
 
             // Текст для описания
             TextView textView = new TextView(context);
-            textView.setText("хотите полностю удалить доход? в этом месяце если \nвы его получали то он онулируется, если вы нехотите этого просто сделайте \nдоход одноразовым и в сле месяце он пропадет");
+            textView.setText("хотите полностю удалить доход? в этом месяце если \nвы его получали то он онулируется, если вы нехотите этого не нажимайте на чекбокс");
             textView.setTextColor(ContextCompat.getColor(context, R.color.white));
             textView.setTextSize(24);
 
@@ -326,7 +326,7 @@ public class IncomeAdapter extends BaseAdapter {
             CheckBox checkBoxAsk = new CheckBox(context);
             checkBoxAsk.setText("Удалить полностью?");
             checkBoxAsk.setTextColor(ContextCompat.getColor(context, R.color.my_red));
-            checkBoxAsk.setChecked(true);
+            checkBoxAsk.setChecked(false);
             checkBoxAsk.setButtonDrawable(R.drawable.checkbox_style);
 
             // Устанавливаем параметры для чекбокса
@@ -359,7 +359,9 @@ public class IncomeAdapter extends BaseAdapter {
                     String name = income.getName();
                     int day = income.getDate();
                     double incomen = income.getAmount();
-                    databaseIncome.deleteIncome(name, day);  // Удаление дохода из базы данных
+
+                    int cnt = databaseIncome.deleteIncome(name, day);
+                    databaseIncome.addSpent(cnt*incomen);
 
                     DatabaseHelper databaseHelper = new DatabaseHelper(context);
                     CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());

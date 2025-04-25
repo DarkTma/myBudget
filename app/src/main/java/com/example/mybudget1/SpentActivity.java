@@ -12,6 +12,8 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -141,6 +143,54 @@ public class SpentActivity extends AppCompatActivity {
 
             currencySpinner.setSelection(defaultCurrencyPosition);
 
+            Spinner frequencySpinner = new Spinner(this);
+            String[] frequencyOptions = {"Раз в месяц", "Раз в неделю", "Другое"};
+            ArrayAdapter<String> frequencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, frequencyOptions);
+            frequencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            frequencySpinner.setAdapter(frequencyAdapter);
+
+            currencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+            currencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
+
+            frequencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+            frequencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
+
+            LinearLayout.LayoutParams freqParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            freqParams.setMargins(0, 10, 0, 20);
+            frequencySpinner.setLayoutParams(freqParams);
+
+
+            EditText customDaysEdit = new EditText(this);
+            customDaysEdit.setHint("Раз в сколько дней?");
+            customDaysEdit.setInputType(InputType.TYPE_CLASS_NUMBER);
+            customDaysEdit.setVisibility(View.GONE); // Скрыт по умолчанию
+            customDaysEdit.setBackgroundResource(R.drawable.edit_text_style);
+            customDaysEdit.setPadding(0, 30, 0, 10);
+            LinearLayout.LayoutParams customDaysParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            customDaysParams.setMargins(0, 10, 0, 20);
+            customDaysEdit.setLayoutParams(customDaysParams);
+
+
+            frequencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (position == 2) { // "Другое"
+                        customDaysEdit.setVisibility(View.VISIBLE);
+                    } else {
+                        customDaysEdit.setVisibility(View.GONE);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+
             // Контейнер для всех элементов
             LinearLayout layout = new LinearLayout(this);
             layout.setOrientation(LinearLayout.VERTICAL);
@@ -148,7 +198,9 @@ public class SpentActivity extends AppCompatActivity {
             layout.addView(name);
             layout.addView(spent);
             layout.addView(dayPicker);
-            layout.addView(currencySpinner); // Добавляем Spinner для валюты
+            layout.addView(currencySpinner);
+            layout.addView(frequencySpinner);
+            layout.addView(customDaysEdit);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -167,6 +219,26 @@ public class SpentActivity extends AppCompatActivity {
                                 nameText = "Трата";
                             }
 
+                            String frequencyChoice = frequencySpinner.getSelectedItem().toString();
+                            int customRepeatDays = 0;
+
+                            switch (frequencyChoice) {
+                                case "Раз в месяц":
+                                    customRepeatDays = 0;
+                                    break;
+                                case "Раз в неделю":
+                                    customRepeatDays = 7;
+                                    break;
+                                case "Другое":
+                                    String customDaysText = customDaysEdit.getText().toString().trim();
+                                    if (customDaysText.isEmpty() || Integer.parseInt(customDaysText) <= 0) {
+                                        Toast.makeText(this, "Введите корректное количество дней", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+                                    customRepeatDays = Integer.parseInt(customDaysText);
+                                    break;
+                            }
+
                             int spentValue = Integer.parseInt(spent.getText().toString());
                             int selectedDay = dayPicker.getValue();
 
@@ -174,7 +246,6 @@ public class SpentActivity extends AppCompatActivity {
                             String selectedCurrency = currencySpinner.getSelectedItem().toString();
                             double finalAmount = 0;
 
-// Конвертируем сумму в выбранную валюту
                             switch (selectedCurrency) {
                                 case "֏":
                                     finalAmount = spentValue / CursHelper.getToDram();
@@ -198,7 +269,7 @@ public class SpentActivity extends AppCompatActivity {
                                     finalAmount = spentValue / CursHelper.getToLari();
                                     break;
                                 default:
-                                    finalAmount = spentValue; // На случай, если символ неизвестен
+                                    finalAmount = spentValue;
                                     break;
                             }
 
@@ -206,7 +277,7 @@ public class SpentActivity extends AppCompatActivity {
 
 
                             // Обновляем запись в базе данных
-                            databaseIncome.addMonthlySpent(nameText, finalAmount, selectedDay);
+                            databaseIncome.addMonthlySpent(nameText, finalAmount, selectedDay , customRepeatDays);
                             CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                             String currentDate = sdf.format(new Date());
@@ -241,9 +312,13 @@ public class SpentActivity extends AppCompatActivity {
         Cursor income = databaseIncome.getMonthlySpentList();
         if (income != null && income.moveToFirst()) {
             do {
+                String nextDate = income.getString(income.getColumnIndexOrThrow("next"));
+                if ("01-01-3000".equals(nextDate)) {
+                    continue; // пропускаем деактивированные записи
+                }
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
                 double spentNum = income.getDouble(income.getColumnIndexOrThrow("monthly_spent"));
-                String date = income.getString(income.getColumnIndexOrThrow("spentday"));
+                int date = income.getInt(income.getColumnIndexOrThrow("spentday"));
                 spentList.add(new SpentItem(name, spentNum, date));
             } while (income.moveToNext());
         }

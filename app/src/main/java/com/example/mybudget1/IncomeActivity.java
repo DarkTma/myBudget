@@ -302,13 +302,7 @@ public class IncomeActivity extends AppCompatActivity {
 
                             int dayText = day.getValue();
 
-                            if (dayText > 31) {
-                                Toast.makeText(this, "Можно выбрать до 31-го числа", Toast.LENGTH_SHORT).show();
-                                dialog.dismiss();
-                                return;
-                            }
-
-                            boolean once = checkBox.isChecked(); // Обратная логика: если чекбокс НЕ отмечен, то once = false
+                            boolean once = checkBox.isChecked();
 
                             // Получаем выбранную валюту из Spinner
                             String selectedCurrency = currencySpinner.getSelectedItem().toString();
@@ -344,7 +338,6 @@ public class IncomeActivity extends AppCompatActivity {
                             finalIncome = Math.round(finalIncome * 100.0) / 100.0;
 
 
-                            // Записываем в базу
                             if (once){
                                 databaseIncome.setIncome(finalIncome, nameText, dayText, once, customRepeatDays);
                             } else {
@@ -387,24 +380,28 @@ public class IncomeActivity extends AppCompatActivity {
         incomeList = new ArrayList<>();
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         Cursor income = databaseIncome.getIncomeList();
+
         if (income != null && income.moveToFirst()) {
             do {
+                String nextDate = income.getString(income.getColumnIndexOrThrow("next"));
+                if ("01-01-3000".equals(nextDate)) {
+                    continue; // пропускаем деактивированные записи
+                }
+
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
                 double incomeNum = income.getDouble(income.getColumnIndexOrThrow("income"));
                 int date = income.getInt(income.getColumnIndexOrThrow("incomeday"));
                 String once = income.getString(income.getColumnIndexOrThrow("onceincome"));
-                boolean x = false;
-                if (once.equals("1")) {
-                    x = true;
-                }
+                boolean x = "1".equals(once);
+
                 incomeList.add(new IncomeItem(name, incomeNum, date, x));
             } while (income.moveToNext());
         }
 
-        // Подключаем адаптер
         adapter = new IncomeAdapter(this, incomeList);
         listViewIncome.setAdapter(adapter);
     }
+
 
     private void refreshIncomeText() {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);

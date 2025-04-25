@@ -54,6 +54,7 @@
         <activity android:name=".NotesActivity"/>
         <activity android:name=".ScanReceiptActivity"/>
         <activity android:name=".GoalActivity"/>
+        <activity android:name=".GeminiChatActivity"/>
 
 
 </application>

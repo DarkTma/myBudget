@@ -23,6 +23,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +52,7 @@ public class StartActivity extends AppCompatActivity {
     private TextView spentText;
     public Button monthlySpents;
     public Button lastMonths;
+    public Button geminiAnalizbtn;
     public TextView budgetText;
     public CursData curs;
 
@@ -78,6 +80,13 @@ public class StartActivity extends AppCompatActivity {
         lastMonths = findViewById(R.id.btnLastMonths);
         TextView podskazka = findViewById(R.id.textpodskazka);
         ImageButton btnScan = findViewById(R.id.buttonScan);
+        geminiAnalizbtn = findViewById(R.id.btnGeminiGo);
+
+        geminiAnalizbtn.setOnClickListener(v -> {
+            Intent intent = new Intent(StartActivity.this, GeminiChatActivity.class);
+            startActivity(intent);
+            finish();
+        });
 
 
         curs = CursHelper.getCursData(databaseIncome.getCurs());
@@ -355,6 +364,7 @@ public class StartActivity extends AppCompatActivity {
     private void refreshBudget() {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         Cursor income = databaseIncome.getIncomeList();
+        List<BudgetItem> itemsToConfirm = new ArrayList<>();
         if (income != null && income.moveToFirst()) {
             do {
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
@@ -373,14 +383,11 @@ public class StartActivity extends AppCompatActivity {
                     Date givenDate = sdf.parse(timeToGive); // Преобразуем timeToGive в объект Date
 
                     if (givenDate != null && !currentDate.before(givenDate)) {
-                        checkGoten(name , day , incomeNum , true);
-//                        databaseIncome.setIncomeGiven(name , day);
-//                        databaseIncome.addIncome(incomeNum);
+                        itemsToConfirm.add(new BudgetItem(name, day, incomeNum, true));
                     }
 
                     if (checkOnce) {
-                        // Если checkOnce == true, вызываем функцию deleteIncome
-                        databaseIncome.deactivateIncome(name , day); // Вызов функции deleteIncome
+                        databaseIncome.deactivateIncome(name , day);
                     }
 
                 } catch (Exception e) {
@@ -400,12 +407,12 @@ public class StartActivity extends AppCompatActivity {
                 String timeToGive = spents.getString(spents.getColumnIndexOrThrow("next"));
 
                 try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()); // Формат даты
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
                     Date currentDate = new Date();
                     Date givenDate = sdf.parse(timeToGive);
 
                     if (givenDate != null && !currentDate.before(givenDate)) {
-                        checkGoten(name , day , spentNum , false);
+                        itemsToConfirm.add(new BudgetItem(name, day, spentNum, false));
                     }
 
                 } catch (Exception e) {
@@ -414,6 +421,10 @@ public class StartActivity extends AppCompatActivity {
 
             } while (spents.moveToNext());
         }
+        if (!itemsToConfirm.isEmpty()) {
+            checkGotten(itemsToConfirm);
+        }
+
     }
 
 
@@ -503,54 +514,55 @@ public class StartActivity extends AppCompatActivity {
         }
     }
 
-    private void checkGoten(String name, int date , int count , boolean type) {
+    private void checkGotten(List<BudgetItem> items) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Подтвердите операции");
 
-        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-        Calendar calendar = Calendar.getInstance();
-        int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        scrollView.addView(layout);
 
-        if (type) { // Если это доход
-            builder.setMessage("Вы получили зарплату - " + name + ", " + count + " ?");
+        List<CheckBox> checkBoxes = new ArrayList<>();
 
-            builder.setPositiveButton("Да", (dialog, which) -> {
-                databaseIncome.addIncome(count);
-                databaseIncome.setIncomeGiven(name , date);
-                refreshBudgetText();
-            });
-
-            builder.setNeutralButton("Отложить", (dialog, which) -> dialog.dismiss());
-
-            builder.setNegativeButton("Удалить", (dialog, which) -> databaseIncome.deleteIncome(name, date));
-
-        } else {
-            builder.setMessage("Вы выполнили трату - " + name + ", " + count + " ?");
-
-            builder.setPositiveButton("Да", (dialog, which) -> {
-                databaseIncome.addSpent(count);
-                databaseIncome.setMonthlySpentGiven(name , String.valueOf(date));
-                refreshBudgetText();
-            });
-
-            builder.setNeutralButton("Отложить", (dialog, which) -> dialog.dismiss());
-
-            builder.setNegativeButton("Удалить", (dialog, which) -> databaseIncome.deleteMonthlySpent(name, date));
+        for (BudgetItem item : items) {
+            CheckBox checkBox = new CheckBox(this);
+            checkBox.setText((item.isIncome ? "Доход: " : "Трата: ") + item.name + " - " + item.amount);
+            layout.addView(checkBox);
+            checkBoxes.add(checkBox);
         }
 
-        AlertDialog dialog = builder.create();
+        builder.setView(scrollView);
 
-        // Применяем фон
+        builder.setPositiveButton("Подтвердить", (dialog, which) -> {
+            DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+            for (int i = 0; i < items.size(); i++) {
+                if (checkBoxes.get(i).isChecked()) {
+                    BudgetItem item = items.get(i);
+                    if (item.isIncome) {
+                        int cnt = databaseIncome.setIncomeGiven(item.name, item.date);
+                        databaseIncome.addIncome(cnt * item.amount);
+                    } else {
+                        databaseIncome.addSpent(item.amount);
+                        databaseIncome.setMonthlySpentGiven(item.name, item.date);
+                    }
+                }
+            }
+            refreshBudgetText();
+        });
+
+        builder.setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
         dialog.setOnShowListener(d -> {
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
-
-            // Применяем цвет кнопкам
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.my_cyan));
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.my_cyan));
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(getResources().getColor(R.color.my_cyan));
         });
 
         dialog.show();
     }
+
 
 
     private void remembring() {
