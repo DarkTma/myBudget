@@ -173,6 +173,12 @@ public class ScanReceiptActivity extends AppCompatActivity {
     private void analyzeWithGemini(String receiptText) {
         startFakeProgress();
 
+        if (receiptText.isEmpty()){
+            stopFakeProgress();
+            resultGot("");
+            return;
+        }
+
         String apiKey = "AIzaSyDoiw93HSlRXadNii78dlZDXCSIwcmcjOc";  // Твой API-ключ
         String promptText = "Проанализируй данные , игнорируй ненужные символы ,Если название товара выглядит странным замени его название на тавар , отсартируй тавары ,  их каличество , их сумму , и итог , итог должен быть в чеке , если его нет вычти сам ,  другие данные мне не нужны , в канце в обязательно в квадратных скопках запиши итог из чека - неважно какие у тебя расчеты если есть итог в чеке то запиши обезательно его , если некоторые числа с минусом знахит вычитай их , если есть какие то странности или сомнения о чем стоит знать пользовотелю запиши их в канце после знака '^', затем поставь еше '^' и запиши число из  квадратных скобок(только число) , так же больше негде не исползуй етот нак '^':\n\n" + receiptText;
 
@@ -219,6 +225,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
                         String errorBody = response.errorBody().string();
                         Log.e("Gemini Error", errorBody);
                         runOnUiThread(() -> textResult.setText("Ошибка Gemini: " + errorBody));
+                        textResult.setVisibility(View.VISIBLE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -230,6 +237,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
                 stopFakeProgress();
                 t.printStackTrace();
                 runOnUiThread(() -> textResult.setText("Ошибка Gemini: " + t.getMessage()));
+                textResult.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -252,7 +260,12 @@ public class ScanReceiptActivity extends AppCompatActivity {
             editSum.setText(onlyNumber);
         }
 
-        textResult.setText(mainText);
+
+        if (mainText.isEmpty()){
+            textResult.setText("неудалось нечего распазнать");
+        } else {
+            textResult.setText(mainText);
+        }
         textResult.setVisibility(View.VISIBLE);
         infoLayaut.setVisibility(View.VISIBLE);
 

@@ -33,12 +33,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import android.util.DisplayMetrics;
 
 public class GoalActivity extends AppCompatActivity {
 
@@ -74,20 +76,23 @@ public class GoalActivity extends AppCompatActivity {
             startActivity(intentGoBack);
         });
 
-        // Инициализация ActivityResultLauncher для получения изображения
         getImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 result -> {
                     if (result != null) {
-                        // Сохраняем изображение во внутреннем хранилище
-                        String savedPath = saveImageToInternalStorage(result);
-                        if (savedPath != null) {
-                            selectedImageUri = Uri.fromFile(new File(savedPath));  // Сохраняем URI изображения
-                            // Если есть imagePreview в диалоге, устанавливаем выбранное изображение
-                            imagePreview.setImageURI(selectedImageUri);
-                        } else {
-                            Toast.makeText(this, "Не удалось сохранить изображение", Toast.LENGTH_SHORT).show();
-                        }
+                        // Получаем размеры экрана
+                        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+                        int screenWidth = displayMetrics.widthPixels;
+
+                        // Рассчитываем ширину и высоту с учетом пропорции 3:2
+                        int imageWidth = (int) (screenWidth * 0.8); // Ширина изображения 80% от экрана
+                        int imageHeight = (int) (imageWidth * 2.0 / 3.0); // Высота изображения по пропорции 3:2
+                        // Используем UCrop для обрезки изображения
+                        Uri destinationUri = Uri.fromFile(new File(getCacheDir(), "cropped_image.jpg"));
+                        UCrop.of(result, destinationUri)
+                                .withAspectRatio(16, 9)
+                                .withMaxResultSize(800, 800)
+                                .start(GoalActivity.this);
                     }
                 }
         );
@@ -145,6 +150,26 @@ public class GoalActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
             return null; // если ошибка, возвращаем null
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == UCrop.REQUEST_CROP && resultCode == RESULT_OK) {
+            Uri resultUri = UCrop.getOutput(data);
+
+            if (resultUri != null) {
+                // Загружаем обрезанное изображение в ImageView
+                imagePreview.setImageURI(resultUri);
+                selectedImageUri = resultUri;
+            }
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            Throwable cropError = UCrop.getError(data);
+            if (cropError != null) {
+                Toast.makeText(this, "Ошибка при обрезке изображения: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
