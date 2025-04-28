@@ -2,7 +2,9 @@ package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +26,8 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -75,6 +79,9 @@ public class ScanReceiptActivity extends AppCompatActivity {
     private LinearLayout ButtonsLayout;
     private TextView podskazka;
     private final int[] selectedType = new int[1];
+    private ActivityResultLauncher<Uri> cameraLauncher;
+    private Uri imageUri;
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -122,7 +129,6 @@ public class ScanReceiptActivity extends AppCompatActivity {
             startActivity(intentGoBack);
         });
 
-        // Регистрируем галерею
         galleryLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -132,11 +138,36 @@ public class ScanReceiptActivity extends AppCompatActivity {
                     }
                 });
 
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicture(),
+                isSuccess -> {
+                    if (isSuccess && imageUri != null) {
+                        recognizeTextFromImage(imageUri);
+                    }
+                });
+
         buttonSelectImage.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             galleryLauncher.launch(intent);
         });
+
+        // Кнопка для съемки с камеры
+        Button buttonTakePhoto = findViewById(R.id.buttonTakePhoto);  // Добавьте кнопку в ваш layout
+        buttonTakePhoto.setOnClickListener(v -> {
+            imageUri = createImageUri();  // Создаём URI для фото
+            cameraLauncher.launch(imageUri);
+        });
     }
+
+    // Метод для создания URI изображения
+    private Uri createImageUri() {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MediaStore.Images.Media.TITLE, "photo_" + System.currentTimeMillis());
+        contentValues.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        return getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+    }
+
 
 
     private void analyzeWithGemini(String receiptText) {
@@ -202,7 +233,6 @@ public class ScanReceiptActivity extends AppCompatActivity {
             }
         });
     }
-
     private void resultGot(String result){
         nameText.setVisibility(View.VISIBLE);
         ButtonsLayout.setVisibility(View.VISIBLE);

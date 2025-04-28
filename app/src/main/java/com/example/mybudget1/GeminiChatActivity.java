@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -18,7 +19,10 @@ import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
@@ -80,7 +84,7 @@ public class GeminiChatActivity extends AppCompatActivity {
 
         findViewById(R.id.buttonMonth).setOnClickListener(v -> sendCommand("Анализируй текущий месяц"));
         findViewById(R.id.buttonWeek).setOnClickListener(v -> getCategoriesMessage());
-        findViewById(R.id.buttonAll).setOnClickListener(v -> sendCommand("Анализируй все мои траты"));
+        findViewById(R.id.buttonAll).setOnClickListener(v -> showSelectStartEndDayDialog());
 
         textStatus = findViewById(R.id.textStatus);
         checkConnectionStatus();
@@ -107,25 +111,31 @@ public class GeminiChatActivity extends AppCompatActivity {
         FileHelper fileHelper = new FileHelper(this);
         List<CategoryItem> categories = fileHelper.getCategoriesWithPrices(1);
 
+        if (categories.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Ошибка")
+                    .setMessage("Категории не найдены.")
+                    .setPositiveButton("Ок", null)
+                    .show();
+            return;
+        }
+
         List<String> categoryNames = new ArrayList<>();
         for (CategoryItem category : categories) {
             categoryNames.add(category.getName());
         }
 
-        CategoryItem selectedCategory = categories.get(0);
-        sendCommand(sendCategoryAnaliz(selectedCategory));
-
-//        // Создаем диалог с выбором категории
-//        new AlertDialog.Builder(this)
-//                .setTitle("Выберите категорию")
-//                .setItems(categoryNames.toArray(new String[0]), (dialog, which) -> {
-//                    // Здесь обрабатываем выбор категории
-//                    CategoryItem selectedCategory = categories.get(which);
-//                    sendCommand(sendCategoryAnaliz(selectedCategory));
-//                })
-//                .setCancelable(true)
-//                .show();
+        // Показываем диалог выбора категории
+        new AlertDialog.Builder(this)
+                .setTitle("Выберите категорию")
+                .setItems(categoryNames.toArray(new String[0]), (dialog, which) -> {
+                    CategoryItem selectedCategory = categories.get(which);
+                    sendCommand(sendCategoryAnaliz(selectedCategory));
+                })
+                .setCancelable(true)
+                .show();
     }
+
 
     private String sendCategoryAnaliz(CategoryItem selectedCategory) {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
@@ -140,15 +150,15 @@ public class GeminiChatActivity extends AppCompatActivity {
             userText += "- " + expense.getName() + ": " + expense.getDate() + " , " + expense.getAmount() + curs.symbol + "\n";
         }
 
-        return "Вот данные о расходах по категории '" + selectedCategory.getName() + "|" + "':\n\n" +
+        return "Вот данные о расходах по категории '" + selectedCategory.getName() + "':\n\n" +
                 userText + "\n\n" +
-                "Пожалуйста, проанализируй эти данные и составь дружелюбный и полезный анализ.\n" +
-                "Обрати внимание на те статьи, где трат больше всего. Есть ли возможность сэкономить или пересмотреть расходы? 😊\n" +
-                "Если какие-то расходы кажутся слишком высокими, дай советы по оптимизации. Может быть, стоит попробовать что-то новое или уменьшить частоту покупок?\n" +
-                "Не забывай отметить, если в категории есть положительные моменты — похвали, но легко и без преувеличений. ✨\n" +
-                "Дай несколько разумных советов по улучшению управления расходами в этой категории. Включи несколько идей и предложений.\n" +
-                "Стиль: немного мило, но понятно и по делу, как хороший помощник, который всегда рядом и готов помочь. 😊\n" +
-                "В конце подытожь и дай лёгкий, но полезный совет на будущее.";
+                "Проанализируй эти расходы дружелюбно и понятно.\n" +
+                "Обрати внимание, где траты самые большие, и предложи способы оптимизации. 😊\n" +
+                "Если есть, отметь положительные моменты. ✨\n" +
+                "Дай несколько практичных советов по экономии и управлению расходами.\n" +
+                "Стиль: лёгкий, заботливый, но без лишней эмоциональности.\n" +
+                "В конце подытожь коротким советом на будущее.\n" +
+                "ответ не должен быть бпльше 3000 имволов";
 
     }
 
@@ -157,6 +167,8 @@ public class GeminiChatActivity extends AppCompatActivity {
         // Добавляем сообщение пользователя
         if(commandText.startsWith("Вот данные о расходах по категории")){
             chatMessages.add(new ChatMessage("Вот данные о расходах по категории", true));
+        } else if (commandText.startsWith("Вот данные о завершённых расходах")) {
+            chatMessages.add(new ChatMessage("Вот данные о завершённых расходах", true));
         } else {
             chatMessages.add(new ChatMessage(commandText, true));
         }
@@ -167,6 +179,8 @@ public class GeminiChatActivity extends AppCompatActivity {
             getGeminiResponse(generateFriendlyPrompt(getFormatedMonthString()));
         }else if(commandText.startsWith("Вот данные о расходах по категории")){
             getGeminiResponse(commandText);
+        }else if(commandText.startsWith("Вот данные о завершённых расходах")){
+            getGeminiResponse(commandText);
         }
 
     }
@@ -176,7 +190,7 @@ public class GeminiChatActivity extends AppCompatActivity {
         startFakeProcess();
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             stopFakeProcess();
-        }, 1000); // 1 секунда
+        }, 1000);
     }
 
 
@@ -253,7 +267,6 @@ public class GeminiChatActivity extends AppCompatActivity {
                 });
             }
         });
-        stopFakeProcess();
     }
 
     private String generateFriendlyPrompt(String userText) {
@@ -263,7 +276,8 @@ public class GeminiChatActivity extends AppCompatActivity {
                 "Обрати внимание, где трат больше всего, где есть возможности сэкономить. Если доходы хорошие — похвали легко и приятно.\n" +
                 "Дай любые разумные советы по финансам на основе данных (можно несколько, не ограничивайся).\n" +
                 "Пиши как заботливый помощник, но без чрезмерной эмоциональности. Стиль: чуть мило, но понятно и по делу.\n" +
-                "В конце добавь лёгкое обобщение и мягкий совет на будущее.";
+                "В конце добавь лёгкое обобщение и мягкий совет на будущее.\n" +
+                "ответ не должен быть бпльше 3000 имволов";
     }
 
 
@@ -285,9 +299,15 @@ public class GeminiChatActivity extends AppCompatActivity {
         StringBuilder result = new StringBuilder();
         result.append("Сегодня: ").append(dayOfMonth).append(" число месяца, записанные траты за это время: ");
 
-        // Добавляем траты по каждой категории
         for (CategoryItem category : categories) {
             result.append(category.getName()).append(" - ").append(category.getPrice()).append(curs.symbol).append(", ");
+        }
+
+        List<ExpenseData> data = databaseHelper.getExpensesByCategory(0 , 1);
+
+        result.append(", под other находятся траты: ");
+        for (ExpenseData expense : data) {
+            result.append(" - ").append(expense.getName()).append(": ").append(expense.getDate()).append(" , ").append(expense.getAmount()).append(curs.symbol).append("\n");
         }
 
         // Убираем последнюю запятую и пробел
@@ -296,6 +316,129 @@ public class GeminiChatActivity extends AppCompatActivity {
         }
 
         return result.toString();
+    }
+
+    public void showSelectStartEndDayDialog() {
+        // Получаем максимум дней в этом месяце
+        Calendar calendar = Calendar.getInstance();
+        int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+
+        int currentDay = calendar.get(Calendar.DAY_OF_MONTH);
+
+
+        int startDayValue = currentDay - 2;
+        int endDayValue = currentDay;
+
+
+        if (startDayValue < 1) {
+            startDayValue = 1;
+        }
+
+        final int[] startDay = {1};
+        final int[] endDay = {1};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Выберите начальный и конечный день");
+
+        // Первое поле: Выбор старта
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        TextView startLabel = new TextView(this);
+        startLabel.setText("Начальный день:");
+
+        NumberPicker startPicker = new NumberPicker(this);
+        startPicker.setMinValue(1);
+        startPicker.setMaxValue(maxDay);
+        startPicker.setValue(startDayValue);
+
+        TextView endLabel = new TextView(this);
+        endLabel.setText("Конечный день:");
+
+        NumberPicker endPicker = new NumberPicker(this);
+        endPicker.setMinValue(1);
+        endPicker.setMaxValue(maxDay);
+        endPicker.setValue(endDayValue);
+
+        layout.addView(startLabel);
+        layout.addView(startPicker);
+        layout.addView(endLabel);
+        layout.addView(endPicker);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Выбрать", (dialog, which) -> {
+            startDay[0] = startPicker.getValue();
+            endDay[0] = endPicker.getValue();
+
+            if (startDay[0] > endDay[0]) {
+                Toast.makeText(this, "Начальный день не может быть позже конечного!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (endDay[0] - startDay[0] > 7) {
+                Toast.makeText(this, "Промежуток не должен превышать 7 дней!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Здесь можно использовать выбранные startDay и endDay
+            String text = getFormatedWeekString(startDay[0], endDay[0]);
+            sendCommand(text);
+
+        });
+
+        builder.setNegativeButton("Отмена", null);
+        builder.show();
+    }
+
+
+
+
+    public String getFormatedWeekString(int startDay , int endDay){
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        Cursor cursor = databaseHelper.getDoneSpentsCursor(startDay, endDay);
+
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+
+        if (cursor == null || !cursor.moveToFirst()) {
+            return "Нет завершённых трат за выбранный период.";
+        }
+
+        StringBuilder userText = new StringBuilder();
+        double totalSpent = 0;
+
+
+
+        do {
+            int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+            String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+            double spent = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
+
+            userText.append("День ").append(day).append(": ")
+                    .append(name).append(" - ")
+                    .append(spent).append(curs.symbol).append("\n");
+
+            totalSpent += spent;
+        } while (cursor.moveToNext());
+
+        cursor.close();
+
+        int maxLength = 200;  // Максимальная длина текста
+
+        String formattedUserText = userText.length() > maxLength ? userText.substring(0, maxLength) + "..." : userText.toString();
+
+        return "Вот данные о завершённых расходах с " + startDay + " по " + endDay + " число:\n\n" +
+                formattedUserText  + "\n" +
+                "Общая сумма расходов: " + totalSpent + curs.symbol + ".\n\n" +
+                "Проанализируй, пожалуйста, эти расходы. 😊\n" +
+                "Есть ли траты, которые можно сократить? Какие покупки выделяются как особенно крупные?\n" +
+                "Дай советы по оптимизации и отметь положительные моменты, если они есть. ✨\n" +
+                "Стиль ответа: дружелюбный и полезный." +
+                "ответ не должен быть бпльше 3000 имволов";
+
     }
 
     public String getFormatedMonthString(){

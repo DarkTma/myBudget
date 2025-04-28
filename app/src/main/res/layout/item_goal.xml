@@ -14,16 +14,17 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Изображение цели -->
         <ImageView
             android:id="@+id/goalImage"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
+            android:layout_height="200dp"
             android:src="@drawable/default_goal"
-            android:scaleType="centerCrop"
+            android:scaleType="fitCenter"
             android:contentDescription="Goal Image"
             android:layout_marginBottom="12dp"
-            android:background="@drawable/rounded_image_bg" />
+            android:background="@drawable/rounded_image_bg"
+            android:clipToOutline="true" />
+
 
         <!-- Суммы по краям прогресса -->
         <LinearLayout

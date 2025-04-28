@@ -169,7 +169,7 @@
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
                 android:layout_marginBottom="16dp"
-                android:src="@drawable/add_photo"
+                android:src="@drawable/scan"
                 android:scaleType="centerInside" />
 
         </RelativeLayout>

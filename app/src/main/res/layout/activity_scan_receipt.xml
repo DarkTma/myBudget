@@ -21,12 +21,30 @@
             android:scaleType="centerInside"
             android:src="@drawable/arrow" />
 
-        <Button
-            android:id="@+id/buttonSelectImage"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/button_selector_blue"
-            android:text="Загрузить изображение из галереи" />
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/buttonSelectImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_selector_blue"
+                android:text="Загрузить чек из галереи"
+                android:layout_marginBottom="16dp" />
+
+            <Button
+                android:id="@+id/buttonTakePhoto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_selector_blue"
+                android:text="Сфотографировать чек"
+                android:layout_marginBottom="16dp" />
+
+        </LinearLayout>
+
 
         <LinearLayout
             android:id="@+id/progressLayout"

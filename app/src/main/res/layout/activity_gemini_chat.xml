@@ -120,7 +120,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
-            android:text="Анализ недели" />
+            android:text="Анализ котегории" />
 
         <Button
             android:id="@+id/buttonAll"
@@ -128,7 +128,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
-            android:text="Анализ всех трат" />
+            android:text="Анализ недели" />
     </LinearLayout>
 
 
