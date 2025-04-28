@@ -27,10 +27,13 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.util.Calendar;
+
 
 public class SplashActivity extends AppCompatActivity {
 
     private DatabaseHelper2 databaseHelper;
+    private boolean isNotif = false;
 
     private static final int REQUEST_NOTIFICATION_PERMISSION = 1001;
 
@@ -44,6 +47,9 @@ public class SplashActivity extends AppCompatActivity {
         logo.startAnimation(pulse);
 
         databaseHelper = new DatabaseHelper2(this);
+
+        isNotif = getIntent().getBooleanExtra("isNotif", false);
+
 
         // Проверяем разрешение и создаём канал/ставим напоминание
         checkNotificationPermission();
@@ -129,8 +135,18 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void onRatesUpdated() {
                 new android.os.Handler().postDelayed(() -> {
-                    startActivity(new Intent(SplashActivity.this, StartActivity.class));
-                    finish();
+                    if (!isNotif) {
+                        startActivity(new Intent(SplashActivity.this, StartActivity.class));
+                        finish();
+                    } else {
+                        Calendar calendar = Calendar.getInstance();
+                        int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+                        Intent intent = new Intent(context, MainActivity.class);
+                        intent.putExtra("day", dayOfMonth);
+                        intent.putExtra("isexpented", "false");
+                        startActivity(intent);
+                        finish();
+                    }
                 }, 1);
             }
 

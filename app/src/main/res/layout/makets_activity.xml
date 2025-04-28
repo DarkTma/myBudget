@@ -19,7 +19,7 @@
         android:id="@+id/tvMaketsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Макеты"
+        android:text="Шаблоны"
         android:textColor="@android:color/white"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginTop="10dp"
-        android:text="Добавить макет"
+        android:text="Добавить шаблон"
         android:background="@drawable/button_selector_blue"
         android:textColor="@android:color/white"/>
 </RelativeLayout>

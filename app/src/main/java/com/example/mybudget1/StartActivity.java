@@ -327,7 +327,7 @@ public class StartActivity extends AppCompatActivity {
         Cursor cursor = databaseHelper.getReminderList();
 
         long currentTime = System.currentTimeMillis();
-        long thresholdTime = currentTime + 5 * 60 * 1000; // 5 минут в миллисекундах
+        long thresholdTime = currentTime - 2 * 60 * 1000; // 5 минут в миллисекундах
 
         while (cursor.moveToNext()) {
             int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));

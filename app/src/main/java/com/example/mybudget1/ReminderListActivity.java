@@ -2,6 +2,7 @@ package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -55,30 +56,42 @@ public class ReminderListActivity extends AppCompatActivity {
 
         cursor.close();
 
-        adapter = new ReminderAdapter(this , reminderList, new ReminderAdapter.OnReminderDeleteListener() {
+        adapter = new ReminderAdapter(this, reminderList, new ReminderAdapter.OnReminderDeleteListener() {
             @Override
             public void onDelete(Reminder reminder) {
-                // Отменяем Alarm
-                AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                if (alarmManager != null) {
-                    Intent intent = new Intent(getApplicationContext(), ReminderReceiver.class);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                            getApplicationContext(),
-                            reminder.getRequestCode(), // теперь используем requestCode
-                            intent,
-                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-                    );
-                    alarmManager.cancel(pendingIntent); // Отменяем уведомление
-                }
+                new AlertDialog.Builder(ReminderListActivity.this) // замените RemindersActivity на вашу активити
+                        .setTitle("Удалить напоминание")
+                        .setMessage("Вы уверены, что хотите удалить это напоминание?")
+                        .setPositiveButton("Да", (dialog, which) -> {
+                            // Отменяем Alarm
+                            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                            if (alarmManager != null) {
+                                Intent intent = new Intent(getApplicationContext(), ReminderReceiver.class);
+                                intent.putExtra("isNotif", true);
 
-                // Удаляем из базы и обновляем список
-                if (databaseHelper != null) {
-                    databaseHelper.deleteReminder(reminder.getId()); // удаление по id
-                }
-                reminderList.remove(reminder);
-                adapter.notifyDataSetChanged();
+                                PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                                        getApplicationContext(),
+                                        reminder.getRequestCode(),
+                                        intent,
+                                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                                );
+                                alarmManager.cancel(pendingIntent);
+                            }
+
+                            // Удаляем из базы и обновляем список
+                            if (databaseHelper != null) {
+                                databaseHelper.deleteReminder(reminder.getId());
+                            }
+                            reminderList.remove(reminder);
+                            adapter.notifyDataSetChanged();
+                        })
+                        .setNegativeButton("Отмена", (dialog, which) -> {
+                            dialog.dismiss();
+                        })
+                        .show();
             }
         });
+
 
 
 
