@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -52,6 +53,15 @@ public class MonthListActivity extends AppCompatActivity {
                 Intent intentGoBack = new Intent(MonthListActivity.this, StartActivity.class);
                 startActivity(intentGoBack);
             });
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent intentGoBack = new Intent(MonthListActivity.this, StartActivity.class);
+                startActivity(intentGoBack);
+            }
+        };
+        this.getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
 

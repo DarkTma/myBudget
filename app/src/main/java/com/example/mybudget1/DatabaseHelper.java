@@ -219,7 +219,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     if (tableName.equals(currentMonthTable)) {
                         DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                         Cursor incomeCursor = databaseIncome.getIncomeListForSQL();
+                        Cursor spentCursor = databaseIncome.getMonthlySpentListForSQL();
                         income = getIncomeFromMonth(incomeCursor);
+                        spents += getSpentFromMonth(spentCursor);
                     }
                     monthDataList.add(new MonthData(tableName, income, spents));
                 }
@@ -1204,6 +1206,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor != null && cursor.moveToFirst()) {
             do {
                 double income = cursor.getDouble(cursor.getColumnIndexOrThrow("income"));
+                int count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
+
+                // Вставляем данные и суммируем общий доход
+                for (int i = 0; i < count; i++) {
+                    totalIncome += income;
+                }
+            } while (cursor.moveToNext());
+        }
+
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        return totalIncome;
+    }
+
+    public double getSpentFromMonth(Cursor cursor) {
+        double totalIncome = 0.0;
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                double income = cursor.getDouble(cursor.getColumnIndexOrThrow("monthly_spent"));
                 int count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
 
                 // Вставляем данные и суммируем общий доход

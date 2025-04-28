@@ -2,6 +2,7 @@ package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.text.Html;
@@ -338,12 +339,13 @@ public class SpentAdapter extends BaseAdapter {
                     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                     String currentDate = sdf.format(new Date());
                     databaseHelper.saveNote(currentDate, "удален расход:\n" + name + " - " + amount + cursd.symbol, "Spent", "delete");
-
                     incomeList.remove(position);
                     notifyDataSetChanged();
                 } else {
                     databaseIncome.deactivateSpent(name, day);
                     notifyDataSetChanged();
+                    Intent intent = new Intent(context, SpentActivity.class);
+                    context.startActivity(intent);
                 }
             });
 

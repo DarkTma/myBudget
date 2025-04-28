@@ -26,6 +26,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -55,6 +56,14 @@ public class SpentActivity extends AppCompatActivity {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
 
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent intentGoBack = new Intent(SpentActivity.this, StartActivity.class);
+                startActivity(intentGoBack);
+            }
+        };
+        this.getOnBackPressedDispatcher().addCallback(this, callback);
 
         listViewIncome = findViewById(R.id.listViewSpent);
         btnBack = findViewById(R.id.buttonBackFromSpents);

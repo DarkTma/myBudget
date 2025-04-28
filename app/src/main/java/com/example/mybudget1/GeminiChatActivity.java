@@ -305,7 +305,7 @@ public class GeminiChatActivity extends AppCompatActivity {
 
         List<ExpenseData> data = databaseHelper.getExpensesByCategory(0 , 1);
 
-        result.append(", под other находятся траты: ");
+        result.append(", под other подрозумеваются траты: ");
         for (ExpenseData expense : data) {
             result.append(" - ").append(expense.getName()).append(": ").append(expense.getDate()).append(" , ").append(expense.getAmount()).append(curs.symbol).append("\n");
         }
