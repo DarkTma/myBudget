@@ -1,15 +1,19 @@
 package com.example.mybudget1;
 
 public class SpentItem {
+    private int id;
+    private String nextDate;
     private String name;
     private double amount;
     private int date;
     private boolean active;
 
-    public SpentItem(String name, double amount, int date) {
+    public SpentItem(int id,String name, double amount, int date, String nextDate) {
+        this.id = id;
         this.name = name;
         this.amount = amount;
         this.date = date;
+        this.nextDate = nextDate;
     }
 
     public String getName() {
@@ -20,6 +24,14 @@ public class SpentItem {
 
     public int getDate() {
         return date;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getNextDate() {
+        return nextDate;
     }
 
 

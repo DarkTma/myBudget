@@ -2,6 +2,7 @@ package com.example.mybudget1;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.InputType;
@@ -22,6 +23,7 @@ import android.widget.CheckBox;
 import java.util.Collections;
 import java.util.Comparator;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -37,25 +39,33 @@ public class CategoriesActivity extends AppCompatActivity {
     private FileHelper fileHelper;
     private DatabaseHelper databaseHelper;
     private ImageButton buttonBackFromCategories;
-    private Spinner monthSelector; // Селектор для месяца
-    private String selectedMonthOption = "current"; // По умолчанию выбран текущий месяц
-    private CheckBox checkBoxSortByProcent; // Новый чекбокс
+    private Spinner monthSelector;
+    private String selectedMonthOption = "current";
+    private CheckBox checkBoxSortByProcent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.categories_activity);
 
-        // Инициализация UI компонентов
         buttonBackFromCategories = findViewById(R.id.buttonBackFromCategories);
         buttonBackFromCategories.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(CategoriesActivity.this, StartActivity.class);
             startActivity(intentGoBack);
         });
 
+        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
+            @Override
+            public void handleOnBackPressed() {
+                Intent intentGoBack = new Intent(CategoriesActivity.this, StartActivity.class);
+                startActivity(intentGoBack);
+            }
+        };
+        this.getOnBackPressedDispatcher().addCallback(this, callback);
+
         listViewCategories = findViewById(R.id.listViewCategories);
         btnAddCategory = findViewById(R.id.btnAddCategorie);
-        monthSelector = findViewById(R.id.monthSelector); // Инициализация Spinner
+        monthSelector = findViewById(R.id.monthSelector);
         checkBoxSortByProcent = findViewById(R.id.checkBoxSortByProcent);
 
         checkBoxSortByProcent.setOnCheckedChangeListener((buttonView, isChecked) -> loadCategories());
@@ -63,7 +73,6 @@ public class CategoriesActivity extends AppCompatActivity {
         fileHelper = new FileHelper(this);
         databaseHelper = new DatabaseHelper(this);
 
-        // Настройка Spinner для выбора месяца
         ArrayAdapter<String> adapterMonth = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
                 new String[]{"Текущий месяц", "прошлый месяц", "Все"});
         adapterMonth.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -74,53 +83,43 @@ public class CategoriesActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 switch (position) {
                     case 0:
-                        selectedMonthOption = "current"; // Текущий месяц
+                        selectedMonthOption = "current";
                         break;
                     case 1:
-                        selectedMonthOption = "last"; // Текущий и прошлый
+                        selectedMonthOption = "last";
                         break;
                     case 2:
-                        selectedMonthOption = "all"; // Все месяцы
+                        selectedMonthOption = "all";
                         break;
                 }
-                loadCategories(); // Загружаем категории в зависимости от выбранного месяца
+                loadCategories();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // Если ничего не выбрано, ничего не меняем
-            }
+            public void onNothingSelected(AdapterView<?> parentView) {}
         });
 
-        // Получаем категории с ценами
         loadCategories();
 
-        // Добавление новой категории
         btnAddCategory.setOnClickListener(v -> showAddCategoryDialog());
     }
 
-    // Метод для загрузки категорий в зависимости от выбранного месяца
     private void loadCategories() {
+        SQLiteDatabase db = databaseHelper.getWritableDatabase();
         switch (selectedMonthOption) {
             case "current":
-                categoryItems = fileHelper.getCategoriesWithPrices(1);
+                categoryItems = fileHelper.getCategoriesWithPrices(this,1);
                 break;
             case "last":
-                categoryItems = fileHelper.getCategoriesWithPrices(2);
+                categoryItems = fileHelper.getCategoriesWithPrices(this,2);
                 break;
             case "all":
-                categoryItems = fileHelper.getCategoriesWithPrices(3);
+                categoryItems = fileHelper.getCategoriesWithPrices(this,3);
                 break;
         }
 
-        // Если чекбокс включен - сортируем по проценту
         if (checkBoxSortByProcent.isChecked()) {
-            Collections.sort(categoryItems, new Comparator<CategoryItem>() {
-                @Override
-                public int compare(CategoryItem c1, CategoryItem c2) {
-                    return Integer.compare(c2.getProcent(), c1.getProcent());
-                }
-            });
+            Collections.sort(categoryItems, Comparator.comparingInt(CategoryItem::getProcent).reversed());
         }
 
         adapter = new CategoryAdapter(this, categoryItems, new CategoryAdapter.OnCategoryActionListener() {
@@ -138,20 +137,18 @@ public class CategoriesActivity extends AppCompatActivity {
         listViewCategories.setAdapter(adapter);
     }
 
-    // Диалог для добавления новой категории
     private void showAddCategoryDialog() {
-
         EditText name = new EditText(this);
         name.setInputType(InputType.TYPE_CLASS_TEXT);
         name.setHint("Название категории");
-        name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
+        name.setPadding(0, 30, 0, 10);
         name.setBackgroundResource(R.drawable.edit_text_style);
 
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
+        nameParams.setMargins(0, 10, 0, 20);
         name.setLayoutParams(nameParams);
 
         LinearLayout layout = new LinearLayout(this);
@@ -159,9 +156,8 @@ public class CategoriesActivity extends AppCompatActivity {
         layout.addView(name);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        final android.widget.EditText input = new android.widget.EditText(this);
-        builder.setView(input);
+        builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите название</font>"));
+        builder.setView(layout);
 
         SpannableString positiveButtonText = new SpannableString("Добавить");
         positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -169,17 +165,16 @@ public class CategoriesActivity extends AppCompatActivity {
         SpannableString negativeButtonText = new SpannableString("Отмена");
         negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите название</font>"));
-        builder.setView(layout);
         builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
             String newCategory = name.getText().toString().trim();
             if (!newCategory.isEmpty()) {
-                // Добавляем категорию в файл
-                fileHelper.addCategoryToFile(newCategory);
-                // Обновляем список категорий
-                categoryItems.add(new CategoryItem(categoryItems.size(), newCategory, 0 , 0));
-                adapter.notifyDataSetChanged();
-                Toast.makeText(CategoriesActivity.this, "Категория добавлена", Toast.LENGTH_SHORT).show();
+                if (fileHelper.addCategory(newCategory)) {
+                    Toast.makeText(CategoriesActivity.this, "Категория добавлена", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(CategoriesActivity.this, CategoriesActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Такая категория уже существует", Toast.LENGTH_SHORT).show();
+                }
             } else {
                 Toast.makeText(CategoriesActivity.this, "Введите название категории", Toast.LENGTH_SHORT).show();
             }
@@ -188,30 +183,50 @@ public class CategoriesActivity extends AppCompatActivity {
         builder.setNegativeButton(negativeButtonText, null);
 
         AlertDialog dialog = builder.create();
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background); // Устанавливаем фон
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
         dialog.show();
     }
 
-    // Диалог для подтверждения удаления категории
     private void showDeleteConfirmationDialog(final int categoryId) {
+        CategoryItem category = categoryItems.get(categoryId);
+
+        // Создаём Spinner
+        Spinner spinner = new Spinner(this);
+        List<String> categoryNames = fileHelper.getAllCategoryNames();
+        ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
+        adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapterSpinner);
+
+        // Устанавливаем "other" как выбранный по умолчанию
+        int defaultPosition = categoryNames.indexOf("other");
+        if (defaultPosition >= 0) {
+            spinner.setSelection(defaultPosition);
+        }
+
+        // Оборачиваем Spinner в Layout
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padding = 32;
+        layout.setPadding(padding, padding, padding, padding);
+        layout.addView(spinner);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Удалить категорию?");
-        builder.setMessage("Вы уверены, что хотите удалить эту категорию?");
+        builder.setMessage("Выберите категорию для переноса расходов:");
+
+        builder.setView(layout);
 
         builder.setPositiveButton("Удалить", (dialog, which) -> {
-            CategoryItem category = categoryItems.get(categoryId);
+            String selectedCategoryName = (String) spinner.getSelectedItem();
+            int selectedCategoryId = fileHelper.getCategoryIdByName(selectedCategoryName);
 
-            // Перемещаем все расходы из удаляемой категории в "other"
-            List<ExpenseData> expenses = databaseHelper.getExpensesByCategory(categoryId);
-            int otherCategoryId = 0; // ID для категории "other"
+            List<ExpenseData> expenses = databaseHelper.getExpensesByCategory(category.getId());
             for (ExpenseData expense : expenses) {
-                databaseHelper.updateExpenseCategory(category.getId(), otherCategoryId);
+                databaseHelper.updateExpenseCategory(expense.getId(), selectedCategoryId);
             }
 
-            // Удаляем категорию из файла
-            boolean isDeleted = fileHelper.removeCategoryFromFile(category.getName());
+            boolean isDeleted = fileHelper.removeCategory(category.getId());
             if (isDeleted) {
-                // Убираем категорию из списка и обновляем ListView
                 categoryItems.remove(categoryId);
                 adapter.notifyDataSetChanged();
                 Toast.makeText(CategoriesActivity.this, "Категория удалена", Toast.LENGTH_SHORT).show();
@@ -224,22 +239,21 @@ public class CategoriesActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // Диалог для редактирования категории
+
     private void showEditCategoryDialog(final int categoryId) {
         CategoryItem category = categoryItems.get(categoryId);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Изменить категорию");
 
-        final android.widget.EditText input = new android.widget.EditText(this);
+        final EditText input = new EditText(this);
         input.setText(category.getName());
         builder.setView(input);
 
         builder.setPositiveButton("Сохранить", (dialog, which) -> {
             String newCategoryName = input.getText().toString().trim();
             if (!newCategoryName.isEmpty()) {
-                // Обновляем имя категории в файле
-                boolean isUpdated = fileHelper.updateCategoryName(category.getId(), newCategoryName);
+                boolean isUpdated = fileHelper.updateCategory(category.getId(), newCategoryName);
                 if (isUpdated) {
                     category.setName(newCategoryName);
                     adapter.notifyDataSetChanged();

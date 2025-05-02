@@ -317,7 +317,7 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             final String[] selectedCurrency = {selectedSymbol}; // Храним выбранную валюту
 
             FileHelper fileHelper = new FileHelper(context);
-            List<String> categories = fileHelper.readCategoriesFromFile(); // Чтение категорий
+            List<String> categories = fileHelper.getAllCategories(); // Чтение категорий
             Spinner categorySpinner = new Spinner(context);
             ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -337,15 +337,15 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             DatabaseHelper databaseHelper = new DatabaseHelper(context);
             int offset = ((MainActivity) context).getoffset();
             int category_id = databaseHelper.getCategoryId(itemName, currentDay , offset);
-            List<String> list = fileHelper.readCategoriesFromFile();
-            categorySpinner.setSelection(categories.indexOf(list.get(category_id)));
+            List<String> list = fileHelper.getAllCategories();
+            categorySpinner.setSelection(categories.indexOf(list.get(category_id-1)));
 
             // Обработчик выбора категории
             categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                     // Сохраняем выбранную категорию
-                    selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
+                    selectedCategoryId[0] = position + 1;  // Записываем выбранный индекс категории
                 }
 
                 @Override

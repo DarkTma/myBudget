@@ -326,9 +326,10 @@ public class SpentActivity extends AppCompatActivity {
                     continue; // пропускаем деактивированные записи
                 }
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
+                int id = income.getInt(income.getColumnIndexOrThrow("id"));
                 double spentNum = income.getDouble(income.getColumnIndexOrThrow("monthly_spent"));
                 int date = income.getInt(income.getColumnIndexOrThrow("spentday"));
-                spentList.add(new SpentItem(name, spentNum, date));
+                spentList.add(new SpentItem(id,name, spentNum, date,nextDate));
             } while (income.moveToNext());
         }
 

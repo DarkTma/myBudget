@@ -209,7 +209,7 @@ public class MaketListActivity extends AppCompatActivity {
 
         // Spinner
         FileHelper fileHelper = new FileHelper(this);
-        List<String> categories = fileHelper.readCategoriesFromFile();
+        List<String> categories = fileHelper.getAllCategories();
 
         Spinner categorySpinner = new Spinner(this);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
@@ -231,7 +231,7 @@ public class MaketListActivity extends AppCompatActivity {
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                selectedCategoryId[0] = position;
+                selectedCategoryId[0] = position + 1;
             }
 
             @Override

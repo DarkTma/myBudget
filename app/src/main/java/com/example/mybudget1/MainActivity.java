@@ -96,10 +96,24 @@ public class MainActivity extends AppCompatActivity {
         int choosenDay;
         String isExpented = intent.getStringExtra("isexpented");
         if (isExpented.equals("false")) {
+            Calendar calendar = Calendar.getInstance();
+            int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+            if (day > maxDay){
+                Toast.makeText(this, "этот день не в этом месяце ,  пожалуйста передите в ручную", Toast.LENGTH_SHORT).show();
+                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
+                startActivity(intent2);
+            }
             choosenDay = day;
         } else {
             choosenDay = DayAdapter.getStartOfWeek() + day;
+            Calendar calendar = Calendar.getInstance();
+            int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
             if (choosenDay <= 0){
+                Toast.makeText(this, "этот день не в этом месяце ,  пожалуйста передите в ручную", Toast.LENGTH_SHORT).show();
+                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
+                startActivity(intent2);
+            }
+            if (choosenDay > maxDay){
                 Toast.makeText(this, "этот день не в этом месяце ,  пожалуйста передите в ручную", Toast.LENGTH_SHORT).show();
                 Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
                 startActivity(intent2);
@@ -404,7 +418,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Загрузим категории из файла
         FileHelper fileHelper = new FileHelper(this);
-        List<String> categories = fileHelper.readCategoriesFromFile(); // Чтение категорий
+        List<String> categories = fileHelper.getAllCategories(); // Чтение категорий
 
 // Создаем кастомный Spinner с нашим стилем
         Spinner categorySpinner = new Spinner(this);
@@ -425,7 +439,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // Сохраняем выбранную категорию
-                selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
+                selectedCategoryId[0] = position + 1;  // Записываем выбранный индекс категории
             }
 
             @Override

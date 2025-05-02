@@ -285,7 +285,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
 
         // СПИННЕР КАТЕГОРИЙ
         FileHelper fileHelper = new FileHelper(this);
-        List<String> categories = fileHelper.readCategoriesFromFile();
+        List<String> categories = fileHelper.getAllCategories();
 
         Spinner categorySpinner = findViewById(R.id.categorySpinner);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
@@ -300,7 +300,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedCategoryId[0] = position;
+                selectedCategoryId[0] = position + 1;
             }
 
             @Override

@@ -405,7 +405,7 @@ public class IncomeActivity extends AppCompatActivity {
 
     private void refreshIncomeText() {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-        int incomeAll = databaseIncome.getIncome();
+        double incomeAll = databaseIncome.getIncome();
         CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
         double converted = incomeAll * curs.rate;
         String result = String.format("%.2f %s", converted, curs.symbol);

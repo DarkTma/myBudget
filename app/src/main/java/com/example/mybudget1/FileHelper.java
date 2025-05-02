@@ -1,152 +1,220 @@
 package com.example.mybudget1;
 
+import android.content.ContentValues;
 import android.content.Context;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileHelper {
+public class FileHelper extends SQLiteOpenHelper {
 
-    private Context context;
-    private static final String FILE_NAME = "categories.txt";
+    private static final String DATABASE_NAME = "budget.db";
+    private static final int DATABASE_VERSION = 1;
+
+    private static final String TABLE_CATEGORIES = "categories";
+    private static final String COLUMN_ID = "id";
+    private static final String COLUMN_NAME = "name";
 
     public FileHelper(Context context) {
-        this.context = context;
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    // Чтение категорий из файла
-    public List<String> readCategoriesFromFile() {
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        String CREATE_TABLE = "CREATE TABLE " + TABLE_CATEGORIES + " ("
+                + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + COLUMN_NAME + " TEXT UNIQUE)";
+        db.execSQL(CREATE_TABLE);
+
+        // Вставка дефолтной категории
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, "other");
+        db.insert(TABLE_CATEGORIES, null, values);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
+        onCreate(db);
+    }
+
+    public boolean addCategory(String name) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, name.trim());
+
+        long result = db.insert(TABLE_CATEGORIES, null, values);
+        return result != -1;
+    }
+
+
+    public List<String> getAllCategoryNames() {
+        List<String> names = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT name FROM categories", null);
+        if (cursor.moveToFirst()) {
+            do {
+                names.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return names;
+    }
+
+//    public boolean removeCategory(String name) {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        int rows = db.delete(TABLE_CATEGORIES, COLUMN_NAME + " = ?", new String[]{name.trim()});
+//        return rows > 0;
+//    }
+
+    public int ensureCategoryExists(String categoryName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Проверка существования категории
+        Cursor cursor = db.query(
+                "categories",
+                new String[]{"id"},
+                "name = ?",
+                new String[]{categoryName},
+                null, null, null
+        );
+
+        if (cursor.moveToFirst()) {
+            int existingId = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+            cursor.close();
+            return existingId;
+        }
+
+        cursor.close();
+
+        // Если не существует — добавляем
+        ContentValues values = new ContentValues();
+        values.put("name", categoryName);
+        long newId = db.insert("categories", null, values);
+
+        return (int) newId;
+    }
+
+
+    public boolean removeCategory(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int rows = db.delete(TABLE_CATEGORIES, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+        return rows > 0;
+    }
+    public boolean updateCategoryName(int id, String newName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, newName.trim());
+        int rows = db.update(TABLE_CATEGORIES, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+        return rows > 0;
+    }
+
+    public List<String> getAllCategories() {
         List<String> categories = new ArrayList<>();
-        try {
-            FileInputStream fis = context.openFileInput(FILE_NAME);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] categoryArray = line.split("-");
-                for (String category : categoryArray) {
-                    if (!category.isEmpty()) {
-                        categories.add(category);
-                    }
-                }
-            }
-            reader.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            createDefaultCategoriesFile();
-            categories.add("other");  // Добавляем дефолтную категорию, если файл не существует
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_NAME}, null, null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                categories.add(cursor.getString(0));
+            } while (cursor.moveToNext());
         }
+        cursor.close();
         return categories;
     }
 
-    public static String getCategoryById(Context context, int categoryId) {
-        FileHelper fileHelper = new FileHelper(context);
-        List<String> categories = fileHelper.readCategoriesFromFile();
-
-        if (categoryId >= 0 && categoryId < categories.size()) {
-            return categories.get(categoryId);
+    public String getCategoryById(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_NAME}, COLUMN_ID + " = ?",
+                new String[]{String.valueOf(id)}, null, null, null);
+        if (cursor.moveToFirst()) {
+            String name = cursor.getString(0);
+            cursor.close();
+            return name;
         }
-        return "Неизвестная категория"; // Если ID не найден
+        cursor.close();
+        return "Неизвестная категория";
     }
 
+    public int getCategoryIdByName(String name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_ID}, COLUMN_NAME + " = ?",
+                new String[]{name.trim()}, null, null, null);
+        if (cursor.moveToFirst()) {
+            int id = cursor.getInt(0);
+            cursor.close();
+            return id;
+        }
+        cursor.close();
+        return -1;
+    }
 
-    public List<CategoryItem> getCategoriesWithPrices(int i) {
+    public List<CategoryItem> getCategoriesWithPrices(Context c,int userId) {
         List<CategoryItem> categories = new ArrayList<>();
-        DatabaseHelper databaseHelper = new DatabaseHelper(context); // Создаём экземпляр DatabaseHelper
-        try {
-            FileInputStream fis = context.openFileInput(FILE_NAME);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
-            String line;
-            int id = 0;
+        DatabaseHelper dbHelper = new DatabaseHelper(c);
+        SQLiteDatabase db = this.getReadableDatabase();
 
-            while ((line = reader.readLine()) != null) {
-                String[] categoryArray = line.split("-");
-                for (String category : categoryArray) {
-                    if (!category.isEmpty()) {
-                        double price = databaseHelper.getAllExpenseByCategory(id , i);
-                        int allprice = databaseHelper.getAllExpense(i);
-                        int procent = (allprice != 0) ? (int) ((price * 100) / allprice) : 0;
-                        categories.add(new CategoryItem(id, category, price , procent));
-                        id++;
-                    }
-                }
-            }
-            reader.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            createDefaultCategoriesFile();
-            categories.add(new CategoryItem(0, "other", 0 , 0));
+        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_ID, COLUMN_NAME}, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(0);
+                String name = cursor.getString(1);
+                double price = dbHelper.getAllExpenseByCategory(id, userId);
+                int allprice = dbHelper.getAllExpense(userId);
+                int percent = (allprice != 0) ? (int) ((price * 100) / allprice) : 0;
+                categories.add(new CategoryItem(id, name, price, percent));
+            } while (cursor.moveToNext());
         }
+        cursor.close();
         return categories;
     }
 
-    public boolean updateCategoryName(int categoryId, String newCategoryName) {
-        List<String> categories = readCategoriesFromFile();
-        if (categoryId >= 0 && categoryId < categories.size()) {
-            // Обновляем название категории
-            categories.set(categoryId, newCategoryName);
 
-            try {
-                // Перезаписываем файл с обновленными категориями
-                FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
-                for (String category : categories) {
-                    writer.write(category + "-");
-                }
-                writer.close();
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
+    public int getCreditCategory() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int categoryId = -1;
+        String categoryName = "кредиты";
+
+        // Сначала пробуем найти ID по имени
+        Cursor cursor = db.query(TABLE_CATEGORIES,
+                new String[]{"id"},
+                "name = ?",
+                new String[]{categoryName},
+                null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            categoryId = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+            cursor.close();
+        } else {
+            // Категория не найдена — создаём
+            ContentValues values = new ContentValues();
+            values.put("name", categoryName);
+            long id = db.insert(TABLE_CATEGORIES, null, values);
+            if (id != -1) {
+                categoryId = (int) id;
             }
         }
-        return false;
+
+        return categoryId;
     }
 
-    // Добавление новой категории в файл
-    public void addCategoryToFile(String newCategory) {
-        try {
-            FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_APPEND);
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
-            writer.write("-" + newCategory);  // Добавляем категорию с дефисом
-            writer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public boolean updateCategory(int categoryId, String newName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", newName);
+
+        int rowsAffected = db.update("categories", values, "id = ?", new String[]{String.valueOf(categoryId)});
+        return rowsAffected > 0;
     }
 
-    // Удаление категории из файла
-    public boolean removeCategoryFromFile(String categoryToDelete) {
-        List<String> categories = readCategoriesFromFile();
-        if (categories.remove(categoryToDelete)) {
-            // Перезаписываем файл с обновленным списком категорий
-            try {
-                FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
-                for (String category : categories) {
-                    writer.write(category + "-");
-                }
-                writer.close();
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
 
-    // Создание файла с дефолтной категорией "other", если файл не существует
-    private void createDefaultCategoriesFile() {
-        try {
-            FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
-            writer.write("other");  // Записываем дефолтную категорию в файл
-            writer.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+    private Context context;
+
+    public void setContext(Context context) {
+        this.context = context;
     }
 }

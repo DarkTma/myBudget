@@ -109,7 +109,7 @@ public class GeminiChatActivity extends AppCompatActivity {
     public void getCategoriesMessage() {
         // Получаем список категорий через FileHelper
         FileHelper fileHelper = new FileHelper(this);
-        List<CategoryItem> categories = fileHelper.getCategoriesWithPrices(1);
+        List<CategoryItem> categories = fileHelper.getCategoriesWithPrices(this,1);
 
         if (categories.isEmpty()) {
             new AlertDialog.Builder(this)
@@ -289,7 +289,7 @@ public class GeminiChatActivity extends AppCompatActivity {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         FileHelper fileHelper = new FileHelper(this);
         CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
-        List<CategoryItem> categories = fileHelper.getCategoriesWithPrices(i);
+        List<CategoryItem> categories = fileHelper.getCategoriesWithPrices(this,i);
 
         // Получаем сегодняшнее число месяца
         Calendar calendar = Calendar.getInstance();

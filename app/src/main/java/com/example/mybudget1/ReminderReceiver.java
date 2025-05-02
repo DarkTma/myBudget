@@ -31,6 +31,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         notificationIntent.putExtra("isNotif", true);
 
 
+
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context,
                 0,

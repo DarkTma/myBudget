@@ -296,7 +296,6 @@
             android:paddingStart="12dp"
             android:layout_marginTop="10dp" />
 
-
         <Button
             android:id="@+id/btnGeminiGo"
             android:layout_width="200dp"

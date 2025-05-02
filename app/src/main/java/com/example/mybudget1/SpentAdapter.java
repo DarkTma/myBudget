@@ -1,6 +1,7 @@
 package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -109,6 +110,7 @@ public class SpentAdapter extends BaseAdapter {
             selectedPosition = (selectedPosition == position) ? -1 : position;
             notifyDataSetChanged(); // обновить список
         });
+
 
         btnedit.setOnClickListener(view -> {
             String itemName = spent.getName();

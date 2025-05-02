@@ -35,6 +35,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_INCOMEDAY = "incomeday";
     private static final String COLUMN_ONCEINCOME = "onceincome";
     private static final String COLUMN_NEXT = "next";
+    private static final String COLUMN_LAST = "last";
     private static final String COLUMN_LASTACTIVITY = "lastactivity";
     private static final String COLUMN_BUDGET = "budget";
     private static final String COLUMN_CURS = "curs";
@@ -54,6 +55,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
                 COLUMN_CATEGORY + " INTEGER DEFAULT 0, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_NEXT + " TEXT, " +
+                COLUMN_LAST + " TEXT, " +
                 COLUMN_SPENTDAY + " INTEGER, " +
                 COLUMN_COUNT + " INTEGER, " +
                 COLUMN_REPEAT + " INTEGER, " +
@@ -241,12 +243,12 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
 
 
-    public int getIncome() {
+    public double getIncome() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT SUM(" + COLUMN_INCOME + ") FROM " + TABLE_INCOME, null);
-        int income = 0;
+        double income = 0;
         if (cursor.moveToFirst()) {
-            income = cursor.getInt(0);
+            income = cursor.getDouble(0);
         }
         cursor.close();
         return income;

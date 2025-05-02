@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
@@ -65,6 +66,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createReminder(db);
         createNotes(db);
         createGoals(db);
+        createCreditsTable(db);
     }
 
     private void createGoals(SQLiteDatabase db) {
@@ -102,6 +104,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "category_id INTEGER, " +
                 "amount REAL)";
         db.execSQL(createIncomeTableQuery);
+    }
+
+    private void createCreditsTable(SQLiteDatabase db) {
+        String createCreditsTableQuery = "CREATE TABLE IF NOT EXISTS credits (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "name TEXT, " +
+                "amount REAL, " +
+                "remaining REAL, " +
+                "procent REAL, " +
+                "last_payment REAL, " +
+                "start_date TEXT)";
+        db.execSQL(createCreditsTableQuery);
     }
 
 
@@ -257,13 +271,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             // Обрабатываем результаты запроса
             while (expenseCursor.moveToNext()) {
+                int id = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("id"));
                 String expenseName = expenseCursor.getString(expenseCursor.getColumnIndexOrThrow("name"));
                 double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
                 int expenseDate = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("day"));
 
                 String date = String.valueOf(expenseDate) + "." + tableName.split("_")[2] + "." + tableName.split("_")[1];
                 // Добавляем данные в список
-                expenseDataList.add(new ExpenseData(expenseName, expenseAmount , date));
+                expenseDataList.add(new ExpenseData(id,expenseName, expenseAmount , date));
             }
 
             expenseCursor.close();
@@ -286,13 +301,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             // Обрабатываем результаты запроса
             while (expenseCursor.moveToNext()) {
+                int id = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("id"));
                 String expenseName = expenseCursor.getString(expenseCursor.getColumnIndexOrThrow("name"));
                 double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
                 int expenseDate = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("day"));
 
                 String date = String.valueOf(expenseDate) + "." + tableName.split("_")[2] + "." + tableName.split("_")[1];
                 // Добавляем данные в список
-                expenseDataList.add(new ExpenseData(expenseName, expenseAmount , date));
+                expenseDataList.add(new ExpenseData(id ,expenseName, expenseAmount , date));
             }
 
             expenseCursor.close();
@@ -302,11 +318,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public double getAllExpenseByCategory(int categoryId, int i) {
-        SQLiteDatabase db = this.getWritableDatabase();
+
         double sum = 0;
 
         // Строим запрос в зависимости от значения i
         if (i == 3) {
+            SQLiteDatabase db = this.getWritableDatabase();
             // Если i = 3, выбираем все таблицы с префиксом 'month_'
             String querytable = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'month_%' AND name NOT LIKE '%_income' AND name NOT LIKE '%_spent' ORDER BY name DESC";
             Cursor cursor = db.rawQuery(querytable, null);
@@ -326,6 +343,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             cursor.close();
         } else if (i == 2) {
+            SQLiteDatabase db = this.getWritableDatabase();
             String queryPrev = "SELECT * FROM " + prevMonthTable + " WHERE " + COLUMN_CATEGORY + " = ?";
             Cursor expenseCursorPrev = db.rawQuery(queryPrev, new String[]{String.valueOf(categoryId)});
 
@@ -336,6 +354,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             expenseCursorPrev.close();
         } else if (i == 1) {
+            SQLiteDatabase db = this.getWritableDatabase();
             // Если i = 1, выбираем только таблицу 'currentmonth'
             String query = "SELECT * FROM " + currentMonthTable + " WHERE " + COLUMN_CATEGORY + " = ?";
             Cursor expenseCursor = db.rawQuery(query, new String[]{String.valueOf(categoryId)});
@@ -1076,7 +1095,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     int amount = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
                     int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
-                    String categoryName = FileHelper.getCategoryById(context, category_id);
+                    FileHelper fileHelper = new FileHelper(context);
+                    String categoryName = fileHelper.getCategoryById(category_id);
                     detailList.add(new MonthDetailData("Spent", name, amount, day, categoryName));
                 } while (cursor.moveToNext());
             }
@@ -1091,7 +1111,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     int amount = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
                     int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
-                    String categoryName = FileHelper.getCategoryById(context, category_id);
+                    FileHelper fileHelper = new FileHelper(context);
+                    String categoryName = fileHelper.getCategoryById(category_id);
                     detailList.add(new MonthDetailData("Spent", name, amount, day, categoryName));
                 } while (cursor.moveToNext());
             }
@@ -1456,9 +1477,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-//    public void updateGoalInDatabase(String name, double amount, String newGoalName, String newImagePath, String newGoalSum) {
-//
-//    }
+
 }
 
 

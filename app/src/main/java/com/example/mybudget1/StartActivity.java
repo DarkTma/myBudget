@@ -116,17 +116,6 @@ public class StartActivity extends AppCompatActivity {
             finish();
         });
 
-        budgetText.setOnLongClickListener(v -> {
-            double original = databaseIncome.getBudget();
-
-//            curs = CursHelper.getCursData(databaseIncome.getCurs());
-//            double converted = original * curs.rate;
-            String result = String.format("%.2f %s", original, curs.symbol);
-            budgetText.setText(result);
-
-            return true;
-        });
-
         ImageButton btnNotif = findViewById(R.id.notifications);
         btnNotif.setOnClickListener(v -> {
             Intent intent = new Intent(StartActivity.this, ReminderListActivity.class);
@@ -436,6 +425,10 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         double original = databaseIncome.getBudget();
         double converted = original * curs.rate;
+        double income = databaseIncome.getIncome();
+        if (income / 10 > original){
+            budgetText.setTextColor(Color.RED);
+        }
         String result = String.format("%.2f %s", converted, curs.symbol);
         budgetText.setText(result);
     }

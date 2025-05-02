@@ -164,7 +164,7 @@ public class GraphActivity extends AppCompatActivity {
 
     private void showPieChart(PieChart pieChart, int i) {
         FileHelper fileHelper = new FileHelper(this);
-        List<CategoryItem> categories = fileHelper.getCategoriesWithPrices(i);
+        List<CategoryItem> categories = fileHelper.getCategoriesWithPrices(this,i);
         ArrayList<PieEntry> entries = new ArrayList<>();
         ArrayList<Integer> colors = new ArrayList<>();
 

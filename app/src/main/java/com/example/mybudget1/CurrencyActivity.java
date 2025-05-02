@@ -72,7 +72,8 @@ public class CurrencyActivity extends AppCompatActivity {
         });
 
         switchReverse.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            String selectedSymbol = currencySpinner.getSelectedItem().toString();
+            String selectedItem = currencySpinner.getSelectedItem().toString();
+            String selectedSymbol = selectedItem.split(" - ")[0];
             String selectedCurrency = getCurrencyBySymbol(selectedSymbol);
             updateCurrencyList(selectedCurrency);
         });
@@ -301,7 +302,7 @@ public class CurrencyActivity extends AppCompatActivity {
                 } else {
                     result = String.format(
                             "1 $ = %.2f ֏\n1 ₽ = %.2f ֏\n1 元 = %.2f ֏\n1 € = %.2f ֏\n1 ¥ (円) = %.2f ֏\n1 ₾ = %.2f ֏",
-                            baseToDram, baseToDram / baseToRub, baseToDram / baseToJuan,
+                            baseToDram / baseToDollar, baseToDram / baseToRub, baseToDram / baseToJuan,
                             baseToDram / baseToEur, baseToDram / baseToJen, baseToDram / baseToGel
                     );
                 }
