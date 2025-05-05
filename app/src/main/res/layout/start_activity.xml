@@ -205,6 +205,15 @@
             android:gravity="center"
             android:paddingBottom="16dp" />
 
+        <Switch
+            android:id="@+id/switchQuickEntry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Быстрая запись"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp"
+            />
+
         <Button
             android:id="@+id/btnincomeData"
             android:layout_width="200dp"
@@ -301,6 +310,17 @@
             android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:text="Асистент myBudget"
+            android:background="@drawable/btn_menu_dark"
+            android:textColor="@android:color/white"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/btnConf"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="О приложении"
             android:background="@drawable/btn_menu_dark"
             android:textColor="@android:color/white"
             android:gravity="center_vertical"

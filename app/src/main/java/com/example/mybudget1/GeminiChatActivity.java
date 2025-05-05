@@ -76,11 +76,17 @@ public class GeminiChatActivity extends AppCompatActivity {
             startActivity(intentGoBack);
         });
 
+
         recyclerViewChat = findViewById(R.id.recyclerViewChat);
         recyclerViewChat.setLayoutManager(new LinearLayoutManager(this));
         chatMessages = new ArrayList<>();
         chatAdapter = new ChatAdapter(this , chatMessages);
         recyclerViewChat.setAdapter(chatAdapter);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) ImageButton btnInfoGemini = findViewById(R.id.btnInfoGemini);
+        @SuppressLint({"MissingInflatedId", "LocalSuppress"}) ImageButton btnHelpGemini = findViewById(R.id.btnHelpGemini);
+
+        btnInfoGemini.setOnClickListener(v -> sendCommand("/info"));
+        btnHelpGemini.setOnClickListener(v -> sendCommand("/help"));
 
         findViewById(R.id.buttonMonth).setOnClickListener(v -> sendCommand("Анализируй текущий месяц"));
         findViewById(R.id.buttonWeek).setOnClickListener(v -> getCategoriesMessage());
@@ -181,8 +187,58 @@ public class GeminiChatActivity extends AppCompatActivity {
             getGeminiResponse(commandText);
         }else if(commandText.startsWith("Вот данные о завершённых расходах")){
             getGeminiResponse(commandText);
+        }else if (commandText.equals("/info")){
+            getInfo();
+        }else if (commandText.equals("/help")){
+            getHelp();
         }
 
+    }
+
+    private void getHelp() {
+        String info = "Анализ бюджета\n" +
+                "В приложении доступны три режима анализа ваших трат и доходов:\n" +
+                "\n" +
+                "1. Анализ месяца\n" +
+                "Показывает полную картину ваших доходов и расходов за текущий месяц.\n" +
+                "Все операции группируются по категориям, кроме категории \"Прочее (Other)\", — траты из этой категории отображаются отдельно, без объединения.\n" +
+                "\n" +
+                "2. Анализ категории\n" +
+                "Позволяет выбрать конкретную категорию и посмотреть все связанные с ней траты и доходы.\n" +
+                "Удобно, если вы хотите проанализировать, например, только питание или транспорт.\n" +
+                "\n" +
+                "3. Анализ промежутка\n" +
+                "Выберите даты (максимум 7 дней) и получите список всех трат за этот период.\n" +
+                "Здесь каждая трата отображается отдельно, без группировки по категориям, чтобы вы могли видеть все детали.";
+        chatMessages.add(new ChatMessage(info, false));
+        chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+        recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
+    }
+
+    private void getInfo() {
+        String info = "Информация о работе Асистента \"MyBudget\"\n" +
+                "\n" +
+                "Это приложение использует передовые технологии обработки естественного языка, разработанные Google (Gemini), для анализа ваших финансовых данных и предоставления вам полезной информации и прогнозов.\n" +
+                "\n" +
+                "Как это работает:\n" +
+                "\n" +
+                "Приложение автоматически анализирует ваши записи о доходах и расходах.\n" +
+                "На основе этого анализа формируются внутренние запросы к языковой модели Gemini.\n" +
+                "Gemini обрабатывает эти запросы и генерирует для вас:\n" +
+                "Сводную информацию о вашем бюджете.\n" +
+                "Прогнозы и тенденции ваших расходов и доходов.\n" +
+                "Рекомендации по оптимизации вашего бюджета (если применимо).\n" +
+                "Важно знать:\n" +
+                "\n" +
+                "Все запросы генерируются автоматически приложением на основе ваших финансовых данных, введенных в самом приложении.\n" +
+                "Приложение не отправляет никаких ваших личных данных или введенной информации напрямую в Google или третьим лицам для генерации ответов. Взаимодействие с Gemini происходит внутри приложения для обработки и анализа уже имеющихся данных.\n" +
+                "Цель использования этой технологии — предоставить вам более глубокое понимание вашего финансового состояния и помочь в управлении бюджетом.\n" +
+                "Пожалуйста, помните, что прогнозы и рекомендации, сгенерированные приложением, основаны на статистическом анализе и не являются финансовым советом. Принимайте решения, основываясь на собственном анализе и, при необходимости, консультируйтесь с финансовыми специалистами.\n" +
+                "При наличии любых вопросов/советов напишите мне в телеграм - @Temnashka" +
+                "Мы постоянно работаем над улучшением работы приложения и повышением точности предоставляемой информации. Благодарим вас за использование \"MyBudget\"!";
+        chatMessages.add(new ChatMessage(info, false));
+        chatAdapter.notifyItemInserted(chatMessages.size() - 1);
+        recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
     }
 
 

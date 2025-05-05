@@ -1,126 +1,150 @@
 package com.example.mybudget1;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.InputType;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.Spinner;
-import android.widget.Toast;
-import android.widget.CheckBox;
-import java.util.Collections;
-import java.util.Comparator;
-
+import android.widget.*;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class CategoriesActivity extends AppCompatActivity {
 
     private ListView listViewCategories;
     private Button btnAddCategory;
+    private Spinner monthSelector;
+    private CheckBox checkBoxSortByProcent;
+
     private CategoryAdapter adapter;
     private List<CategoryItem> categoryItems;
+
     private FileHelper fileHelper;
     private DatabaseHelper databaseHelper;
-    private ImageButton buttonBackFromCategories;
-    private Spinner monthSelector;
+
     private String selectedMonthOption = "current";
-    private CheckBox checkBoxSortByProcent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.categories_activity);
 
-        buttonBackFromCategories = findViewById(R.id.buttonBackFromCategories);
-        buttonBackFromCategories.setOnClickListener(v -> {
-            Intent intentGoBack = new Intent(CategoriesActivity.this, StartActivity.class);
-            startActivity(intentGoBack);
-        });
-
-        OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
-            @Override
-            public void handleOnBackPressed() {
-                Intent intentGoBack = new Intent(CategoriesActivity.this, StartActivity.class);
-                startActivity(intentGoBack);
-            }
-        };
-        this.getOnBackPressedDispatcher().addCallback(this, callback);
-
-        listViewCategories = findViewById(R.id.listViewCategories);
-        btnAddCategory = findViewById(R.id.btnAddCategorie);
-        monthSelector = findViewById(R.id.monthSelector);
-        checkBoxSortByProcent = findViewById(R.id.checkBoxSortByProcent);
-
-        checkBoxSortByProcent.setOnCheckedChangeListener((buttonView, isChecked) -> loadCategories());
+        initViews();
+        setupBackNavigation();
+        setupMonthSelector();
+        setupAddCategoryButton();
 
         fileHelper = new FileHelper(this);
         databaseHelper = new DatabaseHelper(this);
 
-        ArrayAdapter<String> adapterMonth = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item,
-                new String[]{"Текущий месяц", "прошлый месяц", "Все"});
+        loadCategories();
+    }
+
+    private void initViews() {
+        listViewCategories = findViewById(R.id.listViewCategories);
+        btnAddCategory = findViewById(R.id.btnAddCategorie);
+        monthSelector = findViewById(R.id.monthSelector);
+        checkBoxSortByProcent = findViewById(R.id.checkBoxSortByProcent);
+    }
+
+    private void setupBackNavigation() {
+        ImageButton buttonBack = findViewById(R.id.buttonBackFromCategories);
+        buttonBack.setOnClickListener(v -> startActivity(new Intent(this, StartActivity.class)));
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                startActivity(new Intent(CategoriesActivity.this, StartActivity.class));
+            }
+        });
+    }
+
+    private void setupMonthSelector() {
+        ArrayAdapter<String> adapterMonth = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item,
+                new String[]{"Текущий месяц", "Прошлый месяц", "Все"});
         adapterMonth.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         monthSelector.setAdapter(adapterMonth);
 
         monthSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
-                    case 0:
-                        selectedMonthOption = "current";
-                        break;
                     case 1:
                         selectedMonthOption = "last";
                         break;
                     case 2:
                         selectedMonthOption = "all";
                         break;
+                    case 0:
+                    default:
+                        selectedMonthOption = "current";
+                        break;
                 }
+
                 loadCategories();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parentView) {}
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        loadCategories();
+        checkBoxSortByProcent.setOnCheckedChangeListener((buttonView, isChecked) -> loadCategories());
+    }
 
-        btnAddCategory.setOnClickListener(v -> showAddCategoryDialog());
+    private void setupAddCategoryButton() {
+        btnAddCategory.setOnClickListener(v -> {
+            EditText input = new EditText(this);
+            input.setHint("Название категории");
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            input.setBackgroundResource(R.drawable.edit_text_style);
+
+            LinearLayout layout = new LinearLayout(this);
+            layout.setPadding(50, 30, 50, 10);
+            layout.setOrientation(LinearLayout.VERTICAL);
+            layout.addView(input);
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Новая категория")
+                    .setView(layout)
+                    .setPositiveButton("Добавить", (dialog, which) -> {
+                        String name = input.getText().toString().trim();
+                        if (!name.isEmpty()) {
+                            if (fileHelper.addCategory(name)) {
+                                Toast.makeText(this, "Категория добавлена", Toast.LENGTH_SHORT).show();
+                                loadCategories();
+                            } else {
+                                Toast.makeText(this, "Категория уже существует", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(this, "Введите название", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Отмена", null)
+                    .show();
+        });
     }
 
     private void loadCategories() {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
-        switch (selectedMonthOption) {
-            case "current":
-                categoryItems = fileHelper.getCategoriesWithPrices(this,1);
-                break;
-            case "last":
-                categoryItems = fileHelper.getCategoriesWithPrices(this,2);
-                break;
-            case "all":
-                categoryItems = fileHelper.getCategoriesWithPrices(this,3);
-                break;
+
+        if ("last".equals(selectedMonthOption)) {
+            categoryItems = fileHelper.getCategoriesWithPrices(this, 2);
+        } else if ("all".equals(selectedMonthOption)) {
+            categoryItems = fileHelper.getCategoriesWithPrices(this, 3);
+        } else {
+            categoryItems = fileHelper.getCategoriesWithPrices(this, 1);
         }
 
-        if (checkBoxSortByProcent.isChecked()) {
-            Collections.sort(categoryItems, Comparator.comparingInt(CategoryItem::getProcent).reversed());
-        }
+
+//        if (checkBoxSortByProcent.isChecked()) {
+//            Collections.sort(categoryItems, Comparator.comparingInt(CategoryItem::getProcent).reversed());
+//        }
 
         adapter = new CategoryAdapter(this, categoryItems, new CategoryAdapter.OnCategoryActionListener() {
             @Override
@@ -137,136 +161,72 @@ public class CategoriesActivity extends AppCompatActivity {
         listViewCategories.setAdapter(adapter);
     }
 
-    private void showAddCategoryDialog() {
-        EditText name = new EditText(this);
-        name.setInputType(InputType.TYPE_CLASS_TEXT);
-        name.setHint("Название категории");
-        name.setPadding(0, 30, 0, 10);
-        name.setBackgroundResource(R.drawable.edit_text_style);
-
-        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        nameParams.setMargins(0, 10, 0, 20);
-        name.setLayoutParams(nameParams);
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.addView(name);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(Html.fromHtml("<font color='#00FF82'>Введите название</font>"));
-        builder.setView(layout);
-
-        SpannableString positiveButtonText = new SpannableString("Добавить");
-        positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        SpannableString negativeButtonText = new SpannableString("Отмена");
-        negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
-            String newCategory = name.getText().toString().trim();
-            if (!newCategory.isEmpty()) {
-                if (fileHelper.addCategory(newCategory)) {
-                    Toast.makeText(CategoriesActivity.this, "Категория добавлена", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(CategoriesActivity.this, CategoriesActivity.class);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(this, "Такая категория уже существует", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(CategoriesActivity.this, "Введите название категории", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton(negativeButtonText, null);
-
-        AlertDialog dialog = builder.create();
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
-        dialog.show();
-    }
-
-    private void showDeleteConfirmationDialog(final int categoryId) {
-        CategoryItem category = categoryItems.get(categoryId);
-
-        // Создаём Spinner
-        Spinner spinner = new Spinner(this);
+    private void showDeleteConfirmationDialog(int categoryId) {
+        CategoryItem category = fileHelper.getAllCategoryById(categoryId);
         List<String> categoryNames = fileHelper.getAllCategoryNames();
-        ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categoryNames);
+
+        Spinner spinner = new Spinner(this);
+        ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, categoryNames);
         adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapterSpinner);
 
-        // Устанавливаем "other" как выбранный по умолчанию
         int defaultPosition = categoryNames.indexOf("other");
         if (defaultPosition >= 0) {
             spinner.setSelection(defaultPosition);
         }
 
-        // Оборачиваем Spinner в Layout
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        int padding = 32;
-        layout.setPadding(padding, padding, padding, padding);
+        layout.setPadding(40, 20, 40, 20);
         layout.addView(spinner);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Удалить категорию?");
-        builder.setMessage("Выберите категорию для переноса расходов:");
+        new AlertDialog.Builder(this)
+                .setTitle("Удалить категорию?")
+                .setMessage("Выберите категорию для переноса трат:")
+                .setView(layout)
+                .setPositiveButton("Удалить", (dialog, which) -> {
+                    int newCategoryId = fileHelper.getCategoryIdByName((String) spinner.getSelectedItem());
 
-        builder.setView(layout);
+                    List<ExpenseData> expenses = databaseHelper.getExpensesByCategory(categoryId);
+                    for (ExpenseData expense : expenses) {
+                        databaseHelper.updateExpenseCategory(expense.getId(), newCategoryId);
+                    }
 
-        builder.setPositiveButton("Удалить", (dialog, which) -> {
-            String selectedCategoryName = (String) spinner.getSelectedItem();
-            int selectedCategoryId = fileHelper.getCategoryIdByName(selectedCategoryName);
-
-            List<ExpenseData> expenses = databaseHelper.getExpensesByCategory(category.getId());
-            for (ExpenseData expense : expenses) {
-                databaseHelper.updateExpenseCategory(expense.getId(), selectedCategoryId);
-            }
-
-            boolean isDeleted = fileHelper.removeCategory(category.getId());
-            if (isDeleted) {
-                categoryItems.remove(categoryId);
-                adapter.notifyDataSetChanged();
-                Toast.makeText(CategoriesActivity.this, "Категория удалена", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(CategoriesActivity.this, "Ошибка удаления категории", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("Отмена", null);
-        builder.show();
+                    if (fileHelper.removeCategory(categoryId)) {
+                        Toast.makeText(this, "Категория удалена", Toast.LENGTH_SHORT).show();
+                        loadCategories();
+                    } else {
+                        Toast.makeText(this, "Ошибка удаления", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
     }
 
+    private void showEditCategoryDialog(int categoryId) {
+        CategoryItem category = fileHelper.getAllCategoryById(categoryId);
 
-    private void showEditCategoryDialog(final int categoryId) {
-        CategoryItem category = categoryItems.get(categoryId);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Изменить категорию");
-
-        final EditText input = new EditText(this);
+        EditText input = new EditText(this);
         input.setText(category.getName());
-        builder.setView(input);
 
-        builder.setPositiveButton("Сохранить", (dialog, which) -> {
-            String newCategoryName = input.getText().toString().trim();
-            if (!newCategoryName.isEmpty()) {
-                boolean isUpdated = fileHelper.updateCategory(category.getId(), newCategoryName);
-                if (isUpdated) {
-                    category.setName(newCategoryName);
-                    adapter.notifyDataSetChanged();
-                    Toast.makeText(CategoriesActivity.this, "Категория изменена", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(CategoriesActivity.this, "Ошибка изменения категории", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(CategoriesActivity.this, "Имя категории не может быть пустым", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("Отмена", null);
-        builder.show();
+        new AlertDialog.Builder(this)
+                .setTitle("Изменить категорию")
+                .setView(input)
+                .setPositiveButton("Сохранить", (dialog, which) -> {
+                    String newName = input.getText().toString().trim();
+                    if (!newName.isEmpty()) {
+                        if (fileHelper.updateCategory(categoryId, newName)) {
+                            Toast.makeText(this, "Категория обновлена", Toast.LENGTH_SHORT).show();
+                            loadCategories();
+                        } else {
+                            Toast.makeText(this, "Ошибка обновления", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(this, "Название не может быть пустым", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
     }
 }

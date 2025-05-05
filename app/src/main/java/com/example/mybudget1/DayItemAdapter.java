@@ -338,14 +338,14 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             int offset = ((MainActivity) context).getoffset();
             int category_id = databaseHelper.getCategoryId(itemName, currentDay , offset);
             List<String> list = fileHelper.getAllCategories();
-            categorySpinner.setSelection(categories.indexOf(list.get(category_id-1)));
+            categorySpinner.setSelection(categories.indexOf(fileHelper.getCategoryNameById(category_id)));
 
             // Обработчик выбора категории
             categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                     // Сохраняем выбранную категорию
-                    selectedCategoryId[0] = position + 1;  // Записываем выбранный индекс категории
+                    selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
                 }
 
                 @Override
@@ -419,7 +419,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
                 // Обновляем запись в базе данных
                 int currentMonthOffset = ((MainActivity) context).getoffset();
-                databaseHelper.updateData(itemName, currentDay, newName, valueInX, currentMonthOffset , selectedCategoryId[0]);
+                int id = fileHelper.getCategoryIdByName(list.get(selectedCategoryId[0]));
+                databaseHelper.updateData(itemName, currentDay, newName, valueInX, currentMonthOffset , id);
 
                 // Обновляем данные в списке и уведомляем адаптер
                 String end = "-false";

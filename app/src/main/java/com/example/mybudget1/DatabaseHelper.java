@@ -1096,7 +1096,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
                     int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
                     FileHelper fileHelper = new FileHelper(context);
-                    String categoryName = fileHelper.getCategoryById(category_id);
+                    String categoryName = fileHelper.getCategoryNameById(category_id);
                     detailList.add(new MonthDetailData("Spent", name, amount, day, categoryName));
                 } while (cursor.moveToNext());
             }
@@ -1112,7 +1112,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
                     int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
                     FileHelper fileHelper = new FileHelper(context);
-                    String categoryName = fileHelper.getCategoryById(category_id);
+                    String categoryName = fileHelper.getCategoryNameById(category_id);
                     detailList.add(new MonthDetailData("Spent", name, amount, day, categoryName));
                 } while (cursor.moveToNext());
             }

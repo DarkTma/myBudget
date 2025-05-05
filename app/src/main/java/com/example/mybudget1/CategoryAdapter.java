@@ -61,25 +61,25 @@ public class CategoryAdapter extends BaseAdapter {
 
         CategoryItem category = categories.get(position);
         holder.tvName.setText(category.getName());
+
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
         CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
         double converted = category.getPrice() * curs.rate;
         String result = String.format("%.2f %s", converted, curs.symbol);
         holder.tvPrice.setText(result);
+
         holder.tvProcent.setText(String.valueOf(category.getProcent()) + "%");
 
         holder.btnEdit.setOnClickListener(v -> listener.onEdit(category.getId()));
         holder.btnDelete.setOnClickListener(v -> listener.onDelete(category.getId()));
 
         if ("other".equals(category.getName())) {
-            holder.btnEdit.setAlpha(0.0f);  // Сделаем кнопку "Изменить" полупрозрачной
-            holder.btnDelete.setAlpha(0.0f); // Сделаем кнопку "Удалить" полупрозрачной
-
-            // Блокируем возможность клика
+            holder.btnEdit.setAlpha(0.0f);
+            holder.btnDelete.setAlpha(0.0f);
             holder.btnEdit.setClickable(false);
             holder.btnDelete.setClickable(false);
         } else {
-
+            // Включаем кнопки только для выбранной позиции
             if (position == selectedPosition) {
                 holder.btnEdit.setAlpha(1f);
                 holder.btnDelete.setAlpha(1f);
@@ -94,11 +94,14 @@ public class CategoryAdapter extends BaseAdapter {
 
             // Обработка клика по элементу
             convertView.setOnClickListener(v -> {
-                selectedPosition = (selectedPosition == position) ? -1 : position;
-                notifyDataSetChanged(); // обновить список
+                if (selectedPosition != 0) {
+                    selectedPosition = (selectedPosition == position) ? -1 : position;
+                    notifyDataSetChanged(); // обновить список
+                }
             });
         }
 
+        // Кнопка для перехода в экран расходов
         holder.btnInfo.setOnClickListener(v -> {
             Intent intent = new Intent(context, ExpensesActivity.class);
             intent.putExtra("category_id", category.getId());
@@ -114,8 +117,6 @@ public class CategoryAdapter extends BaseAdapter {
         ImageButton btnEdit;
         ImageButton btnDelete;
         ImageButton btnInfo;
-
         TextView tvProcent;
     }
 }
-

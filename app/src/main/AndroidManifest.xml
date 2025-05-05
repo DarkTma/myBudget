@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -64,8 +65,16 @@
         <activity android:name=".ScanReceiptActivity"/>
         <activity android:name=".GoalActivity"/>
         <activity android:name=".GeminiChatActivity"/>
+        <activity android:name=".PrivacyPolicyActivity"/>
+        <activity android:name=".QuickExpenseInputActivity"
+            android:theme="@style/Theme.AppCompat.Dialog"
+            android:exported="true"/>
+        <service
+            android:name=".QuickExpenseService"
+            android:exported="true"
+            android:foregroundServiceType="shortService" />
 
 
-</application>
+    </application>
 
     </manifest>

@@ -33,6 +33,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import android.text.Editable;
 import android.text.Html;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnNewSpent;
     private Button otherSettings;
     private Button weekStats;
-    private ImageButton btnBack;
+    private ImageButton btnBack , btnHelpMain;
     private int selectedDay;
 
     @SuppressLint("MissingInflatedId")
@@ -143,6 +144,11 @@ public class MainActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(MainActivity.this, StartActivity.class);
             startActivity(intentGoBack);
+        });
+
+        btnHelpMain = findViewById(R.id.btnHelpMain);
+        btnHelpMain.setOnClickListener(v -> {
+
         });
 
         OnBackPressedCallback callback = new OnBackPressedCallback(true /* enabled by default */) {
@@ -249,6 +255,18 @@ public class MainActivity extends AppCompatActivity {
         name.setHintTextColor(Color.WHITE);
         name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
         name.setBackgroundResource(R.drawable.edit_text_style);
+
+        InputFilter noDashFilter = (source, start, end, dest, dstart, dend) -> {
+            for (int i = start; i < end; i++) {
+                if (source.charAt(i) == '-') {
+                    return "";
+                }
+            }
+            return null;
+        };
+
+        name.setFilters(new InputFilter[] { noDashFilter });
+
 
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -439,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 // Сохраняем выбранную категорию
-                selectedCategoryId[0] = position + 1;  // Записываем выбранный индекс категории
+                selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
             }
 
             @Override
@@ -526,7 +544,8 @@ public class MainActivity extends AppCompatActivity {
 
                         // Вставляем данные в базу
                         DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
-                        databaseHelper.insertData(dayData, nameData, finalAmount, offset[0], isDone, selectedCategoryId[0]); // Вставляем с id категории
+                        int id = fileHelper.getCategoryIdByName(categories.get(selectedCategoryId[0]));
+                        databaseHelper.insertData(dayData, nameData, finalAmount, offset[0], isDone, id); // Вставляем с id категории
 
                         CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());

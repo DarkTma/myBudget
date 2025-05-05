@@ -30,13 +30,12 @@
             android:id="@+id/textContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:orientation="vertical"
             android:paddingBottom="16dp"
+            app:layout_constraintEnd_toStartOf="@+id/linearLayout"
             app:layout_constraintStart_toEndOf="@id/buttonBackFromAnaliz"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/btnInfo"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp">
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/textTitle"
@@ -51,19 +50,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Проверка статуса..."
-                android:textSize="14sp"
-                android:textColor="#888888" />
+                android:textColor="#888888"
+                android:textSize="14sp" />
         </LinearLayout>
 
         <!-- Кнопка "Инфо" -->
-        <ImageButton
-            android:id="@+id/btnInfo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@android:drawable/ic_menu_info_details"
-            android:background="?android:attr/selectableItemBackground"
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnInfoGemini"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:src="@android:drawable/ic_menu_info_details" />
+
+            <ImageButton
+                android:id="@+id/btnHelpGemini"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:src="@android:drawable/ic_menu_help" />
+        </LinearLayout>
 
 
 
@@ -128,7 +142,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
-            android:text="Анализ недели" />
+            android:text="Анализ промежутка" />
     </LinearLayout>
 
 

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/my_darkbg"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageButton
+            android:id="@+id/buttonBackFromConf"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:scaleType="centerInside"
+            android:src="@drawable/arrow" />
+
+        <TextView
+            android:id="@+id/title"
+            android:text="Конфиденциальность"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/privacy_text"
+            android:text="Приложение 'MyBudget' бережно относится к вашим данным. Вся введенная вами информация (доходы, расходы, изображения чеков и целей) хранится исключительно локально на вашем устройстве в базе данных SQLite и не передается на внешние серверы или третьим лицам. Данные удаляются при удалении приложения.\n\nДля получения более подробной информации, пожалуйста, ознакомьтесь с полной Политикой Конфиденциальности:"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/privacy_link"
+            android:text="Открыть Политику Конфиденциальности (PDF)"
+            android:textColor="#64B5F6"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"
+            android:autoLink="web"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+</ScrollView>

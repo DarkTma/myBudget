@@ -18,8 +18,11 @@ public class FileHelper extends SQLiteOpenHelper {
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
 
+    private Context context;
+
     public FileHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.context = context;
     }
 
     @Override
@@ -50,7 +53,6 @@ public class FileHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
-
     public List<String> getAllCategoryNames() {
         List<String> names = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -63,12 +65,6 @@ public class FileHelper extends SQLiteOpenHelper {
         cursor.close();
         return names;
     }
-
-//    public boolean removeCategory(String name) {
-//        SQLiteDatabase db = this.getWritableDatabase();
-//        int rows = db.delete(TABLE_CATEGORIES, COLUMN_NAME + " = ?", new String[]{name.trim()});
-//        return rows > 0;
-//    }
 
     public int ensureCategoryExists(String categoryName) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -98,12 +94,12 @@ public class FileHelper extends SQLiteOpenHelper {
         return (int) newId;
     }
 
-
     public boolean removeCategory(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         int rows = db.delete(TABLE_CATEGORIES, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
         return rows > 0;
     }
+
     public boolean updateCategoryName(int id, String newName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -126,38 +122,53 @@ public class FileHelper extends SQLiteOpenHelper {
         return categories;
     }
 
-    public String getCategoryById(int id) {
+
+    // Функция для получения имени категории по её ID
+    public String getCategoryNameById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_NAME}, COLUMN_ID + " = ?",
                 new String[]{String.valueOf(id)}, null, null, null);
+
         if (cursor.moveToFirst()) {
             String name = cursor.getString(0);
             cursor.close();
             return name;
         }
+
         cursor.close();
-        return "Неизвестная категория";
+        return "Неизвестная категория";  // Возвращаем стандартное значение, если категория не найдена
     }
 
-    public int getCategoryIdByName(String name) {
+
+    public CategoryItem getAllCategoryById(int id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_ID}, COLUMN_NAME + " = ?",
-                new String[]{name.trim()}, null, null, null);
+        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_ID, COLUMN_NAME}, COLUMN_ID + " = ?",
+                new String[]{String.valueOf(id)}, null, null, null);
+
         if (cursor.moveToFirst()) {
-            int id = cursor.getInt(0);
+            int categoryId = cursor.getInt(0);
+            String name = cursor.getString(1);
+
+            // Получаем сумму трат и процент
+            DatabaseHelper dbHelper = new DatabaseHelper(context);
+            double price = 1;
+            int allprice = 1;
+            int percent = 1;
+
             cursor.close();
-            return id;
+            return new CategoryItem(categoryId, name, price, percent);
         }
+
         cursor.close();
-        return -1;
+        return null; // или можно вернуть специальный объект "неизвестной категории"
     }
 
-    public List<CategoryItem> getCategoriesWithPrices(Context c,int userId) {
+    public List<CategoryItem> getCategoriesWithPrices(Context c, int userId) {
         List<CategoryItem> categories = new ArrayList<>();
         DatabaseHelper dbHelper = new DatabaseHelper(c);
         SQLiteDatabase db = this.getReadableDatabase();
 
-        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_ID, COLUMN_NAME}, null, null, null, null, null);
+        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_ID, COLUMN_NAME}, null, null, null, null, COLUMN_ID + " ASC");
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(0);
@@ -171,7 +182,6 @@ public class FileHelper extends SQLiteOpenHelper {
         cursor.close();
         return categories;
     }
-
 
     public int getCreditCategory() {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -201,6 +211,24 @@ public class FileHelper extends SQLiteOpenHelper {
         return categoryId;
     }
 
+
+    // Функция для получения ID категории по имени
+    public int getCategoryIdByName(String name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CATEGORIES, new String[]{COLUMN_ID}, COLUMN_NAME + " = ?",
+                new String[]{name.trim()}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            int id = cursor.getInt(0);
+            cursor.close();
+            return id;
+        }
+
+        cursor.close();
+        return -1;  // Если категория не найдена, возвращаем -1
+    }
+
+
     public boolean updateCategory(int categoryId, String newName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -208,13 +236,5 @@ public class FileHelper extends SQLiteOpenHelper {
 
         int rowsAffected = db.update("categories", values, "id = ?", new String[]{String.valueOf(categoryId)});
         return rowsAffected > 0;
-    }
-
-
-
-    private Context context;
-
-    public void setContext(Context context) {
-        this.context = context;
     }
 }
