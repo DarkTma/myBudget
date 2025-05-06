@@ -100,33 +100,6 @@ public class StartActivity extends AppCompatActivity {
             finish();
         });
 
-        Switch switchQuickEntry = findViewById(R.id.switchQuickEntry);
-
-        boolean isRunning = isQuickEntryNotificationActive();
-        switchQuickEntry.setChecked(isRunning);
-
-        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
-        prefs.edit().putBoolean("quick_entry_enabled", isRunning).apply();
-
-        switchQuickEntry.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean("quick_entry_enabled", isChecked);
-            editor.apply();
-
-            if (isChecked) {
-                Intent serviceIntent = new Intent(this, QuickExpenseService.class);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    this.startForegroundService(serviceIntent);
-                } else {
-                    this.startService(serviceIntent);
-                }
-                Toast.makeText(this, "Быстрая запись включена", Toast.LENGTH_SHORT).show();
-            } else {
-                stopService(new Intent(this, QuickExpenseService.class));
-                Toast.makeText(this, "Быстрая запись отключена", Toast.LENGTH_SHORT).show();
-            }
-        });
-
 
         curs = CursHelper.getCursData(databaseIncome.getCurs());
 
@@ -370,17 +343,7 @@ public class StartActivity extends AppCompatActivity {
     }
 
 
-    private boolean isQuickEntryNotificationActive() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            for (android.service.notification.StatusBarNotification sbn : notificationManager.getActiveNotifications()) {
-                if (sbn.getId() == 1) { // тот же ID, что в startForeground
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+
 
     private void showNotifCount(){
         TextView badge = findViewById(R.id.notification_badge);

@@ -371,7 +371,7 @@ public class SpentAdapter extends BaseAdapter {
                 .setMessage("Хотите сейчас же выполнить ежемесячный расход?")
                 .setPositiveButton("Да", (dialog, which) -> {
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-                    databaseIncome.setMonthlySpentGiven(spent.getName(), spent.getDate());
+                    databaseIncome.setMonthlySpentGivenByUser(spent.getName(), spent.getDate());
                     databaseIncome.addSpent(spent.getAmount());
                     CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());

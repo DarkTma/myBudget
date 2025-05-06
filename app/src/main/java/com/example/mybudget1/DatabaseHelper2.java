@@ -589,6 +589,36 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     }
 
+    public void setIncomeGivenByUser(String name, int date) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        int count = 0;
+        int repeat = -1;
+        String currentDate = null;
+
+        Cursor cursor = db.query(
+                TABLE_INCOME,
+                new String[]{COLUMN_NEXT, COLUMN_COUNT, COLUMN_REPEAT},
+                COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ?",
+                new String[]{name, String.valueOf(date)},
+                null, null, null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            count = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COUNT));
+            cursor.close();
+        } else {
+            if (cursor != null) cursor.close();
+            return;
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_COUNT, count+1);
+
+        db.update(TABLE_INCOME, contentValues, COLUMN_NAME + " = ? AND " + COLUMN_INCOMEDAY + " = ?", new String[]{name, String.valueOf(date)});
+        db.close();
+    }
+
 
     public int setIncomeGiven(String name, int date) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -876,6 +906,40 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return cursor;
     }
 
+    public void setMonthlySpentGivenByUser(String name, int day) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        int count = 0;
+
+
+        Cursor cursor = db.query(
+                TABLE_MONTHLY_SPENT,
+                new String[]{COLUMN_NEXT, COLUMN_COUNT, COLUMN_REPEAT},
+                COLUMN_NAME + " = ? AND " + COLUMN_SPENTDAY + " = ?",
+                new String[]{name, String.valueOf(day)},
+                null, null, null
+        );
+
+        if (cursor != null && cursor.moveToFirst()) {
+            count = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COUNT));
+            cursor.close();
+        } else {
+            if (cursor != null) cursor.close();
+            return;
+        }
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_COUNT, count+1);
+
+        db.update(
+                TABLE_MONTHLY_SPENT,
+                contentValues,
+                COLUMN_NAME + " = ? AND " + COLUMN_SPENTDAY + " = ?",
+                new String[]{name, String.valueOf(day)}
+        );
+
+        db.close();
+    }
 
     public int setMonthlySpentGiven(String name, int day) {
         SQLiteDatabase db = this.getWritableDatabase();

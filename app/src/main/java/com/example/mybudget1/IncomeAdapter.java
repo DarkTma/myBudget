@@ -429,7 +429,7 @@ public class IncomeAdapter extends BaseAdapter {
                 .setMessage("Хотите сейчас же выплатить зарплату?")
                 .setPositiveButton("Да", (dialog, which) -> {
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-                    databaseIncome.setIncomeGivenbyUser(income.getName(), income.getDate());
+                    databaseIncome.setIncomeGivenByUser(income.getName(), income.getDate());
                     databaseIncome.addIncome(income.getAmount());
                     Toast.makeText(context, "Зарплата выплачена!", Toast.LENGTH_SHORT).show();
                 })

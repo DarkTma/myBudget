@@ -22,12 +22,25 @@
             android:src="@drawable/arrow" />
 
         <Switch
+            android:id="@+id/switchQuickEntry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Быстрая запись"
+            android:textColor="@android:color/white"
+            android:textSize="20dp"
+            android:layout_marginVertical="15dp"
+            android:background="@drawable/edit_text_style"
+            />
+
+        <Switch
             android:id="@+id/switch_auth"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Вход с биометрией / ключом"
             android:textSize="20dp"
-            android:layout_marginVertical="20dp"/>
+            android:layout_marginVertical="20dp"
+            android:background="@drawable/edit_text_style"
+            />
 
         <TextView
             android:id="@+id/title"
