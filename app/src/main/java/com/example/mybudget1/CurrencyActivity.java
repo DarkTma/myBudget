@@ -263,18 +263,29 @@ public class CurrencyActivity extends AppCompatActivity {
 
         switch (selectedCurrency) {
             case "dollar":
-                if (!reverse) {
-                    result = String.format(
-                            "1 $ = %.2f ֏\n1 $ = %.2f ₽\n1 $ = %.2f ¥ (元)\n1 $ = %.2f €\n1 $ = %.2f ¥ (円)\n1 $ = %.2f ₾",
-                            baseToDram, baseToRub, baseToJuan, baseToEur, baseToJen, baseToGel
-                    );
-                } else {
-                    result = String.format(
-                            "1 ֏ = %.4f $\n1 ₽ = %.4f $\n1 元 = %.4f $\n1 € = %.4f $\n1 ¥ (円) = %.4f $\n1 ₾ = %.4f $",
-                            1 / baseToDram, 1 / baseToRub, 1 / baseToJuan, 1 / baseToEur, 1 / baseToJen, 1 / baseToGel
-                    );
-                }
-                break;
+            if (!reverse) {
+                result = String.format(
+                        "1 $ = %.2f ֏\n1 $ = %.2f ₽\n1 $ = %.2f ¥ (元)\n1 $ = %.2f €\n1 $ = %.2f ¥ (円)\n1 $ = %.2f ₾",
+                        baseToDram / baseToDollar,
+                        baseToRub / baseToDollar,
+                        baseToJuan / baseToDollar,
+                        baseToEur / baseToDollar,
+                        baseToJen / baseToDollar,
+                        baseToGel / baseToDollar
+                );
+            } else {
+                result = String.format(
+                        "1 ֏ = %.4f $\n1 ₽ = %.4f $\n1 元 = %.4f $\n1 € = %.4f $\n1 ¥ (円) = %.4f $\n1 ₾ = %.4f $",
+                        baseToDollar / baseToDram,
+                        baseToDollar / baseToRub,
+                        baseToDollar / baseToJuan,
+                        baseToDollar / baseToEur,
+                        baseToDollar / baseToJen,
+                        baseToDollar / baseToGel
+                );
+            }
+            break;
+
 
             case "rubli":
                 if (!reverse) {
