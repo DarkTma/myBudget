@@ -42,6 +42,27 @@
             android:background="@drawable/edit_text_style"
             />
 
+        <Button
+            android:id="@+id/backup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/button_selector_blue"
+            android:text="создать резервную копию"
+            android:paddingHorizontal="15dp"
+            />
+
+        <Button
+            android:id="@+id/restore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/button_selector_blue"
+            android:text="загрузить резервную копию"
+            android:paddingHorizontal="15dp"
+            android:layout_marginVertical="10dp"
+            />
+
         <TextView
             android:id="@+id/title"
             android:text="Конфиденциальность"
@@ -71,5 +92,17 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true" />
+
+        <Button
+            android:id="@+id/zbros"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/button_selector_blue"
+            android:text="сбросить данные"
+            android:paddingHorizontal="25dp"
+            android:layout_marginVertical="20dp"
+            />
+
     </LinearLayout>
 </ScrollView>
