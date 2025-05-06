@@ -446,7 +446,7 @@ public class MainActivity extends AppCompatActivity {
 
 // Применяем стиль для спиннера
         categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan); // фоновое изображение для выпадающего списка
-        categorySpinner.setSelection(categories.indexOf("other")); // Устанавливаем дефолтную категорию
+        categorySpinner.setSelection(categories.indexOf("прочее")); // Устанавливаем дефолтную категорию
 
 // Устанавливаем кастомный стиль для спиннера
         categorySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);

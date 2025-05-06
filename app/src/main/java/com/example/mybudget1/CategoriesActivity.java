@@ -142,9 +142,9 @@ public class CategoriesActivity extends AppCompatActivity {
         }
 
 
-//        if (checkBoxSortByProcent.isChecked()) {
-//            Collections.sort(categoryItems, Comparator.comparingInt(CategoryItem::getProcent).reversed());
-//        }
+        if (checkBoxSortByProcent.isChecked()) {
+            Collections.sort(categoryItems, Comparator.comparingInt(CategoryItem::getProcent).reversed());
+        }
 
         adapter = new CategoryAdapter(this, categoryItems, new CategoryAdapter.OnCategoryActionListener() {
             @Override
@@ -171,7 +171,7 @@ public class CategoriesActivity extends AppCompatActivity {
         adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapterSpinner);
 
-        int defaultPosition = categoryNames.indexOf("other");
+        int defaultPosition = categoryNames.indexOf("прочее");
         if (defaultPosition >= 0) {
             spinner.setSelection(defaultPosition);
         }

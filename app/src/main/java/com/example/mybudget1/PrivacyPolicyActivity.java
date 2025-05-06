@@ -2,10 +2,13 @@ package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.method.LinkMovementMethod;
 import android.widget.ImageButton;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +33,19 @@ public class PrivacyPolicyActivity extends AppCompatActivity {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL));
             startActivity(browserIntent);
         });
+
+        Switch authSwitch = findViewById(R.id.switch_auth);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isAuthEnabled = preferences.getBoolean("auth_enabled", false);
+        authSwitch.setChecked(isAuthEnabled);
+
+        authSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("auth_enabled", isChecked);
+            editor.apply();
+        });
+
     }
 }
 

@@ -201,7 +201,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             FileOutputStream fos = context.openFileOutput("categories.txt", Context.MODE_PRIVATE);
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
-            writer.write("other");  // Записываем дефолтную категорию в файл
+            writer.write("прочее");  // Записываем дефолтную категорию в файл
             writer.close();
         } catch (Exception e) {
             e.printStackTrace();

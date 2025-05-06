@@ -34,7 +34,7 @@ public class FileHelper extends SQLiteOpenHelper {
 
         // Вставка дефолтной категории
         ContentValues values = new ContentValues();
-        values.put(COLUMN_NAME, "other");
+        values.put(COLUMN_NAME, "прочее");
         db.insert(TABLE_CATEGORIES, null, values);
     }
 

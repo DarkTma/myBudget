@@ -134,20 +134,7 @@ public class SplashActivity extends AppCompatActivity {
         CursHelper.updateExchangeRates(context, new CursHelper.OnRatesUpdatedListener() {
             @Override
             public void onRatesUpdated() {
-                new android.os.Handler().postDelayed(() -> {
-                    if (!isNotif) {
-                        startActivity(new Intent(SplashActivity.this, StartActivity.class));
-                        finish();
-                    } else {
-                        Calendar calendar = Calendar.getInstance();
-                        int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-                        Intent intent = new Intent(context, MainActivity.class);
-                        intent.putExtra("day", dayOfMonth);
-                        intent.putExtra("isexpented", "false");
-                        startActivity(intent);
-                        finish();
-                    }
-                }, 1);
+                startMainApp();
             }
 
             @Override
@@ -163,6 +150,23 @@ public class SplashActivity extends AppCompatActivity {
                 }, 1);
             }
         });
+    }
+
+    private void startMainApp() {
+        new android.os.Handler().postDelayed(() -> {
+            if (!isNotif) {
+                startActivity(new Intent(SplashActivity.this, StartActivity.class));
+                finish();
+            } else {
+                Calendar calendar = Calendar.getInstance();
+                int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.putExtra("day", dayOfMonth);
+                intent.putExtra("isexpented", "false");
+                startActivity(intent);
+                finish();
+            }
+        }, 1);
     }
 
 

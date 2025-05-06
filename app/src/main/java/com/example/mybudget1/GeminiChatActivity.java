@@ -201,7 +201,7 @@ public class GeminiChatActivity extends AppCompatActivity {
                 "\n" +
                 "1. Анализ месяца\n" +
                 "Показывает полную картину ваших доходов и расходов за текущий месяц.\n" +
-                "Все операции группируются по категориям, кроме категории \"Прочее (Other)\", — траты из этой категории отображаются отдельно, без объединения.\n" +
+                "Все операции группируются по категориям, кроме категории \"Прочее\", — траты из этой категории отображаются отдельно, без объединения.\n" +
                 "\n" +
                 "2. Анализ категории\n" +
                 "Позволяет выбрать конкретную категорию и посмотреть все связанные с ней траты и доходы.\n" +
@@ -361,7 +361,7 @@ public class GeminiChatActivity extends AppCompatActivity {
 
         List<ExpenseData> data = databaseHelper.getExpensesByCategory(0 , 1);
 
-        result.append(", под other подрозумеваются траты: ");
+        result.append(", под \"прочее\" подрозумеваются траты: ");
         for (ExpenseData expense : data) {
             result.append(" - ").append(expense.getName()).append(": ").append(expense.getDate()).append(" , ").append(expense.getAmount()).append(curs.symbol).append("\n");
         }

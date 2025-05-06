@@ -219,7 +219,7 @@ public class MaketListActivity extends AppCompatActivity {
         categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
         categorySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
         categorySpinner.setDropDownVerticalOffset(10);
-        categorySpinner.setSelection(categories.indexOf("other"));
+        categorySpinner.setSelection(categories.indexOf("прочее"));
 
         LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,

@@ -293,7 +293,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
         categorySpinner.setAdapter(adapter);
         categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
         categorySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
-        categorySpinner.setSelection(categories.indexOf("other"));
+        categorySpinner.setSelection(categories.indexOf("прочее"));
         categorySpinner.setVisibility(View.VISIBLE);
 
         final int[] selectedCategoryId = new int[1];
