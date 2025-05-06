@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,7 +15,10 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -28,13 +32,14 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.util.Calendar;
+import java.util.concurrent.Executor;
 
 
 public class SplashActivity extends AppCompatActivity {
 
     private DatabaseHelper2 databaseHelper;
     private boolean isNotif = false;
-
+    private boolean isAuthEnabled;
     private static final int REQUEST_NOTIFICATION_PERMISSION = 1001;
 
     @Override
@@ -45,6 +50,10 @@ public class SplashActivity extends AppCompatActivity {
         ImageView logo = findViewById(R.id.logoImage);
         Animation pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
         logo.startAnimation(pulse);
+
+        SharedPreferences preferences = getSharedPreferences("settings", MODE_PRIVATE);
+        isAuthEnabled = preferences.getBoolean("auth_enabled", false);
+
 
         databaseHelper = new DatabaseHelper2(this);
 
@@ -98,13 +107,58 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
+
     private void continueAfterPermissionGranted() {
+        if (isAuthEnabled) {
+            launchAuthentication();
+        } else {
+            proceedToApp();
+        }
+    }
+
+    private void proceedToApp() {
         if (databaseHelper.getLastActivity().equals("")) {
             showCurrencySelectionDialog();
         } else {
             updateRatesAndGoToStart(this);
         }
     }
+
+    private void launchAuthentication() {
+        BiometricManager biometricManager = BiometricManager.from(this);
+        if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG
+                | BiometricManager.Authenticators.DEVICE_CREDENTIAL) == BiometricManager.BIOMETRIC_SUCCESS) {
+
+            Executor executor = ContextCompat.getMainExecutor(this);
+            BiometricPrompt biometricPrompt = new BiometricPrompt(this, executor,
+                    new BiometricPrompt.AuthenticationCallback() {
+                        @Override
+                        public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+                            super.onAuthenticationSucceeded(result);
+                            proceedToApp();
+                        }
+
+                        @Override
+                        public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
+                            super.onAuthenticationError(errorCode, errString);
+                            finish(); // Можно закрыть приложение или вернуть на предыдущий экран
+                        }
+                    });
+
+            BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                    .setTitle("Аутентификация")
+                    .setSubtitle("Подтвердите личность")
+                    .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG
+                            | BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+                    .build();
+
+            biometricPrompt.authenticate(promptInfo);
+        } else {
+            Toast.makeText(this, "Биометрическая аутентификация недоступна", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+    }
+
 
 
     private void createNotificationChannel() {

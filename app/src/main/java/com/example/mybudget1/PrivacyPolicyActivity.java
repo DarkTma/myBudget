@@ -15,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class PrivacyPolicyActivity extends AppCompatActivity {
     private ImageButton buttonBackFromConf;
-    private static final String PRIVACY_POLICY_URL = "https://www.dropbox.com/scl/fi/77noykv1p6a28ne5csxn6/.pdf?rlkey=dmhtmg8bb4y3s5ekxws243m2z&st=gzux4r6a&dl=0";
+    private static final String PRIVACY_POLICY_URL = "https://www.dropbox.com/scl/fi/77noykv1p6a28ne5csxn6/.pdf?rlkey=dmhtmg8bb4y3s5ekxws243m2z&st=83tke5wq&dl=0";
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -36,7 +36,7 @@ public class PrivacyPolicyActivity extends AppCompatActivity {
 
         Switch authSwitch = findViewById(R.id.switch_auth);
 
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences preferences = getSharedPreferences("settings", MODE_PRIVATE);
         boolean isAuthEnabled = preferences.getBoolean("auth_enabled", false);
         authSwitch.setChecked(isAuthEnabled);
 
