@@ -66,7 +66,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createReminder(db);
         createNotes(db);
         createGoals(db);
-        createCreditsTable(db);
     }
 
     private void createGoals(SQLiteDatabase db) {
@@ -104,18 +103,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "category_id INTEGER, " +
                 "amount REAL)";
         db.execSQL(createIncomeTableQuery);
-    }
-
-    private void createCreditsTable(SQLiteDatabase db) {
-        String createCreditsTableQuery = "CREATE TABLE IF NOT EXISTS credits (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "name TEXT, " +
-                "amount REAL, " +
-                "remaining REAL, " +
-                "procent REAL, " +
-                "last_payment REAL, " +
-                "start_date TEXT)";
-        db.execSQL(createCreditsTableQuery);
     }
 
 
@@ -1477,6 +1464,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
+    public Goal getGoal(long currentGoalId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Строка запроса для получения данных о цели по id
+        String query = "SELECT * FROM goals WHERE id = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(currentGoalId)});
+
+        Goal goal = null;
+        // Проверка, если результат есть
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+            String title = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+            double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"));
+            double correntAmount = cursor.getDouble(cursor.getColumnIndexOrThrow("currentAmount"));
+            String imageUri = cursor.getString(cursor.getColumnIndexOrThrow("imagePath"));
+
+            // Создание объекта Goal
+            goal = new Goal(id, title, correntAmount, amount, imageUri);
+        }
+
+        // Закрытие курсора и базы данных
+        if (cursor != null) {
+            cursor.close();
+        }
+        db.close();
+
+        return goal;  // Возвращаем найденную цель или null
+    }
 
 }
 

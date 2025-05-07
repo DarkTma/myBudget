@@ -51,7 +51,18 @@ public class GoalActivity extends AppCompatActivity {
     private ImageView imagePreview;
     private final Uri[] localSelectedImageUri = {null};
     private Uri selectedImageUri;
-    private ActivityResultLauncher<String> getImageLauncher;
+    private long currentGoalId = -1;
+//    private ActivityResultLauncher<String> getImageLauncher;
+
+    private ActivityResultLauncher<String> getImageLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            result -> {
+                if (result != null) {
+                    selectedImageUri = result;
+                    imagePreview.setImageURI(result);
+                }
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,26 +87,27 @@ public class GoalActivity extends AppCompatActivity {
             startActivity(intentGoBack);
         });
 
-        getImageLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
-                result -> {
-                    if (result != null) {
-                        // Получаем размеры экрана
-                        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-                        int screenWidth = displayMetrics.widthPixels;
+//        getImageLauncher = registerForActivityResult(
+//                new ActivityResultContracts.GetContent(),
+//                result -> {
+//                    if (result != null) {
+//                        // Получи уникальный идентификатор для текущей цели (goal)
+//                        // Предположим, что у тебя есть метод getGoalId() в твоем GoalActivity или ты можешь передать ID как-то иначе
+//                        String goalId = getUniqueGoalId(); // Замени на свой способ получения ID
+//
+//                        // Создай уникальное имя файла
+//                        String fileName = "cropped_image_" + goalId + ".jpg";
+//                        Uri destinationUri = Uri.fromFile(new File(getCacheDir(), fileName));
+//
+//                        UCrop.of(result, destinationUri)
+//                                .start(GoalActivity.this);
+//                    }
+//                }
+//        );
 
-                        // Рассчитываем ширину и высоту с учетом пропорции 3:2
-                        int imageWidth = (int) (screenWidth * 0.8); // Ширина изображения 80% от экрана
-                        int imageHeight = (int) (imageWidth * 2.0 / 3.0); // Высота изображения по пропорции 3:2
-                        // Используем UCrop для обрезки изображения
-                        Uri destinationUri = Uri.fromFile(new File(getCacheDir(), "cropped_image.jpg"));
-                        UCrop.of(result, destinationUri)
-                                .withAspectRatio(16, 9)
-                                .withMaxResultSize(800, 800)
-                                .start(GoalActivity.this);
-                    }
-                }
-        );
+
+
+
 
         loadGoals();
 
@@ -154,22 +166,40 @@ public class GoalActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == UCrop.REQUEST_CROP && resultCode == RESULT_OK) {
-            Uri resultUri = UCrop.getOutput(data);
-
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            final Uri resultUri = UCrop.getOutput(data);
             if (resultUri != null) {
-                // Загружаем обрезанное изображение в ImageView
-                imagePreview.setImageURI(resultUri);
-                selectedImageUri = resultUri;
+                String croppedImagePath = resultUri.getPath();
+                // Обновляем запись в базе данных с путем к обрезанному изображению
+                Goal updatedGoal = dbHelper.getGoal(currentGoalId);
+                if (updatedGoal != null) {
+                    updatedGoal.setImagePath("file://" + croppedImagePath);
+                    dbHelper.updateGoal(updatedGoal);
+                    loadGoals();
+                    goalAdapter.notifyDataSetChanged();
+                    Intent intentGoBack = new Intent(GoalActivity.this, GoalActivity.class);
+                    finish();
+                    startActivity(intentGoBack);
+                    Toast.makeText(this, "Изображение добавлено!", Toast.LENGTH_SHORT).show();
+                }
+            } else if (UCrop.getError(data) != null) {
+                Throwable cropError = UCrop.getError(data);
+                Toast.makeText(this, "Ошибка", Toast.LENGTH_SHORT).show();
+                Intent intentGoBack = new Intent(GoalActivity.this, StartActivity.class);
+                finish();
+                startActivity(intentGoBack);
             }
-        } else if (resultCode == UCrop.RESULT_ERROR) {
-            Throwable cropError = UCrop.getError(data);
-            if (cropError != null) {
-                Toast.makeText(this, "Ошибка при обрезке изображения: " + cropError.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            currentGoalId = -1; // Сбрасываем ID после обработки
+            selectedImageUri = null; // Сбрасываем URI после обработки
+        } else if (resultCode == RESULT_CANCELED && requestCode == UCrop.REQUEST_CROP) {
+            // Пользователь отменил обрезку, просто обновляем список
+            loadGoals();
+            goalAdapter.notifyDataSetChanged();
+            Intent intentGoBack = new Intent(GoalActivity.this, GoalActivity.class);
+            finish();
+            startActivity(intentGoBack);
         }
     }
 
@@ -287,12 +317,21 @@ public class GoalActivity extends AppCompatActivity {
             Goal goal = new Goal(goalName, goalAmount, 0, selectedImageUri.toString());
             long id = dbHelper.addGoal(goal);
             if (id != -1) {
-                loadGoals();  // Обновляем список целей
-                goalAdapter.notifyDataSetChanged();
-                Intent intentGoBack = new Intent(GoalActivity.this, GoalActivity.class);
-                finish();
-                startActivity(intentGoBack);
-                Toast.makeText(this, "Цель добавлена!", Toast.LENGTH_SHORT).show();
+                currentGoalId = id; // Сохраняем ID созданной цели
+
+                // Если изображение было выбрано, запускаем обрезку
+                if (selectedImageUri != null && !selectedImageUri.toString().contains(String.valueOf(R.drawable.default_goal))) {
+                    Uri destinationUri = Uri.fromFile(new File(getCacheDir(), "cropped_image_" + currentGoalId + ".jpg"));
+                    UCrop.of(selectedImageUri, destinationUri)
+                            .start(GoalActivity.this);
+                } else {
+                    loadGoals();
+                    goalAdapter.notifyDataSetChanged();
+                    Intent intentGoBack = new Intent(GoalActivity.this, GoalActivity.class);
+                    finish();
+                    startActivity(intentGoBack);
+                    Toast.makeText(this, "Цель добавлена!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

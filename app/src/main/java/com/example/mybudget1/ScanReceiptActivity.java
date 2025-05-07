@@ -528,7 +528,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
                     currentProgress++;
                     progressBar.setProgress(currentProgress);
                     progressText.setText(currentProgress + "%");
-                    progressHandler.postDelayed(this, 50); // скорость загрузки
+                    progressHandler.postDelayed(this, 20); // скорость загрузки
                 }
             }
         };
