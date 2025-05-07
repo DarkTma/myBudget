@@ -252,7 +252,7 @@ public class GeminiChatActivity extends AppCompatActivity {
 
     private void getGeminiResponse(String userText) {
         startFakeProcess();
-        String apiKey = "AIzaSyDoiw93HSlRXadNii78dlZDXCSIwcmcjOc";  // Твой API-ключ
+        String apiKey = "AIzaSyDbDjzTS9neanGArHGyI2ey7fR5zyTshcg";  // Твой API-ключ
         String promptText = userText;
 
         JsonObject textPart = new JsonObject();
@@ -359,7 +359,7 @@ public class GeminiChatActivity extends AppCompatActivity {
             result.append(category.getName()).append(" - ").append(category.getPrice()).append(curs.symbol).append(", ");
         }
 
-        List<ExpenseData> data = databaseHelper.getExpensesByCategory(0 , 1);
+        List<ExpenseData> data = databaseHelper.getExpensesByCategory(1 , 1);
 
         result.append(", под \"прочее\" подрозумеваются траты: ");
         for (ExpenseData expense : data) {

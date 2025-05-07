@@ -195,7 +195,7 @@ public class GoalActivity extends AppCompatActivity {
 
         Spinner currencySpinner = dialogView.findViewById(R.id.currencySpinnernewGoal);
 
-        String[] currencies = {"֏", "$", "₽"};
+        String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
 
         ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, currencies);
         currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -206,7 +206,7 @@ public class GoalActivity extends AppCompatActivity {
 
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         String currentCurrencySymbol = databaseIncome.getCurs();
-        int defaultCurrencyPosition = 0;
+        int defaultCurrencyPosition;
 
         switch (currentCurrencySymbol) {
             case "dollar":
@@ -214,6 +214,18 @@ public class GoalActivity extends AppCompatActivity {
                 break;
             case "rubli":
                 defaultCurrencyPosition = 2;
+                break;
+            case "yuan":
+                defaultCurrencyPosition = 3;
+                break;
+            case "eur":
+                defaultCurrencyPosition = 4;
+                break;
+            case "jen":
+                defaultCurrencyPosition = 5;
+                break;
+            case "lari":
+                defaultCurrencyPosition = 6;
                 break;
             case "dram":
             default:
@@ -246,6 +258,21 @@ public class GoalActivity extends AppCompatActivity {
                     break;
                 case "₽":
                     goalAmount = goalAmountinX / CursHelper.getToRub();
+                    break;
+                case "元":
+                    goalAmount = goalAmountinX / CursHelper.getToJuan();
+                    break;
+                case "€":
+                    goalAmount = goalAmountinX / CursHelper.getToEur();
+                    break;
+                case "¥":
+                    goalAmount = goalAmountinX / CursHelper.getToJen();
+                    break;
+                case "₾":
+                    goalAmount = goalAmountinX / CursHelper.getToLari();
+                    break;
+                default:
+                    goalAmount = goalAmountinX;
                     break;
             }
 

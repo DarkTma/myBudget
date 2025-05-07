@@ -161,29 +161,6 @@
             android:text="Описание"
             android:gravity="start|top" />
 
-        <!-- Контейнер для EditText с правильным поведением скролла -->
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="200dp">
-
-            <EditText
-                android:id="@+id/textResult"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/edit_text_multiple"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#888888"
-                android:hint="Результат анализа"
-                android:gravity="start|top"
-                android:padding="12dp"
-                android:textSize="16sp"
-                android:inputType="textMultiLine|textCapSentences"
-                android:maxLines="10"
-                android:scrollbars="vertical"
-                android:overScrollMode="always"
-                android:focusable="true"
-                android:focusableInTouchMode="true" />
-        </FrameLayout>
 
         <!-- Кнопка Инфо -->
         <ImageButton

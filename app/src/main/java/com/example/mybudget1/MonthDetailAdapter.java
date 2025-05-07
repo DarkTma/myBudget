@@ -57,7 +57,8 @@ public class MonthDetailAdapter extends RecyclerView.Adapter<MonthDetailAdapter.
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
         CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
 
-        double finalAmount = Math.round(data.getAmount() * curs.rate * 100.0) / 100.0;
+        double am = data.getAmount() * curs.rate;
+        double finalAmount = Math.round(am * 100) / 100.0;
 
         holder.amount.setText("Сумма: " + finalAmount + " " + curs.symbol);
         holder.day.setText("День: " + data.getDay());

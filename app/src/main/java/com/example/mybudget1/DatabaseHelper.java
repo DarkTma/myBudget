@@ -1079,7 +1079,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    int amount = cursor.getInt(cursor.getColumnIndexOrThrow("monthly_spent"));
+                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("monthly_spent"));
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("spentday"));
                     detailList.add(new MonthDetailData("MSpent", name, amount, day, "ежемесечная трата"));
                 } while (cursor.moveToNext());
@@ -1092,7 +1092,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    int amount = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
                     int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
                     FileHelper fileHelper = new FileHelper(context);
@@ -1108,7 +1108,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    int amount = cursor.getInt(cursor.getColumnIndexOrThrow("spent"));
+                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
                     int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
                     int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
                     FileHelper fileHelper = new FileHelper(context);
@@ -1138,7 +1138,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 if (SpentCursor.moveToFirst()) {
                     do {
                         String name = SpentCursor.getString(SpentCursor.getColumnIndexOrThrow("name"));
-                        int amount = SpentCursor.getInt(SpentCursor.getColumnIndexOrThrow("monthly_spent"));
+                        double amount = SpentCursor.getDouble(SpentCursor.getColumnIndexOrThrow("monthly_spent"));
                         int day = SpentCursor.getInt(SpentCursor.getColumnIndexOrThrow("spentday"));
                         detailList.add(new MonthDetailData("MSpent", name, amount, day, "ежемесечная трата"));
                     } while (SpentCursor.moveToNext());

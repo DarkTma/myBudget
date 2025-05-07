@@ -282,7 +282,7 @@ public class SpentActivity extends AppCompatActivity {
                                     break;
                             }
 
-                            finalAmount = Math.round(finalAmount * 100.0) / 100.0;
+                            finalAmount = Math.round(finalAmount * 10000.0) / 10000.0;
 
 
                             // Обновляем запись в базе данных

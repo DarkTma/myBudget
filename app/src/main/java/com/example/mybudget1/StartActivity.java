@@ -609,7 +609,7 @@ public class StartActivity extends AppCompatActivity {
 
             // Создаем AlertDialog с кастомным фоном
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(Html.fromHtml("<font color='#1EFF00'>у вас еть не выполненые траты</font>"));
+            builder.setTitle(Html.fromHtml("<font color='#1EFF00'>у вас есть не выполненые траты</font>"));
             builder.setView(listView);
             builder.setPositiveButton("я выполнил их", (dialog, which) -> {
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);

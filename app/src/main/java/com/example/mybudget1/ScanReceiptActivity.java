@@ -60,7 +60,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ScanReceiptActivity extends AppCompatActivity {
 
     private ActivityResultLauncher<Intent> galleryLauncher;
-    private EditText textResult;
     private EditText nameText;
     private ImageButton infoBtn;
     private Spinner currencySpinner;
@@ -90,7 +89,6 @@ public class ScanReceiptActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scan_receipt);
 
         Button buttonSelectImage = findViewById(R.id.buttonSelectImage);
-        textResult = findViewById(R.id.textResult);
         infoLayaut = findViewById(R.id.infoRow);
         categorySpinner = findViewById(R.id.categorySpinner);
         currencySpinner = findViewById(R.id.currencySpinner);
@@ -179,8 +177,8 @@ public class ScanReceiptActivity extends AppCompatActivity {
             return;
         }
 
-        String apiKey = "AIzaSyDoiw93HSlRXadNii78dlZDXCSIwcmcjOc";  // Твой API-ключ
-        String promptText = "Проанализируй данные , игнорируй ненужные символы ,Если название товара выглядит странным замени его название на тавар , отсартируй тавары ,  их каличество , их сумму , и итог , итог должен быть в чеке , если его нет вычти сам ,  другие данные мне не нужны , в канце в обязательно в квадратных скопках запиши итог из чека - неважно какие у тебя расчеты если есть итог в чеке то запиши обезательно его , если некоторые числа с минусом знахит вычитай их , если есть какие то странности или сомнения о чем стоит знать пользовотелю запиши их в канце после знака '^', затем поставь еше '^' и запиши число из  квадратных скобок(только число) , так же больше негде не исползуй етот нак '^':\n\n" + receiptText;
+        String apiKey = "AIzaSyDbDjzTS9neanGArHGyI2ey7fR5zyTshcg";  // Твой API-ключ
+        String promptText = "Проанализируй данные , игнорируй ненужные символы , итог должен быть в чеке , если его нет вычти сам ,  другие данные мне не нужны , в канце в обязательно в квадратных скопках запиши итог из чека - неважно какие у тебя расчеты если есть итог в чеке то запиши обезательно его , если некоторые числа с минусом значит вычитай их , если есть какие то странности или сомнения о чем стоит знать пользовотелю запиши их в канце после знака '^', затем поставь еше '^' и запиши число из  квадратных скобок(только число) , так же больше негде не исползуй етот нак '^':\n\n" + receiptText;
 
         // Новый формат JSON
         JsonObject textPart = new JsonObject();
@@ -224,8 +222,8 @@ public class ScanReceiptActivity extends AppCompatActivity {
                         stopFakeProgress();
                         String errorBody = response.errorBody().string();
                         Log.e("Gemini Error", errorBody);
-                        runOnUiThread(() -> textResult.setText("Ошибка Gemini: " + errorBody));
-                        textResult.setVisibility(View.VISIBLE);
+                        runOnUiThread(() -> nameText.setText("Ошибка Gemini: " + errorBody));
+                        nameText.setVisibility(View.VISIBLE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -236,8 +234,8 @@ public class ScanReceiptActivity extends AppCompatActivity {
             public void onFailure(Call<GeminiResponse> call, Throwable t) {
                 stopFakeProgress();
                 t.printStackTrace();
-                runOnUiThread(() -> textResult.setText("Ошибка Gemini: " + t.getMessage()));
-                textResult.setVisibility(View.VISIBLE);
+                runOnUiThread(() -> nameText.setText("Ошибка Gemini: " + t.getMessage()));
+                nameText.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -262,11 +260,8 @@ public class ScanReceiptActivity extends AppCompatActivity {
 
 
         if (mainText.isEmpty()){
-            textResult.setText("неудалось нечего распазнать");
-        } else {
-            textResult.setText(mainText);
+            nameText.setText("неудалось нечего распазнать");
         }
-        textResult.setVisibility(View.VISIBLE);
         infoLayaut.setVisibility(View.VISIBLE);
 
         infoBtn.setVisibility(View.VISIBLE);
@@ -277,10 +272,6 @@ public class ScanReceiptActivity extends AppCompatActivity {
                     .setPositiveButton("ОК", null)
                     .show();
         });
-
-        textResult.setMovementMethod(new ScrollingMovementMethod());
-        textResult.setVerticalScrollBarEnabled(true);
-
 
 
         // СПИННЕР КАТЕГОРИЙ
@@ -330,6 +321,22 @@ public class ScanReceiptActivity extends AppCompatActivity {
             case "rubli":
                 selectedSymbol[0] = "₽";
                 defaultCurrencyPosition = 2;
+                break;
+            case "yuan":
+                selectedSymbol[0] = "元";
+                defaultCurrencyPosition = 3;
+                break;
+            case "evro":
+                selectedSymbol[0] = "€";
+                defaultCurrencyPosition = 4;
+                break;
+            case "jen":
+                selectedSymbol[0] = "¥";
+                defaultCurrencyPosition = 5;
+                break;
+            case "lari":
+                selectedSymbol[0] = "₾";
+                defaultCurrencyPosition = 6;
                 break;
             case "dram":
             default:
@@ -408,7 +415,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
 
 
             if(selectedType[0] == 0) {
-                databaseHelper.insertData(day, nameT, finalAmount, 0, true, selectedCategoryId[0], mainText);
+                databaseHelper.insertData(day, nameT, finalAmount, 0, true, selectedCategoryId[0]);
                 databaseIncome.addSpent(finalAmount);
                 Toast.makeText(this, "росход добавлен", Toast.LENGTH_SHORT).show();
             } else {
@@ -498,11 +505,11 @@ public class ScanReceiptActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {
                         // Обработка ошибки распознавания
-                        textResult.setText("Ошибка при распознавании текста: " + e.getMessage());
+                        nameText.setText("Ошибка при распознавании текста: " + e.getMessage());
                     });
         } catch (IOException e) {
             // Ошибка загрузки изображения
-            textResult.setText("Не удалось загрузить изображение: " + e.getMessage());
+            nameText.setText("Не удалось загрузить изображение: " + e.getMessage());
         }
     }
 

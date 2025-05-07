@@ -335,7 +335,7 @@ public class IncomeActivity extends AppCompatActivity {
                                     break;
                             }
 
-                            finalIncome = Math.round(finalIncome * 100.0) / 100.0;
+                            finalIncome = Math.round(finalIncome * 10000.0) / 10000.0;
 
 
                             if (once){

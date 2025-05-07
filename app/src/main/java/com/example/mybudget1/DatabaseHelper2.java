@@ -850,7 +850,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         // Получаем значение column_count перед удалением
-        String[] projection = new String[]{"column_count"};
+        String[] projection = new String[]{COLUMN_COUNT};
         String whereClause = "name = ? AND " + COLUMN_SPENTDAY + " = ?";
         String[] whereArgs = new String[]{name, String.valueOf(day)};
 
@@ -858,7 +858,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
         int count = 0;
         if (cursor != null && cursor.moveToFirst()) {
-            count = cursor.getInt(cursor.getColumnIndexOrThrow("column_count"));
+            count = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COUNT));
         }
 
         // Убедитесь, что курсор был закрыт
