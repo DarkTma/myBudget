@@ -1,6 +1,7 @@
 package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
@@ -43,7 +45,7 @@ public class SpentAdapter extends BaseAdapter {
     private Context context;
     private List<SpentItem> incomeList;
     private boolean isMonthly;
-    private int selectedPosition = -1; // -1 = ничего не выбрано
+    private int selectedPosition = -1;
 
 
     public SpentAdapter(Context context, List<SpentItem> incomeList) {
@@ -115,6 +117,7 @@ public class SpentAdapter extends BaseAdapter {
         btnedit.setOnClickListener(view -> {
             String itemName = spent.getName();
             double itemIncome = spent.getAmount();
+            final int[] selectedCategoryId = {0};
 
             // Создаем всплывающее окно
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -148,18 +151,6 @@ public class SpentAdapter extends BaseAdapter {
             spentParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             inputSpent.setLayoutParams(spentParams);
 
-            // Создаем `NumberPicker` для дня получения
-            NumberPicker inputDay = new NumberPicker(context);
-            inputDay.setMinValue(1);
-            inputDay.setMaxValue(31);
-            inputDay.setValue(Integer.valueOf(spent.getDate()));
-
-            LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            inputParams.setMargins(0, 10, 0, 20);
-            inputDay.setLayoutParams(inputParams);
 
             // Создаем `Spinner` для выбора валюты
             Spinner currencySpinner = new Spinner(context);
@@ -204,13 +195,50 @@ public class SpentAdapter extends BaseAdapter {
 
             currencySpinner.setSelection(defaultCurrencyPosition);
 
+            DatabaseHelper databaseHelper = new DatabaseHelper(context);
+            FileHelper fileHelper = new FileHelper(context);
+            List<String> list = fileHelper.getAllCategories();
+
+            List<String> categories = fileHelper.getAllCategories(); // Чтение категорий
+            Spinner categorySpinner = new Spinner(context);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            categorySpinner.setAdapter(adapter);
+            categorySpinner.setBackgroundResource(R.drawable.spinner_bg);
+
+            LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            spinnerParams.setMargins(0, 20, 0, 20);
+            categorySpinner.setPadding(20, 40, 40, 40);
+            categorySpinner.setLayoutParams(spinnerParams);
+
+
+
+
+            int category_id = databaseIncome.getCategoryId(spent.getId());
+            categorySpinner.setSelection(categories.indexOf(fileHelper.getCategoryNameById(category_id)));
+
+            // Обработчик выбора категории
+            categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    // Сохраняем выбранную категорию
+                    selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {
+                }
+            });
+
             // Контейнер для `EditText` и `Spinner`
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.setPadding(50, 20, 50, 20);
             layout.addView(inputName);
             layout.addView(inputSpent);
-            layout.addView(inputDay);
             layout.addView(currencySpinner); // Добавляем `Spinner` для валюты
 
             builder.setView(layout);
@@ -225,7 +253,6 @@ public class SpentAdapter extends BaseAdapter {
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 String newName = inputName.getText().toString();
                 int newIncome = Integer.parseInt(inputSpent.getText().toString());
-                int day = Integer.parseInt(String.valueOf(inputDay.getValue()));
 
                 // Получаем выбранную валюту из `Spinner`
                 String selectedCurrency = currencySpinner.getSelectedItem().toString();
@@ -261,15 +288,14 @@ public class SpentAdapter extends BaseAdapter {
                 finalAmount = Math.round(finalAmount * 100.0) / 100.0;
 
                 // Обновляем запись в базе данных
-                databaseIncome.updateMonthlySpent(itemName, day, newName, finalAmount);
+                databaseIncome.updateMonthlySpent(spent.getId(), newName, finalAmount,selectedCategoryId[0]);
 
 
-                spent.change(newName , finalAmount , day);
+                spent.change(newName , finalAmount , spent.getDate());
 
                 CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                 SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                 String currentDate = sdf.format(new Date());
-                DatabaseHelper databaseHelper = new DatabaseHelper(context);
                 databaseHelper.saveNote(currentDate, "Изменен ежемесячный расход\n" + itemName + " - " + itemIncome + cursd.symbol + "\nна: " + newName + " - " + finalAmount + cursd.symbol, "Spent", "edit" );
                 notifyDataSetChanged();
 
@@ -288,7 +314,7 @@ public class SpentAdapter extends BaseAdapter {
 
             // Текст для описания
             TextView textView = new TextView(context);
-            textView.setText("Хотите полностью удалить расход? В этом месяце, если он был, он обнулится. Если не хотите этого — не нажимайте на чекбокс.");
+            textView.setText("Хотите удалить расход?");
             textView.setTextColor(ContextCompat.getColor(context, R.color.white));
             textView.setTextSize(24);
 
@@ -299,25 +325,11 @@ public class SpentAdapter extends BaseAdapter {
             textParams.setMargins(0, 20, 0, 20);
             textView.setLayoutParams(textParams);
 
-            // Чекбокс
-            CheckBox checkBoxAsk = new CheckBox(context);
-            checkBoxAsk.setText("Удалить полностью?");
-            checkBoxAsk.setTextColor(ContextCompat.getColor(context, R.color.my_red));
-            checkBoxAsk.setChecked(false);
-            checkBoxAsk.setButtonDrawable(R.drawable.checkbox_style);
-
-            LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            checkBoxParams.setMargins(0, 20, 0, 20);
-            checkBoxAsk.setLayoutParams(checkBoxParams);
 
             // Layout для текста и чекбокса
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.addView(textView);
-            layout.addView(checkBoxAsk);
 
             builder.setView(layout);
 
@@ -329,26 +341,18 @@ public class SpentAdapter extends BaseAdapter {
 
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 String name = spent.getName();
-                int day = spent.getDate();
                 double amount = spent.getAmount();
 
-                if (checkBoxAsk.isChecked()) {
-                    int cnt = databaseIncome.deleteMonthlySpent(name, day);
-                    databaseIncome.addIncome(cnt * amount);
+                    databaseIncome.deleteMonthlySpent(spent.getId());
 
                     DatabaseHelper databaseHelper = new DatabaseHelper(context);
                     CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                     String currentDate = sdf.format(new Date());
-                    databaseHelper.saveNote(currentDate, "удален расход:\n" + name + " - " + amount + cursd.symbol, "Spent", "delete");
+                    databaseHelper.saveNote(currentDate, "удален регулярный расход:\n" + name + " - " + amount + cursd.symbol, "Spent", "delete");
                     incomeList.remove(position);
                     notifyDataSetChanged();
-                } else {
-                    databaseIncome.deactivateSpent(name, day);
-                    notifyDataSetChanged();
-                    Intent intent = new Intent(context, SpentActivity.class);
-                    context.startActivity(intent);
-                }
+
             });
 
             builder.setNegativeButton(negativeButtonText, (dialog, which) -> dialog.dismiss());
@@ -367,16 +371,34 @@ public class SpentAdapter extends BaseAdapter {
     private void showPaymentDialog(Context context, SpentItem spent) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH); // 0-11
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(context, null, year, month, day);
+
+        // Ограничиваем выбор только текущим месяцем
+        Calendar minDate = Calendar.getInstance();
+        minDate.set(Calendar.DAY_OF_MONTH, 1);
+
+        Calendar maxDate = Calendar.getInstance();
+        maxDate.set(Calendar.DAY_OF_MONTH, maxDate.getActualMaximum(Calendar.DAY_OF_MONTH));
+
+        datePickerDialog.getDatePicker().setMinDate(minDate.getTimeInMillis());
+        datePickerDialog.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+        builder.setView(datePickerDialog.getDatePicker());
         builder.setTitle("Выпалнение траты")
                 .setMessage("Хотите сейчас же выполнить ежемесячный расход?")
                 .setPositiveButton("Да", (dialog, which) -> {
+                    int selectedDay = datePickerDialog.getDatePicker().getDayOfMonth();
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-                    databaseIncome.setMonthlySpentGivenByUser(spent.getName(), spent.getDate());
+                    DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                    databaseHelper.insertData(selectedDay,spent.getName(),spent.getAmount(),0,true,spent.getCategory());
                     databaseIncome.addSpent(spent.getAmount());
                     CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                     String currentDate = sdf.format(new Date());
-                    DatabaseHelper databaseHelper = new DatabaseHelper(context);
                     databaseHelper.saveNote(currentDate, "сделан ежемесячный расход: " + spent.getName() + " - " + spent.getAmount() + cursd.symbol, "Spent", "add" );
                     Toast.makeText(context, "Успех", Toast.LENGTH_SHORT).show();
                 })

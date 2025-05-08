@@ -1,6 +1,7 @@
 package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -195,18 +196,6 @@ public class IncomeAdapter extends BaseAdapter {
             spentParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             inputSpent.setLayoutParams(nameParams);
 
-            // Создаем `NumberPicker` для дня получения
-            NumberPicker inputDay = new NumberPicker(context);
-            inputDay.setMinValue(1);
-            inputDay.setMaxValue(31);
-            inputDay.setValue(Integer.valueOf(income.getDate()));
-
-            LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            inputParams.setMargins(0, 10, 0, 20);
-            inputDay.setLayoutParams(inputParams);
 
             // Создаем спиннер для выбора валюты
             Spinner currencySpinner = new Spinner(context);
@@ -227,8 +216,7 @@ public class IncomeAdapter extends BaseAdapter {
             layout.setPadding(50, 20, 50, 20);
             layout.addView(inputName);
             layout.addView(inputSpent);
-            layout.addView(inputDay);
-            layout.addView(currencySpinner);  // Добавляем спиннер для валюты
+            layout.addView(currencySpinner);
 
             builder.setView(layout);
 
@@ -241,8 +229,7 @@ public class IncomeAdapter extends BaseAdapter {
             // Кнопка "Сохранить"
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
                 String newName = inputName.getText().toString();
-                double newIncome = Double.parseDouble(inputSpent.getText().toString());
-                int day = Integer.parseInt(String.valueOf(inputDay.getValue()));
+                double newIncome = Double.parseDouble(inputSpent.getText().toString().replace(',', '.'));
 
                 String selectedCurrency = currencySpinner.getSelectedItem().toString();
                 double finalIncome = 0;
@@ -276,7 +263,7 @@ public class IncomeAdapter extends BaseAdapter {
 
                 finalIncome = Math.round(finalIncome * 100.0) / 100.0;
                 // Обновляем запись в базе данных
-                databaseIncome.updateData(itemName, day, newName, finalIncome);
+                databaseIncome.updateData(income.getId(), newName, finalIncome);
 
                 databaseIncome.addSpent(itemIncome);
                 databaseIncome.addIncome(finalIncome);
@@ -287,7 +274,7 @@ public class IncomeAdapter extends BaseAdapter {
                 String currentDate = sdf.format(new Date());
                 databaseHelper.saveNote(currentDate, "Изменен доход:\n" + itemName + " - " + itemIncome + cursd.symbol + "\nна: " + newName + " - " + finalIncome + cursd.symbol, "Income", "edit" );
 
-                income.change(newName, finalIncome, day);
+                income.change(newName, finalIncome, income.getDate());
                 notifyDataSetChanged();
 
                 Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
@@ -310,7 +297,7 @@ public class IncomeAdapter extends BaseAdapter {
 
             // Текст для описания
             TextView textView = new TextView(context);
-            textView.setText("хотите полностю удалить доход? в этом месяце если \nвы его получали то он онулируется, если вы нехотите этого не нажимайте на чекбокс");
+            textView.setText("хотите удалить доход? ");
             textView.setTextColor(ContextCompat.getColor(context, R.color.white));
             textView.setTextSize(24);
 
@@ -322,26 +309,10 @@ public class IncomeAdapter extends BaseAdapter {
             textParams.setMargins(0, 20, 0, 20); // Отступы
             textView.setLayoutParams(textParams);
 
-            // Чекбокс для выбора
-            CheckBox checkBoxAsk = new CheckBox(context);
-            checkBoxAsk.setText("Удалить полностью?");
-            checkBoxAsk.setTextColor(ContextCompat.getColor(context, R.color.my_red));
-            checkBoxAsk.setChecked(false);
-            checkBoxAsk.setButtonDrawable(R.drawable.checkbox_style);
-
-            // Устанавливаем параметры для чекбокса
-            LinearLayout.LayoutParams checkBoxParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            checkBoxParams.setMargins(0, 20, 0, 20); // Отступы
-            checkBoxAsk.setLayoutParams(checkBoxParams);
-
             // Размещаем все элементы в LinearLayout
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.addView(textView);
-            layout.addView(checkBoxAsk);
 
             // Устанавливаем виджеты в диалог
             builder.setView(layout);
@@ -355,13 +326,10 @@ public class IncomeAdapter extends BaseAdapter {
 
             // Кнопка "Добавить"
             builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
-                if (checkBoxAsk.isChecked()) {
                     String name = income.getName();
-                    int day = income.getDate();
                     double incomen = income.getAmount();
 
-                    int cnt = databaseIncome.deleteIncome(name, day);
-                    databaseIncome.addSpent(cnt*incomen);
+                    databaseIncome.deleteIncome(income.getId());
 
                     DatabaseHelper databaseHelper = new DatabaseHelper(context);
                     CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
@@ -371,11 +339,7 @@ public class IncomeAdapter extends BaseAdapter {
 
                     incomeList.remove(position); // Удаляем объект из списка
                     notifyDataSetChanged(); // Обновляем адаптер
-                } else {
-                    String name = income.getName();
-                    databaseIncome.setMonthly(name, false); // Сделать доход одноразовым
-                    notifyDataSetChanged(); // Обновляем адаптер
-                }
+
             });
 
             // Кнопка "Отмена"
@@ -425,12 +389,34 @@ public class IncomeAdapter extends BaseAdapter {
     private void showPaymentDialog(Context context, IncomeItem income) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH); // 0-11
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(context, null, year, month, day);
+
+        // Ограничиваем выбор только текущим месяцем
+        Calendar minDate = Calendar.getInstance();
+        minDate.set(Calendar.DAY_OF_MONTH, 1);
+
+        Calendar maxDate = Calendar.getInstance();
+        maxDate.set(Calendar.DAY_OF_MONTH, maxDate.getActualMaximum(Calendar.DAY_OF_MONTH));
+
+        datePickerDialog.getDatePicker().setMinDate(minDate.getTimeInMillis());
+        datePickerDialog.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+        builder.setView(datePickerDialog.getDatePicker());
         builder.setTitle("Выплата зарплаты")
                 .setMessage("Хотите сейчас же выплатить зарплату?")
                 .setPositiveButton("Да", (dialog, which) -> {
+                    int selectedDay = datePickerDialog.getDatePicker().getDayOfMonth();
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-                    databaseIncome.setIncomeGivenByUser(income.getName(), income.getDate());
+                    DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                    databaseHelper.insertData(selectedDay,income.getName(),-1 * income.getAmount(),0,true);
                     databaseIncome.addIncome(income.getAmount());
+                    if (!income.monthly){
+                        databaseIncome.deleteIncome(income.getId());
+                    }
                     Toast.makeText(context, "Зарплата выплачена!", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());

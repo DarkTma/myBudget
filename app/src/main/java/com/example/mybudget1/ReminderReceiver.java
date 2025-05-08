@@ -50,7 +50,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         if (isDefault) {
             builder.setContentText("Запиши сегодняшние траты.");
         } else if (name != null) {
-            builder.setContentText("Пришло время для траты: " + name);
+            builder.setContentText("Пришло время для: " + name);
         } else {
             builder.setContentText("Что-то важное, проверь приложение!");
         }

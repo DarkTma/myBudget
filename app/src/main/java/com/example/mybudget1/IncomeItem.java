@@ -1,13 +1,15 @@
 package com.example.mybudget1;
 
 public class IncomeItem {
+    private int id;
     private String name;
     private double amount;
     private int date;
     boolean monthly;
     boolean active;
 
-    public IncomeItem(String name, double amount, int date, boolean monthly) {
+    public IncomeItem(int id ,String name, double amount, int date, boolean monthly) {
+        this.id = id;
         this.name = name;
         this.amount = amount;
         this.date = date;
@@ -22,6 +24,10 @@ public class IncomeItem {
 
     public int getDate() {
         return date;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public boolean getMonthly() {return monthly;}

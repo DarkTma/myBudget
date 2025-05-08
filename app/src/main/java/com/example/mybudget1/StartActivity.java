@@ -206,6 +206,8 @@ public class StartActivity extends AppCompatActivity {
         String result = String.format("%.2f %s", spent * curs.rate , curs.symbol);
         spentText.setText("расход: " + result);
 
+
+
         //int budget = databaseIncome.controlBudget(income , spent);
         refreshBudgetText();
         refreshIncomesDatas();
@@ -395,7 +397,7 @@ public class StartActivity extends AppCompatActivity {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace(); // Обрабатываем исключения (например, если формат даты неверный)
+                    e.printStackTrace();
                 }
 
             } while (income.moveToNext());
@@ -408,6 +410,7 @@ public class StartActivity extends AppCompatActivity {
                 String name = spents.getString(spents.getColumnIndexOrThrow("name"));
                 int spentNum = spents.getInt(spents.getColumnIndexOrThrow("monthly_spent"));
                 int day = spents.getInt(spents.getColumnIndexOrThrow("spentday"));
+                int category_id = spents.getInt(spents.getColumnIndexOrThrow("category_id"));
                 String timeToGive = spents.getString(spents.getColumnIndexOrThrow("next"));
 
                 try {
@@ -416,7 +419,7 @@ public class StartActivity extends AppCompatActivity {
                     Date givenDate = sdf.parse(timeToGive);
 
                     if (givenDate != null && !currentDate.before(givenDate)) {
-                        itemsToConfirm.add(new BudgetItem(name, day, spentNum, false));
+                        itemsToConfirm.add(new BudgetItem(name, day, spentNum, false,category_id));
                     }
 
                 } catch (Exception e) {
@@ -544,15 +547,23 @@ public class StartActivity extends AppCompatActivity {
 
         builder.setPositiveButton("Подтвердить", (dialog, which) -> {
             DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+            DatabaseHelper databaseHelper = new DatabaseHelper(this);
+            int day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             for (int i = 0; i < items.size(); i++) {
                 if (checkBoxes.get(i).isChecked()) {
                     BudgetItem item = items.get(i);
                     if (item.isIncome) {
                         int cnt = databaseIncome.setIncomeGiven(item.name, item.date);
                         databaseIncome.addIncome(cnt * item.amount);
+                        for (int j = 0; j < cnt; j++) {
+                            databaseHelper.insertData(day,item.name,-1 * item.amount,0,true);
+                        }
                     } else {
                         databaseIncome.addSpent(item.amount);
-                        databaseIncome.setMonthlySpentGiven(item.name, item.date);
+                        int cnt = databaseIncome.setMonthlySpentGiven(item.name, item.date);
+                        for (int j = 0; j < cnt; j++) {
+                            databaseHelper.insertData(day,item.name,item.amount,0,true,item.category_id);
+                        }
                     }
                 }
             }
@@ -663,18 +674,11 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         databaseHelper.monthchanged();
-        // Получаем данные из базы
-        Cursor incomeCursor = databaseIncome.getIncomeListForSQL();
-        Cursor spentCursor = databaseIncome.getMonthlySpentListForSQL();
 
-        // Сохраняем данные в prevMonth
-        databaseHelper.saveIncomeToPrevMonth(incomeCursor);
-        databaseHelper.saveSpentToPrevMonth(spentCursor);
 
         databaseIncome.resetIncome();
         databaseIncome.resetMonthlySpents();
 
-        databaseIncome.monthchanged();
     }
 }
 

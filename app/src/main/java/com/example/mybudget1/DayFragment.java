@@ -59,9 +59,9 @@ public class DayFragment extends Fragment {
         }
 
         databaseHelper = new DatabaseHelper(requireContext());
-        List<String> items = getDataForDay();
+        List<DayItem> items = getDataForDay();
 
-        if (!items.isEmpty()) {
+        if (items.size() > 0) {
             int currentDay = getArguments().getInt(ARG_DAY);
             DayItemAdapter adapter = new DayItemAdapter(requireContext(), items, currentDay);
             listView.setAdapter(adapter);
@@ -73,19 +73,19 @@ public class DayFragment extends Fragment {
 
         return view;
     }
-    private List<String> getDataForDay() {
-        List<String> data = new ArrayList<>();
+    private List<DayItem> getDataForDay() {
+        List<DayItem> data = new ArrayList<>();
         Cursor cursor = null;
         try {
             cursor = databaseHelper.getData(day, offset);
             if (cursor != null && cursor.moveToFirst()) {
                 do {
+                    int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
                     String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
                     double spent = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
-                    boolean isDone = false;
                     String isDonestr = cursor.getString(cursor.getColumnIndexOrThrow("isdone"));
-                    if (isDonestr.matches("1")) isDone = true;
-                    data.add(name + "-" + spent + "-" + isDone);
+                    boolean isDone = "1".equals(isDonestr);
+                    data.add(new DayItem(id, name, spent, isDone));
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
@@ -95,5 +95,6 @@ public class DayFragment extends Fragment {
         }
         return data;
     }
+
 
 }

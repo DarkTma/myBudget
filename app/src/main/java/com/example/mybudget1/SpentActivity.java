@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class SpentActivity extends AppCompatActivity {
@@ -73,6 +74,8 @@ public class SpentActivity extends AppCompatActivity {
 
 
         btnAddSpent.setOnClickListener(v -> {
+            final int[] selectedCategoryId = {0};
+
             TextView customTitle = new TextView(this);
             customTitle.setText("Добавить трату");
             customTitle.setTextSize(20);
@@ -200,6 +203,36 @@ public class SpentActivity extends AppCompatActivity {
                 public void onNothingSelected(AdapterView<?> parent) {}
             });
 
+            FileHelper fileHelper = new FileHelper(this);
+            List<String> categories = fileHelper.getAllCategories();
+
+            Spinner categorySpinner = new Spinner(this);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            categorySpinner.setAdapter(adapter);
+
+            categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
+            categorySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+            categorySpinner.setDropDownVerticalOffset(10);
+            categorySpinner.setSelection(categories.indexOf("прочее"));
+
+            LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            spinnerParams.setMargins(0, 20, 0, 20);
+            categorySpinner.setLayoutParams(spinnerParams);
+
+            categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    selectedCategoryId[0] = position + 1;
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {}
+            });
+
             // Контейнер для всех элементов
             LinearLayout layout = new LinearLayout(this);
             layout.setOrientation(LinearLayout.VERTICAL);
@@ -286,7 +319,7 @@ public class SpentActivity extends AppCompatActivity {
 
 
                             // Обновляем запись в базе данных
-                            databaseIncome.addMonthlySpent(nameText, finalAmount, selectedDay , customRepeatDays);
+                            databaseIncome.addMonthlySpent(nameText, finalAmount, selectedDay , customRepeatDays, selectedCategoryId[0]);
                             CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                             String currentDate = sdf.format(new Date());
@@ -329,7 +362,8 @@ public class SpentActivity extends AppCompatActivity {
                 int id = income.getInt(income.getColumnIndexOrThrow("id"));
                 double spentNum = income.getDouble(income.getColumnIndexOrThrow("monthly_spent"));
                 int date = income.getInt(income.getColumnIndexOrThrow("spentday"));
-                spentList.add(new SpentItem(id,name, spentNum, date,nextDate));
+                int category_id = income.getInt(income.getColumnIndexOrThrow("category_id"));
+                spentList.add(new SpentItem(id,name, spentNum, date,nextDate,category_id));
             } while (income.moveToNext());
         }
 

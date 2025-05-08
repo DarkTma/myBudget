@@ -36,15 +36,12 @@ public class MonthListActivity extends AppCompatActivity {
             recyclerView = findViewById(R.id.recyclerView);
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-            // Инициализация DatabaseHelper
             databaseHelper = new DatabaseHelper(this);
 
-            // Получаем данные о месяцах (список объектов MonthData)
             SQLiteDatabase db = databaseHelper.getWritableDatabase();
             monthDataList = databaseHelper.getMonthData(db);
 
-            // Устанавливаем адаптер для RecyclerView
-            adapter = new MonthAdapter(this ,monthDataList);  // Передаем список MonthData
+            adapter = new MonthAdapter(this ,monthDataList);
             recyclerView.setAdapter(adapter);
 
             btnBack = findViewById(R.id.buttonBackforMonths);

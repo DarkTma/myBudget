@@ -6,14 +6,16 @@ public class SpentItem {
     private String name;
     private double amount;
     private int date;
+    private int category;
     private boolean active;
 
-    public SpentItem(int id,String name, double amount, int date, String nextDate) {
+    public SpentItem(int id,String name, double amount, int date, String nextDate,int category_id) {
         this.id = id;
         this.name = name;
         this.amount = amount;
         this.date = date;
         this.nextDate = nextDate;
+        this.category = category_id;
     }
 
     public String getName() {
@@ -24,6 +26,10 @@ public class SpentItem {
 
     public int getDate() {
         return date;
+    }
+
+    public int getCategory() {
+        return category;
     }
 
     public int getId() {

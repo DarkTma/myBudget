@@ -118,11 +118,8 @@ public class MaketListActivity extends AppCompatActivity {
                         String currentDate = sdf.format(new Date());
                         databaseHelper.saveNote(currentDate, "выполнен расход:\n" + maket.getName() + " - " + maket.getAmount() + cursd.symbol , "Spent", "add" );
                     } else{
-                        databaseIncome.setIncome(maket.getAmount() , maket.getName() , selectedDay ,false);
-
-                        databaseIncome.setIncomeGiven(maket.getName() , selectedDay);
+                        databaseHelper.insertData(selectedDay, maket.getName(), -1 * maket.getAmount(), 0, true);
                         databaseIncome.addIncome(maket.getAmount());
-                        databaseIncome.deactivateIncome(maket.getName() , selectedDay);
 
                         DatabaseHelper databaseHelper = new DatabaseHelper(MaketListActivity.this);
                         CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
@@ -140,9 +137,180 @@ public class MaketListActivity extends AppCompatActivity {
 
             @Override
             public void onEdit(Maket maket) {
-                // TODO: открыть диалог редактирования
-                Toast.makeText(MaketListActivity.this, "✏️ " + maket.getName(), Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(MaketListActivity.this);
+                builder.setTitle("Редактировать макет");
+
+                final int[] selectedCategoryId = {maket.getCategory_id()};
+                final int[] selectedType = maket.getType().equals("Spent") ? new int[]{0} : new int[]{1};
+
+                LinearLayout layout = new LinearLayout(MaketListActivity.this);
+                layout.setOrientation(LinearLayout.VERTICAL);
+                layout.setPadding(50, 40, 50, 10);
+
+                // Тип: расход/доход
+                LinearLayout typeLayout = new LinearLayout(MaketListActivity.this);
+                typeLayout.setOrientation(LinearLayout.HORIZONTAL);
+                typeLayout.setPadding(0, 0, 0, 20);
+
+                Button btnExpense = new Button(MaketListActivity.this);
+                Button btnIncome = new Button(MaketListActivity.this);
+                btnExpense.setText("Расход");
+                btnIncome.setText("Доход");
+
+                LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+                buttonParams.setMargins(10, 0, 10, 0);
+                btnExpense.setLayoutParams(buttonParams);
+                btnIncome.setLayoutParams(buttonParams);
+
+                typeLayout.addView(btnExpense);
+                typeLayout.addView(btnIncome);
+
+                FileHelper fileHelper = new FileHelper(MaketListActivity.this);
+                List<String> categories = fileHelper.getAllCategories();
+
+                Spinner categorySpinner = new Spinner(MaketListActivity.this);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(MaketListActivity.this, android.R.layout.simple_spinner_item, categories);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                categorySpinner.setAdapter(adapter);
+                categorySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
+                categorySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+                categorySpinner.setDropDownVerticalOffset(10);
+
+                if (selectedCategoryId[0] > 0 && selectedCategoryId[0] <= categories.size()) {
+                    categorySpinner.setSelection(selectedCategoryId[0] - 1);
+                }
+
+                categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        selectedCategoryId[0] = position + 1;
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {}
+                });
+
+                Spinner currencySpinner = new Spinner(MaketListActivity.this);
+                String[] currencies = {"֏", "$", "₽", "元", "€", "¥", "₾"};
+                ArrayAdapter<String> currencyAdapter = new ArrayAdapter<>(MaketListActivity.this, android.R.layout.simple_spinner_item, currencies);
+                currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                currencySpinner.setAdapter(currencyAdapter);
+                currencySpinner.setBackgroundResource(R.drawable.spinner_background_cyan);
+                currencySpinner.setPopupBackgroundResource(R.drawable.spinner_background_cyan);
+
+                String currentCurrencySymbol = databaseIncome.getCurs();
+
+                String selectedSymbol = currentCurrencySymbol;
+                int defaultCurrencyPosition = 0;
+
+                switch (selectedSymbol) {
+                    case "dollar":
+                        selectedSymbol = "$";
+                        defaultCurrencyPosition = 1;
+                        break;
+                    case "rubli":
+                        selectedSymbol = "₽";
+                        defaultCurrencyPosition = 2;
+                        break;
+                    case "yuan":
+                        selectedSymbol = "元";
+                        defaultCurrencyPosition = 3;
+                        break;
+                    case "evro":
+                        selectedSymbol = "€";
+                        defaultCurrencyPosition = 4;
+                        break;
+                    case "jen":
+                        selectedSymbol = "¥";
+                        defaultCurrencyPosition = 5;
+                        break;
+                    case "lari":
+                        selectedSymbol = "₾";
+                        defaultCurrencyPosition = 6;
+                        break;
+                    case "dram":
+                    default:
+                        selectedSymbol = "֏";
+                        defaultCurrencyPosition = 0;
+                        break;
+                }
+                currencySpinner.setSelection(defaultCurrencyPosition);
+
+                EditText nameEdit = new EditText(MaketListActivity.this);
+                nameEdit.setHint("название");
+                nameEdit.setText(maket.getName());
+                nameEdit.setBackgroundResource(R.drawable.edit_text_style);
+                nameEdit.setPadding(20, 20, 20, 20);
+
+                EditText amountEdit = new EditText(MaketListActivity.this);
+                amountEdit.setHint("Сумма");
+                amountEdit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                amountEdit.setText(String.valueOf(maket.getAmount()));
+                amountEdit.setBackgroundResource(R.drawable.edit_text_style);
+                amountEdit.setPadding(20, 20, 20, 20);
+
+                btnExpense.setOnClickListener(v -> {
+                    selectedType[0] = 0;
+                    animateButtonColor(btnExpense, ContextCompat.getColor(MaketListActivity.this, R.color.primary));
+                    animateButtonColor(btnIncome, ContextCompat.getColor(MaketListActivity.this, R.color.my_darkbtn));
+                    categorySpinner.setVisibility(View.VISIBLE);
+                });
+
+                btnIncome.setOnClickListener(v -> {
+                    selectedType[0] = 1;
+                    animateButtonColor(btnIncome, ContextCompat.getColor(MaketListActivity.this, R.color.primary));
+                    animateButtonColor(btnExpense, ContextCompat.getColor(MaketListActivity.this, R.color.my_darkbtn));
+                    categorySpinner.setVisibility(View.GONE);
+                });
+
+                if (maket.getType().equals("Spent")) {
+                    btnExpense.performClick();
+                } else {
+                    btnIncome.performClick();
+                }
+
+                layout.addView(typeLayout);
+                layout.addView(nameEdit);
+                layout.addView(amountEdit);
+                layout.addView(categorySpinner);
+                layout.addView(currencySpinner);
+
+                builder.setView(layout);
+
+                SpannableString positiveButtonText = new SpannableString("Сохранить");
+                positiveButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(MaketListActivity.this, R.color.my_cyan)), 0, positiveButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                SpannableString negativeButtonText = new SpannableString("Отмена");
+                negativeButtonText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(MaketListActivity.this, R.color.my_cyan)), 0, negativeButtonText.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                builder.setPositiveButton(positiveButtonText, (dialog, which) -> {
+                    String newName = nameEdit.getText().toString().trim();
+                    String amountStr = amountEdit.getText().toString().trim();
+
+                    if (!newName.isEmpty() && !amountStr.isEmpty()) {
+                        double amount = Double.parseDouble(amountStr);
+
+                        double finalAmount = amount;
+                        // преобразование валюты при необходимости
+
+                        if (selectedType[0] == 1) {
+                            selectedCategoryId[0] = -1;
+                        }
+
+                        // обновление макета
+                        DatabaseHelper dbHelper = new DatabaseHelper(MaketListActivity.this);
+                        dbHelper.updateMaket(maket.getId(), selectedType[0], newName, finalAmount, selectedCategoryId[0]);
+                        loadMakets();
+                    }
+                });
+
+                builder.setNegativeButton(negativeButtonText, null);
+
+                AlertDialog dialog = builder.create();
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+                dialog.show();
             }
+
 
             @Override
             public void onDelete(Maket maket) {

@@ -497,36 +497,25 @@ public class GeminiChatActivity extends AppCompatActivity {
 
     }
 
-    public String getFormatedMonthString(){
+    public String getFormatedMonthString() {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         FileHelper fileHelper = new FileHelper(this);
+        DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
         CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+
         String oldpart = getFormattedExpenseString(1);
-        List<MonthDetailData> detailList;
-        detailList = databaseHelper.getIncomesAndMonthlySpents();
         StringBuilder incomePart = new StringBuilder("Доходы за это время — ");
-        StringBuilder spentPart = new StringBuilder("Ежемесячные траты за это время — ");
 
+        List<MonthDetailData> incomeList = databaseHelper.getCorrentIncomes();
         boolean hasIncome = false;
-        boolean hasSpent = false;
 
-        for (MonthDetailData item : detailList) {
-            if ("Income".equals(item.getType())) {
-                incomePart.append(item.getName())
-                        .append(": ")
-                        .append((int)item.getAmount())
-                        .append(curs.symbol)
-                        .append(" , ");
-                hasIncome = true;
-            } else if ("MSpent".equals(item.getType())) {
-                spentPart.append(item.getName())
-                        .append(": ")
-                        .append((int)item.getAmount())
-                        .append(curs.symbol)
-                        .append(" , ");
-                hasSpent = true;
-            }
+        for (MonthDetailData item : incomeList) {
+            incomePart.append(item.getName())
+                    .append(": ")
+                    .append((int) item.getAmount())
+                    .append(curs.symbol)
+                    .append(" , ");
+            hasIncome = true;
         }
 
         if (hasIncome) {
@@ -536,15 +525,10 @@ public class GeminiChatActivity extends AppCompatActivity {
             incomePart.append("отсутствуют.");
         }
 
-        if (hasSpent) {
-            int last = spentPart.length();
-            spentPart.replace(last - 2, last, ".");
-        } else {
-            spentPart.append("отсутствуют.");
-        }
-
-        return oldpart + incomePart.toString() + " " + spentPart.toString();
+        return oldpart + incomePart.toString();
     }
+
+
 
 
     private void initFakeProgress() {

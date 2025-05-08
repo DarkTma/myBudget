@@ -147,9 +147,21 @@ public class NotesActivity extends AppCompatActivity {
 
         cursor.close();
 
+        // ✅ Сортировка по дате и времени
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+        allNotes.sort((note1, note2) -> {
+            try {
+                Date date1 = sdf.parse(note1.getTriggerAtMillis());
+                Date date2 = sdf.parse(note2.getTriggerAtMillis());
+                return date2.compareTo(date1); // от новых к старым
+            } catch (Exception e) {
+                return 0; // если ошибка — не сортируем
+            }
+        });
 
         filteredNotes.addAll(allNotes);
     }
+
 
     private void setupSearch() {
         searchEditText.addTextChangedListener(new TextWatcher() {

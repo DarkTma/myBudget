@@ -60,8 +60,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createTable(db, prevMonthTable);
         createTable(db, currentMonthTable);
         createTable(db, nextMonthTable);
-        createIncomeTable(db, prevMonthTable);
-        createSpentTable(db, prevMonthTable);
         createMaketTable(db);
         createReminder(db);
         createNotes(db);
@@ -148,16 +146,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private void updateMonthTables(SQLiteDatabase db) {
         db.beginTransaction(); // Начинаем транзакцию
         try {
-            // Загружаем список существующих таблиц (от нового к старому)
+
             List<String> monthTables = getMonthTables();
 
-            // Генерируем имя для нового месяца на основе первого элемента списка
             String newMonth = generateNextMonthName(monthTables.get(0));
 
-            // Добавляем новый месяц в начало списка
             monthTables.add(0, newMonth);
 
-            // Создаем новую таблицу
+
             createTable(db, newMonth);
             Log.d("SQLite", "Создана новая таблица: " + newMonth);
 
@@ -167,9 +163,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 currentMonthTable = monthTables.get(1);
                 prevMonthTable = monthTables.get(2);
 
-                // Создаем таблицы для доходов и расходов в prevMonth
-                createIncomeTable(db, prevMonthTable);
-                createSpentTable(db, prevMonthTable);
 
                 Log.d("SQLite", "Next: " + nextMonthTable);
                 Log.d("SQLite", "Current: " + currentMonthTable);
@@ -188,7 +181,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try {
             FileOutputStream fos = context.openFileOutput("categories.txt", Context.MODE_PRIVATE);
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
-            writer.write("прочее");  // Записываем дефолтную категорию в файл
+            writer.write("прочее");
             writer.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -202,36 +195,41 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         while (cursor.moveToNext()) {
             String tableName = cursor.getString(0);
 
-            // Проверяем, существует ли таблица для доходов (income) и расходов (spent)
-            if (tableExists(db, tableName + "_income") && tableExists(db, tableName + "_spent")) {
-                // Получаем информацию о доходах и расходах
-                double totalIncome = getTotalIncomeForMonth(db, tableName);
-                double totalSpent = getTotalSpentForMonth(db, tableName);
-                double spents = getAllSpentsForMonth(db , tableName);
-                double allSpents = (totalSpent + spents);
+            if (tableName.endsWith("_spent") || tableName.endsWith("_income")) {
+                continue;
+            }
 
-                // Создаем объект MonthData и добавляем его в список
-                monthDataList.add(new MonthData(tableName, (int) totalIncome, allSpents));
-            } else{
-                long count = tableName.chars().filter(ch -> ch == '_').count();
-                if (count == 2) {
-                    double spents = getAllSpentsForMonth(db, tableName);
-                    double income = 0;
-                    if (tableName.equals(currentMonthTable)) {
-                        DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-                        Cursor incomeCursor = databaseIncome.getIncomeListForSQL();
-                        Cursor spentCursor = databaseIncome.getMonthlySpentListForSQL();
-                        income = getIncomeFromMonth(incomeCursor);
-                        spents += getSpentFromMonth(spentCursor);
-                    }
-                    monthDataList.add(new MonthData(tableName, income, spents));
+            double totalIncome = 0;
+            double totalSpent = 0;
+
+            Cursor dataCursor = db.rawQuery("SELECT spent, isdone FROM " + tableName, null);
+
+            while (dataCursor.moveToNext()) {
+                double amount = dataCursor.getDouble(0);
+                boolean isDone = dataCursor.getInt(dataCursor.getColumnIndexOrThrow("isdone")) == 1;
+
+                if (!isDone) {
+                    continue;
+                }
+
+                if (amount < 0) {
+                    totalIncome += Math.abs(amount);
+                } else {
+                    totalSpent += amount;
                 }
             }
+
+            dataCursor.close();
+
+            monthDataList.add(new MonthData(tableName, totalIncome, totalSpent));
         }
 
         cursor.close();
         return monthDataList;
     }
+
+
+
 
     private double getAllSpentsForMonth(SQLiteDatabase db, String tableName) {
         Cursor cursor = db.rawQuery("SELECT SUM(spent) FROM " + tableName, null);
@@ -531,7 +529,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private void createTable(SQLiteDatabase db, String tableName) {
         String createTable = "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_CATEGORY + " INTEGER DEFAULT 0, " +
+                COLUMN_CATEGORY + " INTEGER, " +
                 COLUMN_DAY + " INTEGER, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_DESCR + " TEXT DEFAULT '', " +
@@ -566,9 +564,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return "month_" + year + "_" + month;
     }
 
-    // Метод для добавления данных
-    public boolean insertData(int day, String name, double spent, int offset , boolean isDone , int category) {
+    public boolean insertData(int day, String name, double spent, int offset, boolean isDone, int category) {
         String tableName;
+
         if (offset == -1) {
             tableName = prevMonthTable;
         } else if (offset == 0) {
@@ -579,95 +577,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        // Проверяем, существует ли уже такая запись
-        Cursor getheredData = db.rawQuery(
-                "SELECT * FROM " + tableName +
-                        " WHERE " + COLUMN_DAY + " = ? AND " + COLUMN_NAME + " LIKE ?",
-                new String[]{String.valueOf(day), name + "%"} // Ищем совпадения по имени
-        );
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_DAY, day);
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_SPENT, spent);
+        contentValues.put(COLUMN_CATEGORY, category);
+        contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
 
-        double spentData = 0;
-        boolean exists = false;
-        boolean waschanged = false;
-        int count = 0;
-        String newName = name;
-        String namePred = "";
-        long result = 0;
-
-        if (getheredData.moveToFirst()) {
-            spentData = getheredData.getInt(getheredData.getColumnIndexOrThrow(COLUMN_SPENT));
-            exists = false;
-
-            // Проверяем, есть ли уже счетчик в имени (например, "name(3)")
-            do {
-                String existingName = getheredData.getString(getheredData.getColumnIndexOrThrow(COLUMN_NAME));
-                if (existingName.matches(name + "\\(\\d+\\)")  || existingName.equals(name) ) {
-                    // Извлекаем число из скобок
-                    if (existingName.matches(name + "\\(\\d+\\)")) {
-                        String number = existingName.replaceAll("[^0-9]", "");
-                        count = Math.max(count, Integer.parseInt(number));
-                        count++; // Увеличиваем счетчик
-                        newName = name + "(" + count + ")"; // Формируем новое имя
-                        namePred = name + "(" + (count - 1) + ")";
-                        waschanged = true;
-                    }else {
-                        count = 2;
-                        newName = name + "(" + count + ")";
-                    }
-
-
-                    getheredData.close(); // Закрываем курсор
-
-                    spent += spentData; // Обновляем сумму затрат
-
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(COLUMN_DAY, day);
-                    contentValues.put(COLUMN_NAME, newName);
-                    contentValues.put(COLUMN_SPENT, spent);
-                    contentValues.put(COLUMN_CATEGORY, category);
-                    if (isDone){
-                        contentValues.put(COLUMN_DONE, true);
-                    } else {
-                        contentValues.put(COLUMN_DONE, false);
-                    }
-
-
-                    if (waschanged){
-                        result = db.update(tableName, contentValues,
-                                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
-                                new String[]{String.valueOf(day), namePred});
-                    }else {
-                        result = db.update(tableName, contentValues,
-                                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
-                                new String[]{String.valueOf(day), name});
-                    }
-
-                    exists = true;
-                }
-            } while (getheredData.moveToNext());
-        }
-        getheredData.close(); // Закрываем курсор
-
-        if (!exists){
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(COLUMN_DAY, day);
-            contentValues.put(COLUMN_NAME, name);
-            contentValues.put(COLUMN_SPENT, spent);
-            contentValues.put(COLUMN_CATEGORY, category);
-            if (isDone){
-                contentValues.put(COLUMN_DONE, true);
-            } else {
-                contentValues.put(COLUMN_DONE, false);
-            }
-
-            result = db.insert(tableName, null, contentValues);
-        }
+        long result = db.insert(tableName, null, contentValues);
 
         return result != -1;
     }
 
-    public boolean insertData(int day, String name, double spent, int offset , boolean isDone , int category, String descr) {
+
+    public boolean insertData(int day, String name, double spent, int offset, boolean isDone) {
         String tableName;
+
         if (offset == -1) {
             tableName = prevMonthTable;
         } else if (offset == 0) {
@@ -678,94 +603,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        // Проверяем, существует ли уже такая запись
-        Cursor getheredData = db.rawQuery(
-                "SELECT * FROM " + tableName +
-                        " WHERE " + COLUMN_DAY + " = ? AND " + COLUMN_NAME + " LIKE ?",
-                new String[]{String.valueOf(day), name + "%"} // Ищем совпадения по имени
-        );
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_DAY, day);
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_SPENT, spent);
+        contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
 
-        double spentData = 0;
-        boolean exists = false;
-        boolean waschanged = false;
-        int count = 0;
-        String newName = name;
-        String namePred = "";
-        long result = 0;
-
-        if (getheredData.moveToFirst()) {
-            spentData = getheredData.getInt(getheredData.getColumnIndexOrThrow(COLUMN_SPENT));
-            exists = false;
-
-            // Проверяем, есть ли уже счетчик в имени (например, "name(3)")
-            do {
-                String existingName = getheredData.getString(getheredData.getColumnIndexOrThrow(COLUMN_NAME));
-                if (existingName.matches(name + "\\(\\d+\\)")  || existingName.equals(name) ) {
-                    // Извлекаем число из скобок
-                    if (existingName.matches(name + "\\(\\d+\\)")) {
-                        String number = existingName.replaceAll("[^0-9]", "");
-                        count = Math.max(count, Integer.parseInt(number));
-                        count++; // Увеличиваем счетчик
-                        newName = name + "(" + count + ")"; // Формируем новое имя
-                        namePred = name + "(" + (count - 1) + ")";
-                        waschanged = true;
-                    }else {
-                        count = 2;
-                        newName = name + "(" + count + ")";
-                    }
-
-
-                    getheredData.close(); // Закрываем курсор
-
-                    spent += spentData; // Обновляем сумму затрат
-
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(COLUMN_DAY, day);
-                    contentValues.put(COLUMN_DESCR, descr);
-                    contentValues.put(COLUMN_NAME, newName);
-                    contentValues.put(COLUMN_SPENT, spent);
-                    contentValues.put(COLUMN_CATEGORY, category);
-                    if (isDone){
-                        contentValues.put(COLUMN_DONE, true);
-                    } else {
-                        contentValues.put(COLUMN_DONE, false);
-                    }
-
-
-                    if (waschanged){
-                        result = db.update(tableName, contentValues,
-                                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
-                                new String[]{String.valueOf(day), namePred});
-                    }else {
-                        result = db.update(tableName, contentValues,
-                                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
-                                new String[]{String.valueOf(day), name});
-                    }
-
-                    exists = true;
-                }
-            } while (getheredData.moveToNext());
-        }
-        getheredData.close(); // Закрываем курсор
-
-        if (!exists){
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(COLUMN_DAY, day);
-            contentValues.put(COLUMN_DESCR, descr);
-            contentValues.put(COLUMN_NAME, name);
-            contentValues.put(COLUMN_SPENT, spent);
-            contentValues.put(COLUMN_CATEGORY, category);
-            if (isDone){
-                contentValues.put(COLUMN_DONE, true);
-            } else {
-                contentValues.put(COLUMN_DONE, false);
-            }
-
-            result = db.insert(tableName, null, contentValues);
-        }
+        long result = db.insert(tableName, null, contentValues);
 
         return result != -1;
     }
+
+
+    public boolean insertData(int day, String name, double spent, int offset, boolean isDone, int category, String descr) {
+        String tableName;
+
+        if (offset == -1) {
+            tableName = prevMonthTable;
+        } else if (offset == 0) {
+            tableName = currentMonthTable;
+        } else {
+            tableName = nextMonthTable;
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_DAY, day);
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_SPENT, spent);
+        contentValues.put(COLUMN_CATEGORY, category);
+        contentValues.put(COLUMN_DESCR, descr);
+        contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
+
+        long result = db.insert(tableName, null, contentValues);
+
+        return result != -1;
+    }
+
 
     // Метод для получения данных
     public Cursor getData(int day, int offset) {
@@ -809,7 +684,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public boolean updateData(String itemName, int currentDay, String newName, double newSpent , int offset , int category) {
+    public boolean updateData(int id, int currentDay, String newName, double newSpent , int offset , int category) {
         String tableName;
         if (offset == -1) {
             tableName = prevMonthTable;
@@ -821,7 +696,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         int day = currentDay;
-        String oldName = itemName;
 
         contentValues.put(COLUMN_NAME, newName);
         contentValues.put(COLUMN_SPENT, newSpent);
@@ -831,8 +705,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int result = db.update(
                 tableName,
                 contentValues,
-                COLUMN_DAY + " = ? AND " + COLUMN_NAME + " = ?",
-                new String[]{String.valueOf(day), oldName}
+                COLUMN_ID + " = ? ",
+                new String[]{String.valueOf(id)}
+        );
+
+        return result > 0; // Если обновлено хотя бы 1 строка, вернет true
+    }
+
+    public boolean updateData(int id, int currentDay, String newName, double newSpent , int offset) {
+        String tableName;
+        if (offset == -1) {
+            tableName = prevMonthTable;
+        } else if (offset == 0) {
+            tableName = currentMonthTable;
+        } else {
+            tableName = nextMonthTable;
+        }
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(COLUMN_NAME, newName);
+        contentValues.put(COLUMN_SPENT, newSpent);
+
+        // Обновляем запись, где день и старое имя совпадают
+        int result = db.update(
+                tableName,
+                contentValues,
+                COLUMN_ID + " = ? ",
+                new String[]{String.valueOf(id)}
         );
 
         return result > 0; // Если обновлено хотя бы 1 строка, вернет true
@@ -858,19 +758,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public double checkAllSpents(int offset){
+    public double checkAllSpents(int offset) {
         String tableNameforDay = currentMonthTable;
         if (offset == -1) {
             tableNameforDay = prevMonthTable;
         }
+
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor spenti;
         double sum = 0;
+
         for (int i = 0; i < 31; i++) {
-            spenti = db.rawQuery("SELECT " + COLUMN_SPENT + " FROM " + tableNameforDay + " WHERE " + COLUMN_ID + " = ?", new String[]{String.valueOf(i)});
+            spenti = db.rawQuery(
+                    "SELECT " + COLUMN_SPENT + " FROM " + tableNameforDay + " WHERE " + COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(i)}
+            );
 
             if (spenti.moveToFirst()) {
-                sum += spenti.getDouble(0);
+                double value = spenti.getDouble(0);
+                if (value >= 0) {
+                    sum += value;
+                }
             }
 
             spenti.close();
@@ -879,12 +787,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return sum;
     }
 
-    public double getDoneSpents(int start , int end){
+
+    public double getDoneSpents(int start, int end) {
         String tableName = currentMonthTable;
         SQLiteDatabase db = this.getWritableDatabase();
 
         String query = "SELECT SUM(spent) FROM " + tableName +
-                " WHERE isdone = 1 AND day BETWEEN ? AND ?";
+                " WHERE isdone = 1 AND day BETWEEN ? AND ? AND spent >= 0";
 
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(start), String.valueOf(end)});
         double totalSpent = 0;
@@ -907,12 +816,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-    public double getNotDoneSpents(int start , int end){
+    public double getNotDoneSpents(int start, int end) {
         String tableName = currentMonthTable;
         SQLiteDatabase db = this.getWritableDatabase();
 
         String query = "SELECT SUM(spent) FROM " + tableName +
-                " WHERE isdone = 0 AND day BETWEEN ? AND ?";
+                " WHERE isdone = 0 AND day BETWEEN ? AND ? AND spent >= 0";
 
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(start), String.valueOf(end)});
         double totalSpent = 0;
@@ -923,6 +832,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return totalSpent;
     }
+
 
     public double getAllSpents(int start, int end){
         double all = getNotDoneSpents(start , end) + getDoneSpents(start , end);
@@ -1044,101 +954,41 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<MonthDetailData> getMonthDetailData(SQLiteDatabase db, String monthTable) {
         List<MonthDetailData> detailList = new ArrayList<>();
 
-        // Запрос для доходов
-        if (tableExists(db , monthTable + "_income" )) {
-            String incomeQuery = "SELECT name, income, day FROM " + monthTable + "_income ORDER BY day ASC";
-            Cursor cursor = db.rawQuery(incomeQuery, null);
+        // Запрос для доходов и расходов в одной таблице
+        String query = "SELECT name, spent, day, category_id, isdone FROM " + monthTable + " WHERE isdone = 1 ORDER BY day ASC";
+        Cursor cursor = db.rawQuery(query, null);
 
-            if (cursor.moveToFirst()) {
-                do {
-                    String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("income"));
-                    int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+        if (cursor.moveToFirst()) {
+            do {
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
+                int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
+                boolean isDone = cursor.getInt(cursor.getColumnIndexOrThrow("isdone")) == 1;
+
+                if (!isDone) {
+                    continue;
+                }
+
+                if (amount < 0) {
+                    amount = Math.abs(amount);
                     detailList.add(new MonthDetailData("Income", name, amount, day, "доход"));
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-
-            // Запрос для расходов
-            String spentQuery = "SELECT name, monthly_spent , day FROM " + monthTable + "_spent ORDER BY day ASC";
-            cursor = db.rawQuery(spentQuery, null);
-
-            if (cursor.moveToFirst()) {
-                do {
-                    String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("monthly_spent"));
-                    int day = cursor.getInt(cursor.getColumnIndexOrThrow("spentday"));
-                    detailList.add(new MonthDetailData("MSpent", name, amount, day, "ежемесечная трата"));
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-
-            String spentdaysQuery = "SELECT name , spent , day , category_id FROM " + monthTable + " ORDER BY day ASC";
-            cursor = db.rawQuery(spentdaysQuery, null);
-
-            if (cursor.moveToFirst()) {
-                do {
-                    String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
-                    int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
-                    int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
+                } else {
+                    // Обычные расходы
                     FileHelper fileHelper = new FileHelper(context);
                     String categoryName = fileHelper.getCategoryNameById(category_id);
                     detailList.add(new MonthDetailData("Spent", name, amount, day, categoryName));
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-        } else {
-            String spentQuery = "SELECT name, spent, day, category_id FROM " + monthTable + " ORDER BY day ASC";
-            Cursor cursor = db.rawQuery(spentQuery, null);
-
-            if (cursor.moveToFirst()) {
-                do {
-                    String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
-                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
-                    int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
-                    int category_id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id"));
-                    FileHelper fileHelper = new FileHelper(context);
-                    String categoryName = fileHelper.getCategoryNameById(category_id);
-                    detailList.add(new MonthDetailData("Spent", name, amount, day, categoryName));
-                } while (cursor.moveToNext());
-            }
-            cursor.close();
-
-            if (monthTable.equals(currentMonthTable)){
-                DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
-                Cursor incomeCursor = databaseIncome.getIncomeListForSQL();
-                if (incomeCursor.moveToFirst()) {
-                    do {
-                        String name = incomeCursor.getString(incomeCursor.getColumnIndexOrThrow("name"));
-                        double amount = incomeCursor.getDouble(incomeCursor.getColumnIndexOrThrow("income"));
-                        int count = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("count"));
-                        int day = incomeCursor.getInt(incomeCursor.getColumnIndexOrThrow("incomeday"));
-                        for (int i = 0; i < count; i++) {
-                            detailList.add(new MonthDetailData("Income", name, amount, day, "доход"));
-                        }
-                    } while (incomeCursor.moveToNext());
                 }
-                incomeCursor.close();
-
-                Cursor SpentCursor = databaseIncome.getMonthlySpentListForSQL();
-                if (SpentCursor.moveToFirst()) {
-                    do {
-                        String name = SpentCursor.getString(SpentCursor.getColumnIndexOrThrow("name"));
-                        double amount = SpentCursor.getDouble(SpentCursor.getColumnIndexOrThrow("monthly_spent"));
-                        int day = SpentCursor.getInt(SpentCursor.getColumnIndexOrThrow("spentday"));
-                        detailList.add(new MonthDetailData("MSpent", name, amount, day, "ежемесечная трата"));
-                    } while (SpentCursor.moveToNext());
-                }
-                SpentCursor.close();
-            }
+            } while (cursor.moveToNext());
         }
+        cursor.close();
 
-        // Сортируем список по дню
         Collections.sort(detailList, (d1, d2) -> Integer.compare(d1.getDay(), d2.getDay()));
 
         return detailList;
     }
+
+
 
 
     public List<MonthDetailData> getIncomesAndMonthlySpents() {
@@ -1208,26 +1058,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return true;
     }
 
-    public double getIncomeFromMonth(Cursor cursor) {
-        double totalIncome = 0.0;
+    public List<MonthDetailData> getCorrentIncomes() {
+        SQLiteDatabase db = this.getWritableDatabase();
 
-        if (cursor != null && cursor.moveToFirst()) {
+        List<MonthDetailData> incomeList = new ArrayList<>();
+
+        Cursor cursor = db.rawQuery(
+                "SELECT name, spent, day FROM " + currentMonthTable + " WHERE spent < 0 AND isdone = 1",
+                null
+        );
+
+        if (cursor.moveToFirst()) {
             do {
-                double income = cursor.getDouble(cursor.getColumnIndexOrThrow("income"));
-                int count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                double amount = Math.abs(cursor.getDouble(cursor.getColumnIndexOrThrow("spent")));
+                int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
 
-                // Вставляем данные и суммируем общий доход
-                for (int i = 0; i < count; i++) {
-                    totalIncome += income;
-                }
+                incomeList.add(new MonthDetailData("Income", name, amount, day, "доход"));
             } while (cursor.moveToNext());
         }
 
-        if (cursor != null) {
-            cursor.close();
-        }
-
-        return totalIncome;
+        cursor.close();
+        return incomeList;
     }
 
     public double getSpentFromMonth(Cursor cursor) {
@@ -1283,6 +1135,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return maketList;
     }
+
+    public void updateMaket(int id, int type, String name, double amount, int categoryId) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("type", type);
+        values.put("name", name);
+        values.put("amount", amount);
+        values.put("category_id", categoryId);
+        db.update("makets", values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
 
     public void saveReminder(long timestamp, String name , int requestCode) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -1481,7 +1344,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             String imageUri = cursor.getString(cursor.getColumnIndexOrThrow("imagePath"));
 
             // Создание объекта Goal
-            goal = new Goal(id, title, correntAmount, amount, imageUri);
+            goal = new Goal(id, title, amount, correntAmount, imageUri);
         }
 
         // Закрытие курсора и базы данных

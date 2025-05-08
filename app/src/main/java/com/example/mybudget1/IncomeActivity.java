@@ -388,13 +388,14 @@ public class IncomeActivity extends AppCompatActivity {
                     continue; // пропускаем деактивированные записи
                 }
 
+                int id = income.getInt(income.getColumnIndexOrThrow("id"));
                 String name = income.getString(income.getColumnIndexOrThrow("name"));
                 double incomeNum = income.getDouble(income.getColumnIndexOrThrow("income"));
                 int date = income.getInt(income.getColumnIndexOrThrow("incomeday"));
                 String once = income.getString(income.getColumnIndexOrThrow("onceincome"));
                 boolean x = "1".equals(once);
 
-                incomeList.add(new IncomeItem(name, incomeNum, date, x));
+                incomeList.add(new IncomeItem(id,name, incomeNum, date, x));
             } while (income.moveToNext());
         }
 

@@ -178,7 +178,18 @@ public class ScanReceiptActivity extends AppCompatActivity {
         }
 
         String apiKey = "AIzaSyDbDjzTS9neanGArHGyI2ey7fR5zyTshcg";  // Твой API-ключ
-        String promptText = "Проанализируй данные , игнорируй ненужные символы , итог должен быть в чеке , если его нет вычти сам ,  другие данные мне не нужны , в канце в обязательно в квадратных скопках запиши итог из чека - неважно какие у тебя расчеты если есть итог в чеке то запиши обезательно его , если некоторые числа с минусом значит вычитай их , если есть какие то странности или сомнения о чем стоит знать пользовотелю запиши их в канце после знака '^', затем поставь еше '^' и запиши число из  квадратных скобок(только число) , так же больше негде не исползуй етот нак '^':\n\n" + receiptText;
+//        String promptText = "Проанализируй данные , игнорируй ненужные символы , итог должен быть в чеке , если его нет вычти сам ,  другие данные мне не нужны , дай название расходу по своим умотрениям, в канце в обязательно в квадратных скопках запиши итог из чека - неважно какие у тебя расчеты если есть итог в чеке то запиши обезательно его , если некоторые числа с минусом значит вычитай их , если есть какие то странности или сомнения о чем стоит знать пользовотелю запиши их в канце после знака '^', затем поставь еше '^' и запиши число из  квадратных скобок(только число) , так же больше негде не исползуй етот нак '^':\n\n" + receiptText;
+        String promptText = "Проанализируй чек. Игнорируй ненужные символы. Если есть итог — используй его, иначе вычисли сам. " +
+                "Назови расход по своему усмотрению. Выведи в следующем формате:\n\n" +
+                "НАИМЕНОВАНИЕ: <твоё название>\n" +
+                "ПОЗИЦИИ:\n" +
+                "- товар 1: сумма\n" +
+                "- товар 2: сумма\n" +
+                "...\n" +
+                "ИТOГ: [сумма]\n" +
+                "^пояснение, если есть^\n" +
+                "^число из итоговой суммы^\n\n" +
+                "Чек:\n" + receiptText;
 
         // Новый формат JSON
         JsonObject textPart = new JsonObject();
@@ -244,34 +255,82 @@ public class ScanReceiptActivity extends AppCompatActivity {
         ButtonsLayout.setVisibility(View.VISIBLE);
         podskazka.setVisibility(View.VISIBLE);
 
-        String[] parts = result.split("\\^", 3);
-        String mainText = parts[0].trim();
-        String infoText = parts.length > 1 ? parts[1].trim() : "";
-        String summ = parts.length > 2 ? parts[2].trim() : "";
-
-        Pattern numberPattern = Pattern.compile("([\\d]+(?:[\\.,][\\d]+)?)");
-        Matcher numberMatcher = numberPattern.matcher(summ);
-
-        String onlyNumber = "";
-        if (numberMatcher.find()) {
-            onlyNumber = numberMatcher.group(1); // например: "2440.5" или "123,45"
-            editSum.setText(onlyNumber);
+//        String[] parts = result.split("\\^", 3);
+//        String mainText = parts[0].trim();
+//        String infoText = parts.length > 1 ? parts[1].trim() : "";
+//        String summ = parts.length > 2 ? parts[2].trim() : "";
+//
+//        Pattern numberPattern = Pattern.compile("([\\d]+(?:[\\.,][\\d]+)?)");
+//        Matcher numberMatcher = numberPattern.matcher(summ);
+//
+//        String onlyNumber = "";
+//        if (numberMatcher.find()) {
+//            onlyNumber = numberMatcher.group(1); // например: "2440.5" или "123,45"
+//            editSum.setText(onlyNumber);
+//        }
+//
+//
+//        if (mainText.isEmpty()){
+//            nameText.setText("чек");
+//        } else {
+//            nameText.setText(mainText);
+//        }
+        // Название
+        String title = "";
+        Pattern titlePattern = Pattern.compile("НАИМЕНОВАНИЕ:\\s*(.+)");
+        Matcher titleMatcher = titlePattern.matcher(result);
+        if (titleMatcher.find()) {
+            title = titleMatcher.group(1).trim();
         }
 
+// Список позиций
+        List<String> items = new ArrayList<>();
+        Pattern itemsPattern = Pattern.compile("-\\s*(.+?):\\s*([\\d\\.,\\-]+)");
+        Matcher itemsMatcher = itemsPattern.matcher(result);
+        while (itemsMatcher.find()) {
+            String itemLine = itemsMatcher.group(1).trim() + ": " + itemsMatcher.group(2).trim();
+            items.add(itemLine);
+        }
 
-        if (mainText.isEmpty()){
-            nameText.setText("неудалось нечего распазнать");
+// Итог в скобках
+        String total = "";
+        Pattern totalPattern = Pattern.compile("ИТОГ:\\s*\\[(.+?)\\]");
+        Matcher totalMatcher = totalPattern.matcher(result);
+        if (totalMatcher.find()) {
+            total = totalMatcher.group(1).trim();
+        }
+
+// Пояснение
+        String note = "";
+        Pattern notePattern = Pattern.compile("\\^(.*?)\\^");
+        Matcher noteMatcher = notePattern.matcher(result);
+        if (noteMatcher.find()) {
+            note = noteMatcher.group(1).trim();
+        }
+
+// Число из итога
+        String onlyNumber = "";
+        if (noteMatcher.find()) { // повторный вызов для второго ^
+            onlyNumber = noteMatcher.group(1).trim();
+            editSum.setText(onlyNumber);
         }
         infoLayaut.setVisibility(View.VISIBLE);
 
         infoBtn.setVisibility(View.VISIBLE);
+        String finalNote = note;
         infoBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Информация")
-                    .setMessage(infoText)
+                    .setMessage(finalNote)
                     .setPositiveButton("ОК", null)
                     .show();
         });
+
+        if (title.isEmpty()){
+            nameText.setText("чек");
+        } else {
+            nameText.setText(title);
+        }
 
 
         // СПИННЕР КАТЕГОРИЙ
@@ -415,12 +474,11 @@ public class ScanReceiptActivity extends AppCompatActivity {
 
 
             if(selectedType[0] == 0) {
-                databaseHelper.insertData(day, nameT, finalAmount, 0, true, selectedCategoryId[0]);
+                databaseHelper.insertData(day, nameT, finalAmount, 0, true, selectedCategoryId[0],finalNote);
                 databaseIncome.addSpent(finalAmount);
                 Toast.makeText(this, "росход добавлен", Toast.LENGTH_SHORT).show();
             } else {
-                databaseIncome.setIncome(finalAmount,nameT,day,false);
-                databaseIncome.setIncomeGiven(nameT,day);
+                databaseHelper.insertData(day, nameT, -1 * finalAmount, 0, true);
                 databaseIncome.addIncome(finalAmount);
                 Toast.makeText(this, "доход добавлен", Toast.LENGTH_SHORT).show();
             }

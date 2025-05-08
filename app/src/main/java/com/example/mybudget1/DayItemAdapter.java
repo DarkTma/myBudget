@@ -3,8 +3,10 @@ package com.example.mybudget1;
 import static androidx.core.app.PendingIntentCompat.getActivity;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.text.Editable;
 import android.text.Html;
@@ -39,22 +41,20 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class DayItemAdapter extends ArrayAdapter<String> {
+public class DayItemAdapter extends ArrayAdapter<DayItem> {
     private Context context;
-    private List<String> items;
+    private List<DayItem> items;
     private int currentDay; // Добавляем текущий день, для которого отображаются элементы
     private Context activity;
     private int selectedPosition = -1;
 
-    public DayItemAdapter(Context context, List<String> items, int currentDay) {
-        super(context, R.layout.list_item, items);
+    public DayItemAdapter(Context context, List<DayItem> items, int currentDay) {
+        super(context, R.layout.list_item , items);
         this.context = context;
         this.items = items;
         this.currentDay = currentDay; // Сохраняем текущий день
@@ -73,48 +73,45 @@ public class DayItemAdapter extends ArrayAdapter<String> {
         ImageButton buttonEdit = convertView.findViewById(R.id.buttonEdit);
         ImageButton buttonDelete = convertView.findViewById(R.id.buttonDelete);
         ImageButton buttonNotif = convertView.findViewById(R.id.buttonNotifications);
+        LinearLayout buttonContainer = convertView.findViewById(R.id.buttonContainer);
+        LinearLayout nameConteiner = convertView.findViewById(R.id.nameConteiner);
         CheckBox checkBox = convertView.findViewById(R.id.isComplete);
 
 
-
-        // Получаем данные элемента
-        String itemText = items.get(position);
-        String[] itemparts = itemText.split("-");
-
-        if (itemparts.length < 3) {
-            Log.e("Adapter", "Неверный формат данных: " + itemText);
-            return convertView;
-        }
-
-        String name = itemparts[0];
-        String price = itemparts[1];
-        boolean isChecked = itemparts[2].equals("true");
+        DayItem item = items.get(position);
+        String name = item.getName();
+        double price = item.getSpent();
+        boolean isChecked = item.isDone();
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
         CursData data = CursHelper.getCursData(databaseIncome.getCurs());
-        String priceString = price.replaceAll("[^\\d.]", "");
-        double DefaultSpent = Double.parseDouble(priceString);
+        double DefaultSpent = price;
         double converted = DefaultSpent * data.rate;
         double finalA = Math.round(converted * 100.0) / 100.0;
-        String result = finalA + " " + data.symbol;
+        double valueТ = -1 * finalA;
+        String result = String.format("%+.2f %s", valueТ, data.symbol);
 
-        // Устанавливаем данные в View
+
+
         textViewItemName.setText(name);
         textViewItemPrice.setText(result);
         checkBox.setChecked(isChecked);
 
-        // Устанавливаем цвет текста в зависимости от состояния CheckBox
-        int textColor = isChecked ? Color.GREEN : Color.RED;
+        boolean isIncome = price < 0;
+        int textColor = isIncome ? Color.GREEN : Color.RED;
         textViewItemName.setTextColor(textColor);
         textViewItemPrice.setTextColor(textColor);
+        if (!isChecked){
+            textViewItemName.setTextColor(Color.GRAY);
+            textViewItemPrice.setTextColor(Color.GRAY);
+        }
+
 
         if (position == selectedPosition) {
-            buttonEdit.setVisibility(View.VISIBLE);
-            buttonDelete.setVisibility(View.VISIBLE);
-            buttonNotif.setVisibility(View.VISIBLE);
+            buttonContainer.setVisibility(View.VISIBLE);
+            nameConteiner.setVisibility(View.GONE);
         } else {
-            buttonEdit.setVisibility(View.GONE);
-            buttonDelete.setVisibility(View.GONE);
-            buttonNotif.setVisibility(View.GONE);
+            buttonContainer.setVisibility(View.GONE);
+            nameConteiner.setVisibility(View.VISIBLE);
         }
 
         // Обработка клика по элементу
@@ -190,26 +187,26 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             return true;
         });
 
+        textViewItemName.setOnTouchListener((v, event) -> {
+            gestureDetector.onTouchEvent(event);
+            return true;
+        });
+
+        textViewItemPrice.setOnTouchListener((v, event) -> {
+            gestureDetector.onTouchEvent(event);
+            return true;
+        });
 
 
-
-        // Обработчики для кнопок
         buttonEdit.setOnClickListener(v -> {
-            // Получаем текущий элемент
-            String itemData = items.get(position);
             final int[] selectedCategoryId = {0};
-            String[] parts = itemData.split("-"); // Разделяем строку
-            String itemName = parts[0]; // "Coffee"
-            String spentString = parts[1].replaceAll("[^\\d.]", "");
 
-            // Создаем всплывающее окно
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(Html.fromHtml("<font color='#FF5500'>Редактирование</font>"));
 
-            // Создаем `EditText` для имени
             EditText inputName = new EditText(context);
             inputName.setInputType(InputType.TYPE_CLASS_TEXT);
-            inputName.setText(itemName);
+            inputName.setText(name);
             inputName.setPadding(0, 30, 0, 10); // Добавляем больше отступов
             inputName.setBackgroundResource(R.drawable.edit_text_style_orange);
 
@@ -220,10 +217,9 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             nameParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
             inputName.setLayoutParams(nameParams);
 
-            // Создаем EditText для суммы
             EditText inputSpent = new EditText(context);
             inputSpent.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-            inputSpent.setText(String.format(Locale.US, "%.2f", (double) DefaultSpent));
+            inputSpent.setText(String.format(Locale.US, "%.2f", Math.abs(converted)));
             inputSpent.setPadding(0, 30, 0, 10); // Добавляем больше отступов
             inputSpent.setBackgroundResource(R.drawable.edit_text_style_orange);
 
@@ -316,51 +312,59 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
             final String[] selectedCurrency = {selectedSymbol}; // Храним выбранную валюту
 
-            FileHelper fileHelper = new FileHelper(context);
-            List<String> categories = fileHelper.getAllCategories(); // Чтение категорий
-            Spinner categorySpinner = new Spinner(context);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories);
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            categorySpinner.setAdapter(adapter);
-            categorySpinner.setBackgroundResource(R.drawable.spinner_bg);
-
-            LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            spinnerParams.setMargins(0, 20, 0, 20);
-            categorySpinner.setPadding(20, 40, 40, 40);
-            categorySpinner.setLayoutParams(spinnerParams);
-
-
-            // Устанавливаем дефолтную категорию
-            DatabaseHelper databaseHelper = new DatabaseHelper(context);
-            int offset = ((MainActivity) context).getoffset();
-            int category_id = databaseHelper.getCategoryId(itemName, currentDay , offset);
-            List<String> list = fileHelper.getAllCategories();
-            categorySpinner.setSelection(categories.indexOf(fileHelper.getCategoryNameById(category_id)));
-
-            // Обработчик выбора категории
-            categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                    // Сохраняем выбранную категорию
-                    selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parentView) {
-                }
-            });
-
-            // Контейнер для `EditText`
             LinearLayout layout = new LinearLayout(context);
             layout.setOrientation(LinearLayout.VERTICAL);
             layout.setPadding(50, 20, 50, 20);
             layout.addView(inputName);
             layout.addView(inputSpent);
-            layout.addView(categorySpinner);
             layout.addView(currencySpinner);
+
+            DatabaseHelper databaseHelper = new DatabaseHelper(context);
+            FileHelper fileHelper = new FileHelper(context);
+            List<String> list = fileHelper.getAllCategories();
+
+            if (price > 0) {
+                List<String> categories = fileHelper.getAllCategories(); // Чтение категорий
+                Spinner categorySpinner = new Spinner(context);
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, categories);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                categorySpinner.setAdapter(adapter);
+                categorySpinner.setBackgroundResource(R.drawable.spinner_bg);
+
+                LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                spinnerParams.setMargins(0, 20, 0, 20);
+                categorySpinner.setPadding(20, 40, 40, 40);
+                categorySpinner.setLayoutParams(spinnerParams);
+
+
+
+
+                int offset = ((MainActivity) context).getoffset();
+                int category_id = databaseHelper.getCategoryId(name, currentDay, offset);
+                categorySpinner.setSelection(categories.indexOf(fileHelper.getCategoryNameById(category_id)));
+
+                // Обработчик выбора категории
+                categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                        // Сохраняем выбранную категорию
+                        selectedCategoryId[0] = position;  // Записываем выбранный индекс категории
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parentView) {
+                    }
+                });
+
+                layout.addView(categorySpinner);
+            }
+
+            // Контейнер для `EditText`
+
+
 
             builder.setView(layout);
 
@@ -418,28 +422,43 @@ public class DayItemAdapter extends ArrayAdapter<String> {
 
 
                 // Обновляем запись в базе данных
+
                 int currentMonthOffset = ((MainActivity) context).getoffset();
                 int id = fileHelper.getCategoryIdByName(list.get(selectedCategoryId[0]));
-                databaseHelper.updateData(itemName, currentDay, newName, valueInX, currentMonthOffset , id);
-
-                // Обновляем данные в списке и уведомляем адаптер
-                String end = "-false";
-                if (checkBox.isChecked()) {
-                    end = "-true";
-                    databaseIncome.addIncome(DefaultSpent);
-                    databaseIncome.addSpent(valueInX);
+                if (price > 0) {
+                    databaseHelper.updateData(item.getId(), currentDay, newName, valueInX, currentMonthOffset, id);
+                }else {
+                    databaseHelper.updateData(item.getId(), currentDay, newName, -valueInX, currentMonthOffset);
                 }
-                CursData dataa = CursHelper.getCursData(databaseIncome.getCurs());
-                items.set(position, newName + "-" + valueInX + dataa.symbol + end);
-                textViewItemName.setText(newName);
-                textViewItemPrice.setText(valueInX * dataa.rate + dataa.symbol);
 
-                CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
-                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
-                String currentDate = sdf.format(new Date());
-                databaseHelper.saveNote(currentDate, "Изменена трата\n" + itemName + " - " + DefaultSpent + cursd.symbol + "\nна: " + newName + " - " + valueInX + cursd.symbol, "Spent", "edit" );
+                if (checkBox.isChecked()) {
+                    if (price > 0) {
+                        databaseIncome.addIncome(DefaultSpent);
+                        databaseIncome.addSpent(valueInX);
 
-                notifyDataSetChanged();
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        databaseHelper.saveNote(currentDate, "Изменена трата\n" + name + " - " + DefaultSpent + cursd.symbol + "\nна: " + newName + " - " + valueInX + cursd.symbol, "Spent", "edit" );
+                    } else {
+                        databaseIncome.addIncome(DefaultSpent);
+                        databaseIncome.addSpent(-valueInX);
+                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                        String currentDate = sdf.format(new Date());
+                        databaseHelper.saveNote(currentDate, "Изменен доход\n" + name + " - " + DefaultSpent + cursd.symbol + "\nна: " + newName + " - " + Math.abs(valueInX) + cursd.symbol, "Income", "edit" );
+                    }
+                }
+
+                Intent intent = new Intent(context, MainActivity.class);
+                intent.putExtra("day", currentDay);
+                intent.putExtra("isexpented", "false");
+
+                if (!(context instanceof Activity)) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+
+                context.startActivity(intent);
 
                 Toast.makeText(context, "Данные обновлены", Toast.LENGTH_SHORT).show();
             });
@@ -505,11 +524,8 @@ public class DayItemAdapter extends ArrayAdapter<String> {
             builder.setTitle(Html.fromHtml("<font color='#FF0000'>Вы уверены, что хотите удалить элемент?</font>"))
                     .setPositiveButton("Да", (dialog, which) -> {
 
-                        // Действие для кнопки "Удалить"
-                        String itemData = items.get(position); // Получаем имя элемента для удаления
-                        String item = itemData.split("-")[1];
 
-                        if (itemData.split("-")[2].matches("true")) {
+                        if (item.isDone()) {
                             databaseIncome.addIncome(DefaultSpent);
                         }
 
@@ -573,8 +589,16 @@ public class DayItemAdapter extends ArrayAdapter<String> {
                         String stat = x ? "выполнен" : "невыполнен";
                         databaseHelper.saveNote(currentDate, "Статус расхода:\n" + name + " - " + DefaultSpent + cursd.symbol + "изменен на " + stat, "Spent", "edit" );
 
-                        items.set(position, name + "-" + price + "-" + value[0]);
-                        notifyDataSetChanged();  // Обновляем список после изменения состояния
+                        Intent intent = new Intent(context, MainActivity.class);
+                        intent.putExtra("day", currentDay);
+                        intent.putExtra("isexpented", "false");
+
+
+                        if (!(context instanceof Activity)) {
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        }
+
+                        context.startActivity(intent);
                     })
                     .setNegativeButton("Нет", (dialog, which) -> {
                         checkBox.setChecked(isChecked);

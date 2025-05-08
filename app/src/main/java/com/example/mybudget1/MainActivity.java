@@ -256,18 +256,6 @@ public class MainActivity extends AppCompatActivity {
         name.setPadding(0, 30, 0, 10); // Добавляем больше отступов
         name.setBackgroundResource(R.drawable.edit_text_style);
 
-        InputFilter noDashFilter = (source, start, end, dest, dstart, dend) -> {
-            for (int i = start; i < end; i++) {
-                if (source.charAt(i) == '-') {
-                    return "";
-                }
-            }
-            return null;
-        };
-
-        name.setFilters(new InputFilter[] { noDashFilter });
-
-
         LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
