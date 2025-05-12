@@ -58,7 +58,7 @@ public class StartActivity extends AppCompatActivity {
     public Button monthlySpents;
     public Button lastMonths;
     public Button geminiAnalizbtn;
-    public TextView budgetText;
+    public TextView budgetText , savingsText;
     public CursData curs;
 
 
@@ -83,9 +83,11 @@ public class StartActivity extends AppCompatActivity {
         monthlySpents = findViewById(R.id.btnMonthlySpents);
         budgetText = findViewById(R.id.tvBudget);
         lastMonths = findViewById(R.id.btnLastMonths);
-        TextView podskazka = findViewById(R.id.textpodskazka);
         ImageButton btnScan = findViewById(R.id.buttonScan);
         geminiAnalizbtn = findViewById(R.id.btnGeminiGo);
+        savingsText = findViewById(R.id.tvSavingsInfo);
+
+
 
         geminiAnalizbtn.setOnClickListener(v -> {
             Intent intent = new Intent(StartActivity.this, GeminiChatActivity.class);
@@ -206,6 +208,10 @@ public class StartActivity extends AppCompatActivity {
         String result = String.format("%.2f %s", spent * curs.rate , curs.symbol);
         spentText.setText("расход: " + result);
 
+        double savingsAmount = databaseHelper.getGoalsCurrentAmount();
+        String resultS = String.format("%.2f %s", savingsAmount * curs.rate , curs.symbol);
+        savingsText.setText("Накопления: " + resultS);
+
 
 
         //int budget = databaseIncome.controlBudget(income , spent);
@@ -268,7 +274,6 @@ public class StartActivity extends AppCompatActivity {
                 dataList.add(new WeekItem(nextDayName, "потрачено: " + df.format(nextDaySpent * curs.rate) + curs.symbol, "из: " + df.format(nextDayMustDo * curs.rate) + curs.symbol));
 
                 isExpanded = false;
-                podskazka.setVisibility(View.GONE);
                 btnExpandList.setText("Расширить список");
                 listView.getLayoutParams().height -= 700; // Увеличиваем высоту
             } else {
@@ -284,7 +289,6 @@ public class StartActivity extends AppCompatActivity {
                 listView.getLayoutParams().height += 700; // Возвращаем высоту
                 isExpanded = true;
                 btnExpandList.setText("сократить список");
-                podskazka.setVisibility(View.VISIBLE);
             }
             adapter.notifyDataSetChanged();
         });
@@ -448,34 +452,9 @@ public class StartActivity extends AppCompatActivity {
             budgetText.setTextColor(Color.RED);
         }
         String result = String.format("%.2f %s", converted, curs.symbol);
-        budgetText.setText(result);
+        budgetText.setText("баланс:" + result);
     }
 
-    private void showincomeList() {
-        ArrayList<String> dataList = getIncomData();
-
-        // Кастомный адаптер
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.income_item_forshow, R.id.tvItem, dataList);
-
-        // Создаем ListView
-        ListView listView = new ListView(this);
-        listView.setAdapter(adapter);
-
-        // Создаем AlertDialog с кастомным фоном
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(Html.fromHtml("<font color='#1EFF00'>Ваши доходы (чтоб изменить их зайдите в меню)</font>"));
-        builder.setView(listView);
-        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
-
-        // Создаем AlertDialog
-        AlertDialog dialog = builder.create();
-
-        // Устанавливаем фон из drawable
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
-
-        // Показываем диалог
-        dialog.show();
-    }
 
     private ArrayList<String> getIncomData(){
         ArrayList<String> dataList = new ArrayList<>();

@@ -432,7 +432,7 @@ public class DayItemAdapter extends ArrayAdapter<DayItem> {
                 }
 
                 if (checkBox.isChecked()) {
-                    if (price > 0) {
+                    if (DefaultSpent > 0) {
                         databaseIncome.addIncome(DefaultSpent);
                         databaseIncome.addSpent(valueInX);
 
@@ -446,7 +446,7 @@ public class DayItemAdapter extends ArrayAdapter<DayItem> {
                         CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                         String currentDate = sdf.format(new Date());
-                        databaseHelper.saveNote(currentDate, "Изменен доход\n" + name + " - " + DefaultSpent + cursd.symbol + "\nна: " + newName + " - " + Math.abs(valueInX) + cursd.symbol, "Income", "edit" );
+                        databaseHelper.saveNote(currentDate, "Изменен доход\n" + name + " - " + -1 * DefaultSpent + cursd.symbol + "\nна: " + newName + " - " + Math.abs(valueInX) + cursd.symbol, "Income", "edit" );
                     }
                 }
 

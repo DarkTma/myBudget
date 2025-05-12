@@ -459,12 +459,12 @@ public class GoalActivity extends AppCompatActivity {
                 finalAmount = Math.round(finalAmount * 100.0) / 100.0;
 
                 if (goal.getCurrentAmount() + finalAmount < 0){
-                    Toast.makeText(this, "мы открываем бизнес мы будем делать бабки?", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "у вас нет столько накаплений", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 double budget = databaseIncome.getBudget();
-                if(budget < finalAmount){
+                if(budget < finalAmount && finalAmount > 0){
                     Toast.makeText(this, "У вас недостаточно средств чтоб откладовать", Toast.LENGTH_SHORT).show();
                     return;
                 } else {

@@ -322,7 +322,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // Обрабатываем результаты запроса
                 while (expenseCursor.moveToNext()) {
                     double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
-                    sum += expenseAmount;
+                    if (expenseAmount > 0) {
+                        sum += expenseAmount;
+                    }
                 }
                 expenseCursor.close();
             }
@@ -335,7 +337,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Обрабатываем результаты запроса
             while (expenseCursorPrev.moveToNext()) {
                 double expenseAmount = expenseCursorPrev.getDouble(expenseCursorPrev.getColumnIndexOrThrow("spent"));
-                sum += expenseAmount;
+                if (expenseAmount > 0) {
+                    sum += expenseAmount;
+                }
             }
             expenseCursorPrev.close();
         } else if (i == 1) {
@@ -347,7 +351,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Обрабатываем результаты запроса
             while (expenseCursor.moveToNext()) {
                 double expenseAmount = expenseCursor.getDouble(expenseCursor.getColumnIndexOrThrow("spent"));
-                sum += expenseAmount;
+                if (expenseAmount > 0) {
+                    sum += expenseAmount;
+                }
             }
             expenseCursor.close();
         }
@@ -373,7 +379,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // Обрабатываем результаты запроса
                 while (expenseCursor.moveToNext()) {
                     int expenseAmount = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("spent"));
-                    sum += expenseAmount;
+                    if (expenseAmount > 0) {
+                        sum += expenseAmount;
+                    }
                 }
                 expenseCursor.close();
             }
@@ -385,7 +393,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Обрабатываем результаты запроса
             while (expenseCursorPrev.moveToNext()) {
                 int expenseAmount = expenseCursorPrev.getInt(expenseCursorPrev.getColumnIndexOrThrow("spent"));
-                sum += expenseAmount;
+                if (expenseAmount > 0) {
+                    sum += expenseAmount;
+                }
             }
             expenseCursorPrev.close();
         } else if (i == 1) {
@@ -396,7 +406,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             // Обрабатываем результаты запроса
             while (expenseCursor.moveToNext()) {
                 int expenseAmount = expenseCursor.getInt(expenseCursor.getColumnIndexOrThrow("spent"));
-                sum += expenseAmount;
+                if (expenseAmount > 0) {
+                    sum += expenseAmount;
+                }
             }
             expenseCursor.close();
         }
@@ -404,25 +416,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
 
-
-
-    // Метод для получения общего дохода для месяца
-    private double getTotalIncomeForMonth(SQLiteDatabase db, String tableName) {
-        Cursor cursor = db.rawQuery("SELECT SUM(income) FROM " + tableName + "_income", null);
-        cursor.moveToFirst();
-        double totalIncome = cursor.getDouble(0);
-        cursor.close();
-        return totalIncome;
-    }
-
-    // Метод для получения общих расходов для месяца
-    private double getTotalSpentForMonth(SQLiteDatabase db, String tableName) {
-        Cursor cursor = db.rawQuery("SELECT SUM(monthly_spent) FROM " + tableName + "_spent", null);
-        cursor.moveToFirst();
-        double totalSpent = cursor.getDouble(0);
-        cursor.close();
-        return totalSpent;
-    }
 
     // Метод для проверки существования таблицы
     public boolean tableExists(String tableName) {
@@ -461,50 +454,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
-    private double getIncomeForMonth(String monthTableName) {
-        SQLiteDatabase database = this.getReadableDatabase();
-        String incomeTable = monthTableName + "_income";
-
-        // Проверяем, существует ли таблица для доходов
-        if (!tableExists(incomeTable)) {
-            return 0.0;  // Если таблица не существует, возвращаем 0
-        }
-
-        // Если таблица существует, выполняем запрос
-        Cursor cursor = database.rawQuery("SELECT SUM(income) FROM " + incomeTable, null);
-        if (cursor.moveToFirst()) {
-            double income = cursor.getDouble(0);
-            cursor.close();
-            return income;
-        }
-        cursor.close();
-        return 0.0;
-    }
-
-    private double getSpentForMonth(String monthTableName) {
-        SQLiteDatabase database = this.getReadableDatabase();
-        String spentTable = monthTableName + "_spent";
-
-        // Проверяем, существует ли таблица для расходов
-        if (!tableExists(spentTable)) {
-            return 0.0;  // Если таблица не существует, возвращаем 0
-        }
-
-        // Если таблица существует, выполняем запрос
-        Cursor cursor = database.rawQuery("SELECT SUM(spent) FROM " + spentTable, null);
-        if (cursor.moveToFirst()) {
-            double spent = cursor.getDouble(0);
-            cursor.close();
-            return spent;
-        }
-        cursor.close();
-        return 0.0;
-    }
-
-    // Метод для проверки существования таблицы
-
-
-    // Генерирует имя следующего месяца на основе последней таблицы
     private String generateNextMonthName(String lastMonth) {
         Pattern pattern = Pattern.compile("month_(\\d+)_(\\d+)");
         Matcher matcher = pattern.matcher(lastMonth);
@@ -1354,6 +1303,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
 
         return goal;  // Возвращаем найденную цель или null
+    }
+
+    public double getGoalsCurrentAmount() {
+        double totalCurrentAmount = 0.0;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT SUM(currentAmount) AS total FROM goals";
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            totalCurrentAmount = cursor.getDouble(cursor.getColumnIndexOrThrow("total"));
+            cursor.close();
+        }
+
+        db.close();
+        return totalCurrentAmount;
     }
 
 }

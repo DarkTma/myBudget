@@ -321,7 +321,7 @@ public class ScanReceiptActivity extends AppCompatActivity {
         infoBtn.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Информация")
-                    .setMessage(finalNote)
+                    .setMessage(items + "\n" + finalNote)
                     .setPositiveButton("ОК", null)
                     .show();
         });
@@ -432,49 +432,45 @@ public class ScanReceiptActivity extends AppCompatActivity {
             try {
                 newitemSpent = Double.parseDouble(spentDataStr);  // Преобразуем строку в double
             } catch (NumberFormatException e) {
-                // Обработка ошибки, если ввод некорректен
                 e.printStackTrace();
             }
 
-            // Переменная для финальной суммы
             double finalAmount = 0;
 
             double valueInX = newitemSpent;
-            valueInX = Math.round(valueInX * 100.0) / 100.0;
 
-// Конвертируем введенную сумму в нужную валюту
             switch (selectedSymbol[0]) {
-                case "֏": // Драм
+                case "֏":
                     finalAmount = valueInX / CursHelper.getToDram();
                     break;
-                case "$": // Доллар
+                case "$":
                     finalAmount = valueInX / CursHelper.getToDollar();
                     break;
-                case "₽": // Рубль
+                case "₽":
                     finalAmount = valueInX / CursHelper.getToRub();
                     break;
-                case "元": // Юань
+                case "元":
                     finalAmount = valueInX / CursHelper.getToJuan();
                     break;
-                case "€": // Евро
+                case "€":
                     finalAmount = valueInX / CursHelper.getToEur();
                     break;
-                case "¥": // Йена
+                case "¥":
                     finalAmount = valueInX / CursHelper.getToJen();
                     break;
-                case "₾": // Лари
+                case "₾":
                     finalAmount = valueInX / CursHelper.getToLari();
                     break;
                 default:
-                    finalAmount = valueInX; // Если валюта неизвестна — оставить как есть
+                    finalAmount = valueInX;
                     break;
             }
 
-            finalAmount = Math.round(finalAmount * 100.0) / 100.0;
+            finalAmount = Math.round(finalAmount * 1000.0) / 1000.0;
 
 
             if(selectedType[0] == 0) {
-                databaseHelper.insertData(day, nameT, finalAmount, 0, true, selectedCategoryId[0],finalNote);
+                databaseHelper.insertData(day, nameT, finalAmount, 0, true, selectedCategoryId[0], String.valueOf(items));
                 databaseIncome.addSpent(finalAmount);
                 Toast.makeText(this, "росход добавлен", Toast.LENGTH_SHORT).show();
             } else {

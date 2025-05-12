@@ -522,6 +522,8 @@ public class MainActivity extends AppCompatActivity {
                             break;
                     }
 
+                    finalAmount = Math.round(finalAmount * 1000.0) / 1000.0;
+
 
 
                     int dayData = selectedDay;  // Используем выбранный день
@@ -541,7 +543,8 @@ public class MainActivity extends AppCompatActivity {
                         databaseHelper.saveNote(currentDate, "добавлен новый рассход: " + nameData + " - " + finalAmount + cursd.symbol, "Spent", "add" );
 
                         if (isDone) {
-                            databaseIncome.addSpent(finalAmount); // Добавляем в доходы, если отметка стоит
+                            databaseIncome.addSpent(finalAmount);
+                            databaseIncome.getBudget();
                         }
 
                         updateAdapter();

@@ -502,7 +502,7 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         Cursor budgetData = db.rawQuery("SELECT " + COLUMN_BUDGET + " FROM " + TABLE_BUDGET + " WHERE " + COLUMN_ID + " = 1", null);
 
         if (budgetData != null && budgetData.moveToFirst()) {
-            double budget = budgetData.getInt(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
+            double budget = budgetData.getDouble(budgetData.getColumnIndexOrThrow(COLUMN_BUDGET));
             double newBudget = income + budget;
 
             ContentValues contentValues2 = new ContentValues();

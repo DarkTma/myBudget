@@ -147,30 +147,31 @@
                 android:layout_marginTop="10dp"/>
 
             <TextView
-                android:id="@+id/textpodskazka"
-                android:layout_width="200dp"
+                android:id="@+id/tvSavingsInfo"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/btnExpandList"
-                android:layout_alignParentStart="true"
-                android:visibility="gone"
-                android:layout_alignParentEnd="true"
-                android:layout_marginStart="107dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="104dp"
-                android:layout_marginBottom="213dp"
-                android:text="нажмите на день чтоб получить подробности или данные любого дня текущего месяца"
-                android:textColor="@color/white"
-                android:textSize="8dp" />
+                android:layout_below="@id/btnExpandList"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/savings_background"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="Накопления: 0 ₽"
+                android:textColor="@color/primary"
+                android:textSize="16sp" />
+
 
             <ImageButton
                 android:id="@+id/buttonScan"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:layout_alignParentBottom="true"
+                android:layout_below="@+id/tvSavingsInfo"
+                android:layout_marginTop="30dp"
                 android:layout_centerHorizontal="true"
-                android:layout_marginBottom="16dp"
-                android:src="@drawable/scan"
-                android:scaleType="centerInside" />
+                android:scaleType="centerInside"
+                android:src="@drawable/scan" />
+
 
         </RelativeLayout>
     </ScrollView>

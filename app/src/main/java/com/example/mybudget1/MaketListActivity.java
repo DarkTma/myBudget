@@ -116,7 +116,11 @@ public class MaketListActivity extends AppCompatActivity {
                         CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                         String currentDate = sdf.format(new Date());
-                        databaseHelper.saveNote(currentDate, "выполнен расход:\n" + maket.getName() + " - " + maket.getAmount() + cursd.symbol , "Spent", "add" );
+                        if (maket.getAmount() > 0) {
+                            databaseHelper.saveNote(currentDate, "выполнен расход:\n" + maket.getName() + " - " + maket.getAmount() + cursd.symbol, "Spent", "add");
+                        } else {
+                            databaseHelper.saveNote(currentDate, "получен доход:\n" + maket.getName() + " - " + -1 * maket.getAmount() + cursd.symbol, "Income", "add");
+                        }
                     } else{
                         databaseHelper.insertData(selectedDay, maket.getName(), -1 * maket.getAmount(), 0, true);
                         databaseIncome.addIncome(maket.getAmount());

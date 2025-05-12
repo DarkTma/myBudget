@@ -61,7 +61,7 @@ public class QuickExpenseInputActivity extends AppCompatActivity {
                 // Сохраняем в базу
                 DatabaseHelper db = new DatabaseHelper(this);
                 DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-                db.insertData(day ,name, amount, 0, true,0);
+                db.insertData(day ,name, amount, 0, true,1);
                 databaseIncome.addSpent(amount);
 
                 Toast.makeText(this, "Трата записана", Toast.LENGTH_SHORT).show();

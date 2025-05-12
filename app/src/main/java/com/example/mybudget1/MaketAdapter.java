@@ -45,7 +45,8 @@ public class MaketAdapter extends RecyclerView.Adapter<MaketAdapter.MaketViewHol
         holder.textName.setText(maket.getName());
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
         CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
-        double amaunt = Math.round(( maket.getAmount() * curs.rate) * 100.0) / 100.0;
+        double x = Math.abs(maket.getAmount());
+        double amaunt = Math.round(( x * curs.rate) * 100.0) / 100.0;
         holder.textAmount.setText("сумма: " + amaunt + curs.symbol);
 
         holder.btnCheck.setOnClickListener(v -> actionListener.onCheck(maket));
