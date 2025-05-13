@@ -389,49 +389,64 @@ public class IncomeAdapter extends BaseAdapter {
     private void showPaymentDialog(Context context, IncomeItem income) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH); // 0-11
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        Calendar today = Calendar.getInstance();
+        int year = today.get(Calendar.YEAR);
+        int month = today.get(Calendar.MONTH); // 0–11
+        int day = today.get(Calendar.DAY_OF_MONTH);
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(context, null, year, month, day);
 
-        // Ограничиваем выбор только текущим месяцем
-        Calendar minDate = Calendar.getInstance();
+        // Мин. дата — первый день прошлого месяца
+        Calendar minDate = (Calendar) today.clone();
+        minDate.add(Calendar.MONTH, -1);
         minDate.set(Calendar.DAY_OF_MONTH, 1);
 
-        Calendar maxDate = Calendar.getInstance();
+        // Макс. дата — последний день текущего месяца
+        Calendar maxDate = (Calendar) today.clone();
         maxDate.set(Calendar.DAY_OF_MONTH, maxDate.getActualMaximum(Calendar.DAY_OF_MONTH));
 
         datePickerDialog.getDatePicker().setMinDate(minDate.getTimeInMillis());
         datePickerDialog.getDatePicker().setMaxDate(maxDate.getTimeInMillis());
+
         builder.setView(datePickerDialog.getDatePicker());
         builder.setTitle("Выплата зарплаты")
                 .setMessage("Хотите сейчас же выплатить зарплату?")
                 .setPositiveButton("Да", (dialog, which) -> {
                     int selectedDay = datePickerDialog.getDatePicker().getDayOfMonth();
+                    int selectedMonth = datePickerDialog.getDatePicker().getMonth();
+                    int selectedYear = datePickerDialog.getDatePicker().getYear();
+
+                    // Определяем offset: 0 — текущий месяц, -1 — прошлый
+                    int offset = 0;
+                    if (selectedYear < year || (selectedYear == year && selectedMonth < month)) {
+                        offset = -1;
+                    }
+
+                    // Вставка данных
                     DatabaseHelper2 databaseIncome = new DatabaseHelper2(context);
                     DatabaseHelper databaseHelper = new DatabaseHelper(context);
-                    databaseHelper.insertData(selectedDay,income.getName(),-1 * income.getAmount(),0,true);
+                    databaseHelper.insertData(selectedDay, income.getName(), -1 * income.getAmount(), offset, true);
                     databaseIncome.addIncome(income.getAmount());
-                    if (!income.monthly){
+                    if (!income.monthly) {
                         databaseIncome.deleteIncome(income.getId());
                     }
+
                     Toast.makeText(context, "Зарплата выплачена!", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Отмена", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
-        dialog.show(); // Показываем диалог перед изменением стиля
+        dialog.show();
 
-        // Устанавливаем фон
+        // Установка стиля
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
         }
 
-        // Меняем цвет кнопок после показа диалога
+        // Цвет кнопок
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.my_cyan));
     }
+
 
 }
