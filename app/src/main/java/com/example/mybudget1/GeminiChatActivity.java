@@ -97,7 +97,10 @@ public class GeminiChatActivity extends AppCompatActivity {
 
         DatabaseHelper db = new DatabaseHelper(this);
         chatMessages.addAll(db.getAllChatMessages());
+        recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
         chatAdapter.notifyDataSetChanged();
+        recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
+
 
 
         initFakeProgress();
@@ -150,37 +153,42 @@ public class GeminiChatActivity extends AppCompatActivity {
 
     private String sendCategoryAnaliz(CategoryItem selectedCategory) {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        List<ExpenseData> data = databaseHelper.getExpensesByCategory(selectedCategory.getId() , 1);
+        List<ExpenseData> data = databaseHelper.getExpensesByCategory(selectedCategory.getId(), 1);
 
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
-        FileHelper fileHelper = new FileHelper(this);
         CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
 
-        String userText = "";
+        StringBuilder userText = new StringBuilder();
         for (ExpenseData expense : data) {
-            userText += "- " + expense.getName() + ": " + expense.getDate() + " , " + expense.getAmount() + curs.symbol + "\n";
+            userText.append("- ")
+                    .append(expense.getName()).append(": ")
+                    .append(expense.getDate()).append(", ")
+                    .append(expense.getAmount()).append(curs.symbol)
+                    .append("\n");
         }
 
-        return "Вот данные о расходах по категории '" + selectedCategory.getName() + "':\n\n" +
-                userText + "\n\n" +
-                "Проанализируй эти расходы дружелюбно и понятно.\n" +
-                "Обрати внимание, где траты самые большие, и предложи способы оптимизации. 😊\n" +
-                "Если есть, отметь положительные моменты. ✨\n" +
-                "Дай несколько практичных советов по экономии и управлению расходами.\n" +
-                "Стиль: лёгкий, заботливый, но без лишней эмоциональности.\n" +
-                "В конце подытожь коротким советом на будущее.\n" +
-                "ответ не должен быть бпльше 3000 имволов";
-
+        return "Вот мои расходы по категории «" + selectedCategory.getName() + "» за последнее время:\n\n" +
+                userText.toString() + "\n" +
+                "Проанализируй, пожалуйста, эти данные:\n" +
+                "- Укажи, какие покупки или дни выделяются, и были ли особенно крупные траты.\n" +
+                "- Оцени, насколько эти расходы выглядят уместными для данной категории.\n" +
+                "- Не нужно предлагать экономию, если расходы выглядят разумно — просто оцени со стороны.\n" +
+                "- Дай советы только при необходимости: где можно было бы немного сократить или переосмыслить.\n" +
+                "- Отметь положительное, если видно, что категория используется аккуратно или разумно.\n\n" +
+                "Формат ответа: дружелюбный, простой, заботливый, без излишней мотивации.\n" +
+                "Заверши ответ лёгким обобщением или небольшим полезным советом.\n" +
+                "Максимум — 3000 символов.";
     }
+
 
 
     private void sendCommand(String commandText) {
         // Добавляем сообщение пользователя
-        if(commandText.startsWith("Вот данные о расходах по категории")){
-            chatMessages.add(new ChatMessage("Вот данные о расходах по категории", true));
+        if(commandText.startsWith("Вот мои расходы по категории")){
+            chatMessages.add(new ChatMessage("Вот мои расходы по категории", true));
             DatabaseHelper db = new DatabaseHelper(this);
-            db.insertChatMessage(new ChatMessage("Вот данные о расходах по категории", true));
-        } else if (commandText.startsWith("Вот данные о завершённых расходах")) {
+            db.insertChatMessage(new ChatMessage("Вот мои расходы по категории", true));
+        } else if (commandText.startsWith("Вот данные о завершённых действиях")) {
             chatMessages.add(new ChatMessage("Вот данные о завершённых действиях", true));
             DatabaseHelper db = new DatabaseHelper(this);
             db.insertChatMessage(new ChatMessage("Вот данные о завершённых действиях", true));
@@ -196,7 +204,7 @@ public class GeminiChatActivity extends AppCompatActivity {
             getGeminiResponse(generateFriendlyPrompt(getFormatedMonthString()));
         }else if(commandText.startsWith("Вот данные о расходах по категории")){
             getGeminiResponse(commandText);
-        }else if(commandText.startsWith("Вот данные о завершённых расходах")){
+        }else if(commandText.startsWith("Вот данные о завершённых действиях")){
             getGeminiResponse(commandText);
         }else if (commandText.equals("/info")){
             getInfo();
@@ -485,10 +493,13 @@ public class GeminiChatActivity extends AppCompatActivity {
         CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
 
         if (cursor == null || !cursor.moveToFirst()) {
-            return "Нет завершённых трат за выбранный период.";
+            return "Нет завершённых действий за выбранный период.";
         }
 
-        StringBuilder details = new StringBuilder();
+        StringBuilder userText = new StringBuilder();
+        userText.append("Доходы за месяц: ").append(totalIncome).append(curs.symbol).append("\n");
+        userText.append("Бюджет сейчас: ").append(budget).append(curs.symbol).append("\n\n");
+
         double totalSpent = 0;
 
         do {
@@ -497,7 +508,7 @@ public class GeminiChatActivity extends AppCompatActivity {
             double spent = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
 
             if (spent > 0) {
-                details.append("День ").append(day).append(": ")
+                userText.append("День ").append(day).append(": ")
                         .append(name).append(" — ")
                         .append(spent).append(curs.symbol).append("\n");
                 totalSpent += spent;
@@ -506,28 +517,22 @@ public class GeminiChatActivity extends AppCompatActivity {
 
         cursor.close();
 
-        StringBuilder prompt = new StringBuilder();
-        prompt.append("Вот мои финансовые данные за период с ")
-                .append(startDay).append(" по ").append(endDay).append(":\n\n");
+        int maxLength = 200;
+        String formattedUserText = userText.length() > maxLength
+                ? userText.substring(0, maxLength) + "..."
+                : userText.toString();
 
-        prompt.append("Доходы за период: ").append(totalIncome).append(curs.symbol).append("\n");
-        prompt.append("Текущий бюджет: ").append(budget).append(curs.symbol).append("\n");
-        prompt.append("Общие расходы: ").append(totalSpent).append(curs.symbol).append("\n\n");
-
-        prompt.append("Вот подробности по дням:\n")
-                .append(details.toString()).append("\n");
-
-        prompt.append("Пожалуйста, проанализируй мои расходы за эту неделю:\n")
-                .append("- Подчеркни, если что-то выглядит сбалансировано или разумно 👍\n")
-                .append("- Отметь, если траты где-то слишком высоки ❗\n")
-                .append("- Поделись идеями по улучшению бюджета, если они уместны 📊\n")
-                .append("- Не советуй экономить без причины — экономия хороша, но только если она обоснована 😊\n")
-                .append("- Постарайся поддержать меня, даже если ситуация не идеальна 💬\n")
-                .append("- Ответ должен быть в тоне: тёплый, дружелюбный, как от заботливого помощника ✨\n\n")
-                .append("Ответ не должен превышать 3000 символов.");
-
-        return prompt.toString();
+        return "Вот данные о завершённых действиях за период с " + startDay + " по " + endDay + " число (до 7 дней):\n\n" +
+                formattedUserText + "\n" +
+                "Суммарные расходы за период: " + totalSpent + curs.symbol + ".\n\n" +
+                "Пожалуйста, проанализируй эти данные:\n" +
+                "- Что можно отметить по тратам?\n" +
+                "- Есть ли очевидные перекосы или интересные особенности?\n" +
+                "- Дай мягкие рекомендации, если что-то можно улучшить, но не критикуй без причины.\n" +
+                "- Если всё в порядке — поддержи, выдели положительное.\n\n" +
+                "Ответ должен быть дружелюбным, понятным и до 3000 символов.";
     }
+
 
 
     public String getFormatedMonthString() {
