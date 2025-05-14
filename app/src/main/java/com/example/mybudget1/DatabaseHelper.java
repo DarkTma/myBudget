@@ -64,6 +64,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         createReminder(db);
         createNotes(db);
         createGoals(db);
+        createChatMessagesTable(db);
     }
 
     private void createGoals(SQLiteDatabase db) {
@@ -102,6 +103,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "amount REAL)";
         db.execSQL(createIncomeTableQuery);
     }
+
+    private void createChatMessagesTable(SQLiteDatabase db) {
+        String createChatTableQuery = "CREATE TABLE IF NOT EXISTS chat_messages (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "message TEXT, " +
+                "is_user INTEGER, " +
+                "timestamp LONG)";
+        db.execSQL(createChatTableQuery);
+    }
+
+
+
 
 
     @Override
@@ -1049,6 +1062,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return incomeList;
     }
 
+    public double getCurrentIncomesTotal() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        double totalIncome = 0.0;
+
+        Cursor cursor = db.rawQuery(
+                "SELECT spent FROM " + currentMonthTable + " WHERE spent < 0 AND isdone = 1",
+                null
+        );
+
+        if (cursor.moveToFirst()) {
+            do {
+                totalIncome += Math.abs(cursor.getDouble(cursor.getColumnIndexOrThrow("spent")));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return totalIncome;
+    }
+
+
     public double getSpentFromMonth(Cursor cursor) {
         double totalIncome = 0.0;
 
@@ -1338,6 +1371,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return totalCurrentAmount;
     }
+
+    public void insertChatMessage(ChatMessage message) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("message", message.getMessage());
+        values.put("is_user", message.isFromUser() ? 1 : 0);
+        values.put("timestamp", System.currentTimeMillis());
+        db.insert("chat_messages", null, values);
+    }
+
+    public List<ChatMessage> getAllChatMessages() {
+        List<ChatMessage> messages = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM chat_messages ORDER BY timestamp ASC", null);
+
+        while (cursor.moveToNext()) {
+            String msg = cursor.getString(cursor.getColumnIndexOrThrow("message"));
+            boolean isUser = cursor.getInt(cursor.getColumnIndexOrThrow("is_user")) == 1;
+            messages.add(new ChatMessage(msg, isUser));
+        }
+
+        cursor.close();
+        return messages;
+    }
+
 
 }
 

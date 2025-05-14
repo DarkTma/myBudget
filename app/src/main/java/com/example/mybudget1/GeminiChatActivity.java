@@ -95,6 +95,11 @@ public class GeminiChatActivity extends AppCompatActivity {
         textStatus = findViewById(R.id.textStatus);
         checkConnectionStatus();
 
+        DatabaseHelper db = new DatabaseHelper(this);
+        chatMessages.addAll(db.getAllChatMessages());
+        chatAdapter.notifyDataSetChanged();
+
+
         initFakeProgress();
     }
 
@@ -173,10 +178,16 @@ public class GeminiChatActivity extends AppCompatActivity {
         // Добавляем сообщение пользователя
         if(commandText.startsWith("Вот данные о расходах по категории")){
             chatMessages.add(new ChatMessage("Вот данные о расходах по категории", true));
+            DatabaseHelper db = new DatabaseHelper(this);
+            db.insertChatMessage(new ChatMessage("Вот данные о расходах по категории", true));
         } else if (commandText.startsWith("Вот данные о завершённых расходах")) {
-            chatMessages.add(new ChatMessage("Вот данные о завершённых расходах", true));
+            chatMessages.add(new ChatMessage("Вот данные о завершённых действиях", true));
+            DatabaseHelper db = new DatabaseHelper(this);
+            db.insertChatMessage(new ChatMessage("Вот данные о завершённых действиях", true));
         } else {
             chatMessages.add(new ChatMessage(commandText, true));
+            DatabaseHelper db = new DatabaseHelper(this);
+            db.insertChatMessage(new ChatMessage(commandText, true));
         }
         chatAdapter.notifyItemInserted(chatMessages.size() - 1);
         recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
@@ -290,9 +301,13 @@ public class GeminiChatActivity extends AppCompatActivity {
                     String result = response.body().getCandidates().get(0).getContent().getParts().get(0).getText();
                     stopFakeProcess();
                     runOnUiThread(() -> {
-                        chatMessages.add(new ChatMessage(result, false));
+                        ChatMessage message = new ChatMessage(result, false);
+                        chatMessages.add(message);
                         chatAdapter.notifyItemInserted(chatMessages.size() - 1);
                         recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
+
+                        DatabaseHelper dbHelper = new DatabaseHelper(GeminiChatActivity.this);
+                        dbHelper.insertChatMessage(message);
                     });
                 } else {
                     try {
@@ -301,9 +316,11 @@ public class GeminiChatActivity extends AppCompatActivity {
                         Log.e("Gemini Error", errorBody);
 
                         runOnUiThread(() -> {
-                            chatMessages.add(new ChatMessage("Ошибка Gemini: " + errorBody, false));
+                            chatMessages.add(new ChatMessage("Ошибка Gemini: " + "сейчас функция недоступно(обратитесь в тг @Temnashka)", false));
                             chatAdapter.notifyItemInserted(chatMessages.size() - 1);
                             recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
+                            DatabaseHelper dbHelper = new DatabaseHelper(GeminiChatActivity.this);
+                            dbHelper.insertChatMessage(new ChatMessage("Ошибка Gemini: " + "сейчас функция недоступно(обратитесь в тг @Temnashka)", false));
                         });
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -317,24 +334,30 @@ public class GeminiChatActivity extends AppCompatActivity {
                 t.printStackTrace();
 
                 runOnUiThread(() -> {
-                    chatMessages.add(new ChatMessage("Ошибка Gemini: " + t.getMessage(), false));
+                    chatMessages.add(new ChatMessage("Ошибка Gemini: " + "сейчас функция недоступно(обратитесь в тг @Temnashka)", false));
                     chatAdapter.notifyItemInserted(chatMessages.size() - 1);
                     recyclerViewChat.scrollToPosition(chatMessages.size() - 1);
+                    DatabaseHelper dbHelper = new DatabaseHelper(GeminiChatActivity.this);
+                    dbHelper.insertChatMessage(new ChatMessage("Ошибка Gemini: " + "сейчас функция недоступно(обратитесь в тг @Temnashka)", false));
                 });
             }
         });
     }
 
     private String generateFriendlyPrompt(String userText) {
-        return "Вот данные о доходах и тратах:\n\n" +
+        return "Ниже приведены мои данные о доходах и расходах за период:\n\n" +
                 userText + "\n\n" +
-                "Пожалуйста, проанализируй эти данные и составь краткий, дружелюбный, немного милый, но без лишней мотивации анализ.\n" +
-                "Обрати внимание, где трат больше всего, где есть возможности сэкономить. Если доходы хорошие — похвали легко и приятно.\n" +
-                "Дай любые разумные советы по финансам на основе данных (можно несколько, не ограничивайся).\n" +
-                "Пиши как заботливый помощник, но без чрезмерной эмоциональности. Стиль: чуть мило, но понятно и по делу.\n" +
-                "В конце добавь лёгкое обобщение и мягкий совет на будущее.\n" +
-                "ответ не должен быть бпльше 3000 имволов";
+                "Проанализируй, пожалуйста, эти финансовые данные и составь краткий, содержательный и дружелюбный отчёт.\n" +
+                "- Укажи, какие траты особенно выделяются и в каких категориях они были.\n" +
+                "- Если есть заметные дисбалансы — укажи их, но деликатно.\n" +
+                "- Если всё выглядит разумно — похвали и поддержи меня легко и искренне.\n" +
+                "- Дай разумные советы по улучшению финансов, но не стремись всегда предлагать экономию — она уместна только если расходы реально чрезмерны.\n" +
+                "- Подчеркни положительные моменты, если они есть.\n" +
+                "- Стиль ответа: понятный, мягкий, немного милый, как от заботливого помощника, без чрезмерной мотивации или драматизма.\n\n" +
+                "В завершение добавь лёгкое, спокойное обобщение с мягким советом на будущее.\n" +
+                "Максимальная длина ответа: 3000 символов.";
     }
+
 
 
 
@@ -452,50 +475,60 @@ public class GeminiChatActivity extends AppCompatActivity {
 
 
 
-    public String getFormatedWeekString(int startDay , int endDay){
+    public String getFormatedWeekString(int startDay, int endDay) {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         Cursor cursor = databaseHelper.getDoneSpentsCursor(startDay, endDay);
 
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
+        double totalIncome = databaseHelper.getCurrentIncomesTotal();
+        double budget = databaseIncome.getBudget();
         CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
 
         if (cursor == null || !cursor.moveToFirst()) {
             return "Нет завершённых трат за выбранный период.";
         }
 
-        StringBuilder userText = new StringBuilder();
+        StringBuilder details = new StringBuilder();
         double totalSpent = 0;
-
-
 
         do {
             int day = cursor.getInt(cursor.getColumnIndexOrThrow("day"));
             String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
             double spent = cursor.getDouble(cursor.getColumnIndexOrThrow("spent"));
 
-            userText.append("День ").append(day).append(": ")
-                    .append(name).append(" - ")
-                    .append(spent).append(curs.symbol).append("\n");
-
-            totalSpent += spent;
+            if (spent > 0) {
+                details.append("День ").append(day).append(": ")
+                        .append(name).append(" — ")
+                        .append(spent).append(curs.symbol).append("\n");
+                totalSpent += spent;
+            }
         } while (cursor.moveToNext());
 
         cursor.close();
 
-        int maxLength = 200;  // Максимальная длина текста
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Вот мои финансовые данные за период с ")
+                .append(startDay).append(" по ").append(endDay).append(":\n\n");
 
-        String formattedUserText = userText.length() > maxLength ? userText.substring(0, maxLength) + "..." : userText.toString();
+        prompt.append("Доходы за период: ").append(totalIncome).append(curs.symbol).append("\n");
+        prompt.append("Текущий бюджет: ").append(budget).append(curs.symbol).append("\n");
+        prompt.append("Общие расходы: ").append(totalSpent).append(curs.symbol).append("\n\n");
 
-        return "Вот данные о завершённых расходах с " + startDay + " по " + endDay + " число:\n\n" +
-                formattedUserText  + "\n" +
-                "Общая сумма расходов: " + totalSpent + curs.symbol + ".\n\n" +
-                "Проанализируй, пожалуйста, эти расходы. 😊\n" +
-                "Есть ли траты, которые можно сократить? Какие покупки выделяются как особенно крупные?\n" +
-                "Дай советы по оптимизации и отметь положительные моменты, если они есть. ✨\n" +
-                "Стиль ответа: дружелюбный и полезный." +
-                "ответ не должен быть бпльше 3000 имволов";
+        prompt.append("Вот подробности по дням:\n")
+                .append(details.toString()).append("\n");
 
+        prompt.append("Пожалуйста, проанализируй мои расходы за эту неделю:\n")
+                .append("- Подчеркни, если что-то выглядит сбалансировано или разумно 👍\n")
+                .append("- Отметь, если траты где-то слишком высоки ❗\n")
+                .append("- Поделись идеями по улучшению бюджета, если они уместны 📊\n")
+                .append("- Не советуй экономить без причины — экономия хороша, но только если она обоснована 😊\n")
+                .append("- Постарайся поддержать меня, даже если ситуация не идеальна 💬\n")
+                .append("- Ответ должен быть в тоне: тёплый, дружелюбный, как от заботливого помощника ✨\n\n")
+                .append("Ответ не должен превышать 3000 символов.");
+
+        return prompt.toString();
     }
+
 
     public String getFormatedMonthString() {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
@@ -512,7 +545,7 @@ public class GeminiChatActivity extends AppCompatActivity {
         for (MonthDetailData item : incomeList) {
             incomePart.append(item.getName())
                     .append(": ")
-                    .append((int) item.getAmount())
+                    .append(item.getAmount())
                     .append(curs.symbol)
                     .append(" , ");
             hasIncome = true;
