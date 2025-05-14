@@ -1061,7 +1061,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return incomeList;
     }
-//fd
+//fdf
     public double getCurrentIncomesTotal() {
         SQLiteDatabase db = this.getWritableDatabase();
         double totalIncome = 0.0;

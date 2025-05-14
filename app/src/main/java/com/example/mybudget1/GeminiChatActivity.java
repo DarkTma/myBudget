@@ -183,7 +183,6 @@ public class GeminiChatActivity extends AppCompatActivity {
 
 
     private void sendCommand(String commandText) {
-        // Добавляем сообщение пользователя
         if(commandText.startsWith("Вот мои расходы по категории")){
             chatMessages.add(new ChatMessage("Вот мои расходы по категории", true));
             DatabaseHelper db = new DatabaseHelper(this);
