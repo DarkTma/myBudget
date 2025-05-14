@@ -132,7 +132,7 @@ public class IncomeActivity extends AppCompatActivity {
 
             // Создаем CheckBox для ежемесячного дохода
             CheckBox checkBox = new CheckBox(this);
-            checkBox.setText("Ежемесячный доход?");
+            checkBox.setText("регулярный доход?");
             checkBox.setTextColor(ContextCompat.getColor(this, R.color.my_green));
             checkBox.setChecked(true);
             checkBox.setButtonDrawable(R.drawable.checkbox_style);

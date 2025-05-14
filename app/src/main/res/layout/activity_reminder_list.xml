@@ -13,6 +13,17 @@
         android:scaleType="centerInside"
         android:src="@drawable/arrow" />
 
+    <TextView
+        android:id="@+id/emptyTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Здесь будут поставленные уведомления"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginTop="20dp"/>
+
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewReminders"
         android:layout_width="match_parent"

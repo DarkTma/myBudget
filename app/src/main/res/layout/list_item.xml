@@ -6,6 +6,7 @@
     android:padding="10dp">
 
     <FrameLayout
+        android:id="@+id/Conteiner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"

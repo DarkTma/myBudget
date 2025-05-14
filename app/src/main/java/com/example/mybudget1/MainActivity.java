@@ -44,6 +44,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -65,8 +67,6 @@ public class MainActivity extends AppCompatActivity {
     private int currentMonthOffset;
     private int currentDayIndex;
     private Button btnNewSpent;
-    private Button otherSettings;
-    private Button weekStats;
     private ImageButton btnBack , btnHelpMain;
     private int selectedDay;
 
@@ -148,6 +148,21 @@ public class MainActivity extends AppCompatActivity {
 
         btnHelpMain = findViewById(R.id.btnHelpMain);
         btnHelpMain.setOnClickListener(v -> {
+            LayoutInflater inflater = LayoutInflater.from(this);
+            View dialogView = inflater.inflate(R.layout.main_help, null);
+
+            Animation animation = AnimationUtils.loadAnimation(this, R.anim.scale_in);
+            dialogView.startAnimation(animation);
+
+            AlertDialog alertDialog = new AlertDialog.Builder(this)
+                    .setView(dialogView)
+                    .setCancelable(false)
+                    .create();
+
+            ImageButton closeButton = dialogView.findViewById(R.id.closeButton);
+            closeButton.setOnClickListener(view -> alertDialog.dismiss());
+
+            alertDialog.show();
 
         });
 

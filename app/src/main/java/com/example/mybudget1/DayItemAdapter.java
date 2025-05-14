@@ -29,6 +29,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -76,6 +78,8 @@ public class DayItemAdapter extends ArrayAdapter<DayItem> {
         LinearLayout buttonContainer = convertView.findViewById(R.id.buttonContainer);
         LinearLayout nameConteiner = convertView.findViewById(R.id.nameConteiner);
         CheckBox checkBox = convertView.findViewById(R.id.isComplete);
+        FrameLayout conteiner = convertView.findViewById(R.id.Conteiner);
+        HorizontalScrollView horizontalScrollViewPrice = convertView.findViewById(R.id.horizontalScrollViewPrice);
 
 
         DayItem item = items.get(position);
@@ -187,15 +191,16 @@ public class DayItemAdapter extends ArrayAdapter<DayItem> {
             return true;
         });
 
-        textViewItemName.setOnTouchListener((v, event) -> {
-            gestureDetector.onTouchEvent(event);
-            return true;
-        });
+        nameConteiner.setClickable(false);
+        nameConteiner.setFocusable(false);
 
-        textViewItemPrice.setOnTouchListener((v, event) -> {
-            gestureDetector.onTouchEvent(event);
-            return true;
-        });
+        conteiner.setClickable(false);
+        conteiner.setFocusable(false);
+
+        textViewItemPrice.setClickable(false);
+        textViewItemPrice.setFocusable(false);
+        textViewItemPrice.setFocusableInTouchMode(false);
+
 
 
         buttonEdit.setOnClickListener(v -> {
@@ -519,7 +524,6 @@ public class DayItemAdapter extends ArrayAdapter<DayItem> {
 
 
         buttonDelete.setOnClickListener(v -> {
-            // Создаем AlertDialog для подтверждения удаления
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setTitle(Html.fromHtml("<font color='#FF0000'>Вы уверены, что хотите удалить элемент?</font>"))
                     .setPositiveButton("Да", (dialog, which) -> {
@@ -530,14 +534,17 @@ public class DayItemAdapter extends ArrayAdapter<DayItem> {
                         }
 
                         String itemName = textViewItemName.getText().toString();
-                        deleteItem(itemName, currentDay); // Вызываем метод для удаления
+                        deleteItem(itemName, currentDay);
 
                         CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                         String currentDate = sdf.format(new Date());
                         DatabaseHelper databaseHelper = new DatabaseHelper(context);
-                        databaseHelper.saveNote(currentDate, "удален расход:\n" + itemName + " - " + DefaultSpent + cursd.symbol, "Spent", "delete" );
-
+                        if (DefaultSpent > 0) {
+                            databaseHelper.saveNote(currentDate, "удален расход:\n" + itemName + " - " + DefaultSpent + cursd.symbol, "Spent", "delete");
+                        } else {
+                            databaseHelper.saveNote(currentDate, "удален доход:\n" + itemName + " - " + -1 * DefaultSpent + cursd.symbol, "Income", "delete");
+                        }
                         items.remove(position);
                         notifyDataSetChanged();
 

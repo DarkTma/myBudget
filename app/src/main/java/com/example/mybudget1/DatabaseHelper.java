@@ -612,6 +612,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM " + tableName + " WHERE isdone = 0", null);
     }
 
+    public int getSumOfNotDoneSpentsOfMonth() {
+        int sum = 0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        String tableName = currentMonthTable;
+
+        Cursor cursor = db.rawQuery("SELECT SUM(spent) FROM " + tableName + " WHERE isdone = 0", null);
+
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                sum = cursor.getInt(0);
+            }
+            cursor.close();
+        }
+
+        return sum;
+    }
+
+
 
     public void deleteData(String name, int day , int offset){
         String tableName;

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp"
+    android:background="@drawable/dialog_background">
+
+    <!-- Кнопка закрытия -->
+    <ImageButton
+        android:id="@+id/closeButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentEnd="true"
+        android:background="@android:color/transparent"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:contentDescription="Закрыть"/>
+
+    <!-- Картинка-подсказка -->
+    <ImageView
+        android:id="@+id/hintImage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/closeButton"
+        android:layout_marginTop="10dp"
+        android:src="@drawable/main_help_img"
+        android:scaleType="fitCenter"/>
+</RelativeLayout>

@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +23,7 @@ public class ReminderListActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     ReminderAdapter adapter;
     ImageButton btnBack;
+    TextView emptyTextView;
     List<Reminder> reminderList = new ArrayList<>();
 
     @SuppressLint("MissingInflatedId")
@@ -29,6 +32,7 @@ public class ReminderListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reminder_list);
 
+        emptyTextView = findViewById(R.id.emptyTextView);
         btnBack = findViewById(R.id.buttonBackFromNotif);
         btnBack.setOnClickListener(v -> {
             Intent intent = new Intent(ReminderListActivity.this, StartActivity.class);
@@ -84,6 +88,12 @@ public class ReminderListActivity extends AppCompatActivity {
                             }
                             reminderList.remove(reminder);
                             adapter.notifyDataSetChanged();
+
+                            if (reminderList.isEmpty()) {
+                                emptyTextView.setVisibility(View.VISIBLE);
+                                recyclerView.setVisibility(View.GONE);
+                            }
+
                         })
                         .setNegativeButton("Отмена", (dialog, which) -> {
                             dialog.dismiss();
@@ -94,9 +104,16 @@ public class ReminderListActivity extends AppCompatActivity {
 
 
 
-
-
         recyclerView.setAdapter(adapter);
+
+        if (reminderList.isEmpty()) {
+            emptyTextView.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            emptyTextView.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
+
     }
 }
 

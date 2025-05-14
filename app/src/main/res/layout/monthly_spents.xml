@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/tvSpentM"
         android:layout_centerHorizontal="true"
-        android:text="Список ежемесечных \n              расходов"
+        android:text="Список регулярных \n            расходов"
         android:textColor="@android:color/white"
         android:textSize="20sp"
         android:textStyle="bold" />

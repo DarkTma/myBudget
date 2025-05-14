@@ -58,7 +58,7 @@ public class StartActivity extends AppCompatActivity {
     public Button monthlySpents;
     public Button lastMonths;
     public Button geminiAnalizbtn;
-    public TextView budgetText , savingsText;
+    public TextView budgetText , savingsText , planText;
     public CursData curs;
 
 
@@ -86,6 +86,7 @@ public class StartActivity extends AppCompatActivity {
         ImageButton btnScan = findViewById(R.id.buttonScan);
         geminiAnalizbtn = findViewById(R.id.btnGeminiGo);
         savingsText = findViewById(R.id.tvSavingsInfo);
+        planText = findViewById(R.id.tvPlans);
 
 
 
@@ -211,6 +212,13 @@ public class StartActivity extends AppCompatActivity {
         double savingsAmount = databaseHelper.getGoalsCurrentAmount();
         String resultS = String.format("%.2f %s", savingsAmount * curs.rate , curs.symbol);
         savingsText.setText("Накопления: " + resultS);
+
+        double plansAmount = -1 * databaseHelper.getSumOfNotDoneSpentsOfMonth();
+        double convertedAmount = plansAmount * curs.rate;
+        String sign = convertedAmount >= 0 ? "+" : "";
+        String resultP = String.format("%s%.2f %s", sign, convertedAmount, curs.symbol);
+        planText.setText("запланировано: " + resultP);
+
 
 
 
@@ -578,10 +586,11 @@ public class StartActivity extends AppCompatActivity {
                 do {
                     show = true;
                     name = allNoteDoneSpents.getString(allNoteDoneSpents.getColumnIndexOrThrow("name"));
-                    spent = allNoteDoneSpents.getInt(allNoteDoneSpents.getColumnIndexOrThrow("spent"));
+                    spent = -1 * allNoteDoneSpents.getInt(allNoteDoneSpents.getColumnIndexOrThrow("spent"));
                     day = allNoteDoneSpents.getInt(allNoteDoneSpents.getColumnIndexOrThrow("day"));
                     if(today >= day) {
-                        dataList2.add(name + " - " + spent + "₽ , " + day + " числа\n");
+                        String sign = spent >= 0 ? "+" : "";
+                        dataList2.add(name + " : " + sign + spent + "₽ , " + day + " числа\n");
                     }
                 } while (allNoteDoneSpents.moveToNext());
             }

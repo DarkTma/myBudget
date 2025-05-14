@@ -82,11 +82,9 @@ public class IncomeAdapter extends BaseAdapter {
         TextView monthly = convertView.findViewById(R.id.monthly);
         ImageButton btnedit = convertView.findViewById(R.id.btnEditIncome);
         ImageButton btndelete = convertView.findViewById(R.id.btnDeleteIncome);
-        CheckBox checkBox = convertView.findViewById(R.id.incomecheckbox);
 
         btnedit.setFocusable(false);
         btndelete.setFocusable(false);
-        checkBox.setFocusable(false);
 
         tvName.setText(income.getName());
         CursData curs = CursHelper.getCursData(databaseIncome.getCurs());
@@ -114,26 +112,23 @@ public class IncomeAdapter extends BaseAdapter {
         if (cursor != null && cursor.moveToFirst()) {
             int onceIncome = cursor.getInt(cursor.getColumnIndexOrThrow("onceincome"));
             isMonthly = onceIncome == 1;
-            checkBox.setChecked(isMonthly);
+            if (isMonthly) {
+                monthly.setText("регулярный");
+                monthly.setTextColor(Color.GREEN);
+            } else {
+                monthly.setText("одноразовый");
+                int color = ContextCompat.getColor(context, R.color.my_orange);
+                monthly.setTextColor(color);
+            }
+
         } else {
             Log.e("DB_ERROR", "Cursor is empty or null for name: " + a);
         }
 
         if (cursor != null) {
-            cursor.close(); // Закрываем Cursor
+            cursor.close();
         }
 
-        checkBox.setChecked(isMonthly);
-
-
-        if (checkBox.isChecked()){
-            monthly.setText("ежемесячная");
-            monthly.setTextColor(Color.GREEN);
-        } else {
-            int color = ContextCompat.getColor(context, R.color.my_orange);
-            monthly.setText("разовая");
-            monthly.setTextColor(color);
-        }
 
         convertView.setOnLongClickListener(v -> {
             showPaymentDialog(context, income);
@@ -204,6 +199,38 @@ public class IncomeAdapter extends BaseAdapter {
             currencyAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             currencySpinner.setAdapter(currencyAdapter);
 
+            String currentCurrencySymbol = databaseIncome.getCurs(); // Это возвращает символ валюты (например, "dram", "dollar", "rubli")
+
+            // Преобразуем символ в валютный знак и выбираем в Spinner
+            String selectedSymbol = currentCurrencySymbol; // Получаем символ текущей валюты
+            int defaultCurrencyPosition = 0; // Изначально установим на 0 (например, драм)
+
+            switch (selectedSymbol) {
+                case "dollar":
+                    defaultCurrencyPosition = 1;
+                    break;
+                case "rubli":
+                    defaultCurrencyPosition = 2;
+                    break;
+                case "yuan":
+                    defaultCurrencyPosition = 3;
+                    break;
+                case "evro":
+                    defaultCurrencyPosition = 4;
+                    break;
+                case "jen":
+                    defaultCurrencyPosition = 5;
+                    break;
+                case "lari":
+                    defaultCurrencyPosition = 6;
+                    break;
+                case "dram":
+                default:
+                    defaultCurrencyPosition = 0;
+                    break;
+            }
+            currencySpinner.setSelection(defaultCurrencyPosition);
+
             LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -235,25 +262,25 @@ public class IncomeAdapter extends BaseAdapter {
                 double finalIncome = 0;
 
                 switch (selectedCurrency) {
-                    case "֏": // Армянский драм
+                    case "֏":
                         finalIncome = newIncome / CursHelper.getToDram();
                         break;
-                    case "$": // Доллар США
+                    case "$":
                         finalIncome = newIncome / CursHelper.getToDollar();
                         break;
-                    case "₽": // Российский рубль
+                    case "₽":
                         finalIncome = newIncome / CursHelper.getToRub();
                         break;
-                    case "元": // Китайский юань
+                    case "元":
                         finalIncome = newIncome / CursHelper.getToJuan();
                         break;
-                    case "€": // Евро
+                    case "€":
                         finalIncome = newIncome / CursHelper.getToEur();
                         break;
-                    case "¥": // Японская иена
+                    case "¥":
                         finalIncome = newIncome / CursHelper.getToJen();
                         break;
-                    case "₾": // Грузинский лари
+                    case "₾":
                         finalIncome = newIncome / CursHelper.getToLari();
                         break;
                     default:
@@ -262,11 +289,8 @@ public class IncomeAdapter extends BaseAdapter {
                 }
 
                 finalIncome = Math.round(finalIncome * 100.0) / 100.0;
-                // Обновляем запись в базе данных
-                databaseIncome.updateData(income.getId(), newName, finalIncome);
 
-                databaseIncome.addSpent(itemIncome);
-                databaseIncome.addIncome(finalIncome);
+                databaseIncome.updateData(income.getId(), newName, finalIncome);
 
                 DatabaseHelper databaseHelper = new DatabaseHelper(context);
                 CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
@@ -350,38 +374,6 @@ public class IncomeAdapter extends BaseAdapter {
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background); // Устанавливаем фон
             dialog.show();
         });
-
-        checkBox.setOnClickListener(view -> {
-            String name = income.getName();
-            boolean isMonthlyy = checkBox.isChecked();
-            double incomen = income.getAmount();
-
-            new AlertDialog.Builder(view.getContext())
-                    .setTitle("Подтвердите действие")
-                    .setMessage(isMonthlyy
-                            ? "Сделать эту запись ежемесячной?"
-                            : "Сделать эту запись одноразовой?")
-                    .setPositiveButton("Подтвердить", (dialog, which) -> {
-                        databaseIncome.setMonthly(name, isMonthlyy);
-
-                        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-                        CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
-                        String currentDate = sdf.format(new Date());
-                        String stat = isMonthlyy ? "ежемесячный" : "одноразовый";
-                        databaseHelper.saveNote(currentDate, "Статус дохода:\n" + name + " - " + incomen + cursd.symbol + "\nизменен на " + stat, "Income", "edit" );
-
-                        notifyDataSetChanged();
-                    })
-                    .setNegativeButton("Отмена", (dialog, which) -> {
-                        // Отменяем изменение чекбокса визуально
-                        checkBox.setChecked(!isMonthlyy);
-                    })
-                    .show();
-        });
-
-
-
 
 
         return convertView;
