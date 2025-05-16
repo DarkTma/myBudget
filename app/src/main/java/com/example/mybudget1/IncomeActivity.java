@@ -1,6 +1,7 @@
 package com.example.mybudget1;
 
 import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -18,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -63,6 +65,9 @@ public class IncomeActivity extends AppCompatActivity {
         refreshList();
 
         btnAddIncome.setOnClickListener(v -> {
+            final int[] selectedDay = new int[1];
+            final int[] selectedOffset = new int[1];
+
             TextView customTitle = new TextView(this);
             customTitle.setText("Добавить доход");
             customTitle.setTextSize(20);
@@ -117,18 +122,61 @@ public class IncomeActivity extends AppCompatActivity {
                 }
             });
 
-            // Создаем NumberPicker для дня
-            NumberPicker day = new NumberPicker(this);
-            day.setMinValue(1);
-            day.setMaxValue(31);
-            day.setWrapSelectorWheel(true); // Цикличная прокрутка
+            Calendar now = Calendar.getInstance(); // Сегодняшняя дата
 
-            LinearLayout.LayoutParams dayParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            );
-            dayParams.setMargins(0, 10, 0, 20); // Устанавливаем отступы
-            day.setLayoutParams(dayParams);
+            // Календарь для выбранной даты (инициализируем сегодняшней датой)
+            final Calendar selectedDate = (Calendar) now.clone();
+
+            // TextView для даты
+            TextView dateTextView = new TextView(this);
+            dateTextView.setTextSize(18f);
+            dateTextView.setTextColor(ContextCompat.getColor(this, R.color.my_green));
+            dateTextView.setPadding(20, 30, 20, 30);
+            dateTextView.setGravity(Gravity.CENTER);
+            dateTextView.setBackgroundResource(R.drawable.edit_text_style);
+            // Устанавливаем начальную дату (сегодня)
+            updateDateText(dateTextView, selectedDate);
+
+            dateTextView.setOnClickListener(view -> {
+
+                // Минимум: 1-е число прошлого месяца
+                Calendar minDate = (Calendar) now.clone();
+                minDate.add(Calendar.MONTH, -1);
+                minDate.set(Calendar.DAY_OF_MONTH, 1);
+
+                // Максимум: последнее число следующего месяца
+                Calendar maxDate = (Calendar) now.clone();
+                maxDate.add(Calendar.MONTH, 1);
+                maxDate.set(Calendar.DAY_OF_MONTH, maxDate.getActualMaximum(Calendar.DAY_OF_MONTH));
+
+                DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                        (picker, year, month, dayOfMonth) -> {
+                            selectedDate.set(year, month, dayOfMonth);
+                            updateDateText(dateTextView, selectedDate);
+
+                            selectedDay[0] = dayOfMonth;
+
+                            int currentMonth = now.get(Calendar.MONTH);
+                            if (month == currentMonth - 1 || (currentMonth == 0 && month == 11)) {
+                                selectedOffset[0] = -1;
+                            } else if (month == currentMonth) {
+                                selectedOffset[0] = 0;
+                            } else {
+                                selectedOffset[0] = 1;
+                            }
+                        },
+                        selectedDate.get(Calendar.YEAR),
+                        selectedDate.get(Calendar.MONTH),
+                        selectedDate.get(Calendar.DAY_OF_MONTH)
+                );
+
+                DatePicker picker = datePickerDialog.getDatePicker();
+                picker.setMinDate(minDate.getTimeInMillis());
+                picker.setMaxDate(maxDate.getTimeInMillis());
+
+                datePickerDialog.show();
+            });
+
 
             // Создаем CheckBox для ежемесячного дохода
             CheckBox checkBox = new CheckBox(this);
@@ -254,7 +302,7 @@ public class IncomeActivity extends AppCompatActivity {
             layout.addView(customTitle);
             layout.addView(name);
             layout.addView(income);
-            layout.addView(day);
+            layout.addView(dateTextView);
             layout.addView(checkBox);
             layout.addView(currencySpinner);
             layout.addView(frequencySpinner);
@@ -300,7 +348,9 @@ public class IncomeActivity extends AppCompatActivity {
 
                             double incomeText = Double.parseDouble(income.getText().toString());
 
-                            int dayText = day.getValue();
+                            int dayText = selectedDay[0];
+                            int offset = selectedOffset[0];
+
 
                             boolean once = checkBox.isChecked();
 
@@ -339,9 +389,9 @@ public class IncomeActivity extends AppCompatActivity {
 
 
                             if (once){
-                                databaseIncome.setIncome(finalIncome, nameText, dayText, once, customRepeatDays);
+                                databaseIncome.setIncome(finalIncome, nameText, dayText, once, customRepeatDays,offset);
                             } else {
-                                databaseIncome.setIncome(finalIncome, nameText, dayText, once);
+                                databaseIncome.setIncome(finalIncome, nameText, dayText, once,offset);
                             }
                             CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
@@ -374,6 +424,14 @@ public class IncomeActivity extends AppCompatActivity {
 
         // Заполняем список тестовыми данными
 
+    }
+
+    private void updateDateText(TextView dateTextView, Calendar calendar) {
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int month = calendar.get(Calendar.MONTH) + 1; // месяцы с 0
+        int year = calendar.get(Calendar.YEAR);
+        String dateStr = String.format("%02d.%02d.%04d", day, month, year);
+        dateTextView.setText(dateStr);
     }
 
     private void refreshList() {

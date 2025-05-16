@@ -41,10 +41,11 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
     private static final String COLUMN_REPEAT = "repeat";
     private static final String COLUMN_DEFAULT = "defolt";
 
-
+    private DatabaseHelper databaseHelper;
 
     public DatabaseHelper2(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        databaseHelper = new DatabaseHelper(context.getApplicationContext());
     }
 
     @Override
@@ -104,139 +105,103 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return result != -1;
     }
 
-    public boolean setIncome(double value, String name, int day, boolean once) {
+    public boolean setIncome(double value, String name, int day, boolean once, int offset) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        // Проверка: существует ли уже такой доход
-        String query = "SELECT * FROM " + TABLE_INCOME +
-                " WHERE " + COLUMN_NAME + " = ?" +
-                " AND " + COLUMN_INCOME + " = ?" +
-                " AND " + COLUMN_INCOMEDAY + " = ?" +
-                " AND " + COLUMN_ONCEINCOME + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{
-                name, String.valueOf(value), String.valueOf(day), String.valueOf(once ? 1 : 0)
-        });
+        // Удаляем предыдущую запись дохода с тем же именем
+        db.delete(TABLE_INCOME, COLUMN_NAME + " = ?", new String[]{name});
 
-        if (cursor.moveToFirst()) {
-            // Такой доход уже есть — не добавляем
-            cursor.close();
-            return false;
-        }
-        cursor.close();
-
-        ContentValues contentValues2 = new ContentValues();
-        contentValues2.put(COLUMN_NAME, name);
-        contentValues2.put(COLUMN_INCOME, value);
-        contentValues2.put(COLUMN_INCOMEDAY, day);
-        contentValues2.put(COLUMN_ONCEINCOME, once);
-        contentValues2.put(COLUMN_COUNT, 0);
-
-        // Получаем текущую дату
+        // Получаем сегодняшнюю дату и целевую дату дохода
         Calendar today = Calendar.getInstance();
-        int currentYear = today.get(Calendar.YEAR);
-        int currentMonth = today.get(Calendar.MONTH) + 1; // Calendar.MONTH начинается с 0
-        int currentDay = today.get(Calendar.DAY_OF_MONTH);
 
-        // Определяем месяц для установки COLUMN_NEXT
-        int targetMonth = (currentDay > day) ? (currentMonth + 1) : currentMonth;
-        int targetYear = currentYear;
+        Calendar incomeDate = Calendar.getInstance();
+        incomeDate.add(Calendar.MONTH, offset);
+        int maxDay = incomeDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+        incomeDate.set(Calendar.DAY_OF_MONTH, Math.min(day, maxDay));
 
-        // Если месяц стал 13 (т.е. следующий год), исправляем
-        if (targetMonth > 12) {
-            targetMonth = 1;
-            targetYear++;
+        // Формат даты
+        String formattedDate = String.format("%02d-%02d-%04d",
+                incomeDate.get(Calendar.DAY_OF_MONTH),
+                incomeDate.get(Calendar.MONTH) + 1,
+                incomeDate.get(Calendar.YEAR)
+        );
+
+        if (!incomeDate.after(today)) {
+            // Если дата в прошлом или сегодня — просто вставляем как разовое начисление
+            return databaseHelper.insertData(incomeDate.get(Calendar.DAY_OF_MONTH), name, -1 * value, 0, true);
+        } else {
+            // Если в будущем — сохраняем как планируемый доход
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_NAME, name);
+            contentValues.put(COLUMN_INCOME, value);
+            contentValues.put(COLUMN_INCOMEDAY, day);
+            contentValues.put(COLUMN_ONCEINCOME, once);
+            contentValues.put(COLUMN_COUNT, 0);
+            contentValues.put(COLUMN_NEXT, formattedDate);
+
+            long result = db.insert(TABLE_INCOME, null, contentValues);
+            return result != -1;
+        }
+    }
+
+
+
+    public boolean setIncome(double value, String name, int day, boolean once, int repeat, int offset) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_INCOME, value);
+        contentValues.put(COLUMN_INCOMEDAY, day);
+        contentValues.put(COLUMN_ONCEINCOME, once);
+        contentValues.put(COLUMN_REPEAT, repeat);
+        contentValues.put(COLUMN_COUNT, 0);
+
+        Calendar today = Calendar.getInstance();
+
+        Calendar incomeDate = Calendar.getInstance();
+        incomeDate.add(Calendar.MONTH, offset);
+        incomeDate.set(Calendar.DAY_OF_MONTH, Math.min(day, incomeDate.getActualMaximum(Calendar.DAY_OF_MONTH)));
+
+        if (repeat > 0) {
+            while (!incomeDate.after(today)) {
+                int incomeDay = incomeDate.get(Calendar.DAY_OF_MONTH);
+                int incomeOffset = incomeDate.get(Calendar.MONTH) - today.get(Calendar.MONTH)
+                        + 12 * (incomeDate.get(Calendar.YEAR) - today.get(Calendar.YEAR));
+
+                databaseHelper.insertData(incomeDay, name, -1 * value, incomeOffset, true);
+                addIncome(value);
+                incomeDate.add(Calendar.DAY_OF_MONTH, repeat);
+            }
+        } else {
+            while (!incomeDate.after(today)) {
+                int incomeDay = incomeDate.get(Calendar.DAY_OF_MONTH);
+                int incomeOffset = incomeDate.get(Calendar.MONTH) - today.get(Calendar.MONTH)
+                        + 12 * (incomeDate.get(Calendar.YEAR) - today.get(Calendar.YEAR));
+
+                databaseHelper.insertData(incomeDay, name, -1 * value, incomeOffset, true);
+                addIncome(value);
+
+                incomeDate.add(Calendar.MONTH, 1);
+                int maxDayInMonth = incomeDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+                incomeDate.set(Calendar.DAY_OF_MONTH, Math.min(day, maxDayInMonth));
+            }
         }
 
-        // Определяем количество дней в целевом месяце
-        Calendar targetDate = Calendar.getInstance();
-        targetDate.set(targetYear, targetMonth - 1, 1); // Устанавливаем 1 число нужного месяца
-        int maxDaysInMonth = targetDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+        // После всех начислений, сохраняем следующую дату
+        String nextDate = String.format("%02d-%02d-%04d",
+                incomeDate.get(Calendar.DAY_OF_MONTH),
+                incomeDate.get(Calendar.MONTH) + 1,
+                incomeDate.get(Calendar.YEAR)
+        );
 
-        // Если указанное число превышает число дней в месяце, ставим последний день
-        int finalDay = Math.min(day, maxDaysInMonth);
+        contentValues.put(COLUMN_NEXT, nextDate);
 
-        // Форматируем дату в строку "dd-MM-yyyy"
-        String nextDate = String.format("%02d-%02d-%04d", finalDay, targetMonth, targetYear);
-
-        // Записываем в базу
-        contentValues2.put(COLUMN_NEXT, nextDate);
-
-        long result = db.insert(TABLE_INCOME, null, contentValues2);
-
-        if (result == -1) {
-            System.out.println("Ошибка вставки в базу данных!");
-        }
-
+        long result = db.insert(TABLE_INCOME, null, contentValues);
         return result != -1;
     }
 
 
-    public boolean setIncome(double value, String name, int day, boolean once , int repeat) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        // Проверка: существует ли уже такой доход
-        String query = "SELECT * FROM " + TABLE_INCOME +
-                " WHERE " + COLUMN_NAME + " = ?" +
-                " AND " + COLUMN_INCOME + " = ?" +
-                " AND " + COLUMN_INCOMEDAY + " = ?" +
-                " AND " + COLUMN_ONCEINCOME + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{
-                name, String.valueOf(value), String.valueOf(day), String.valueOf(once ? 1 : 0)
-        });
-
-        if (cursor.moveToFirst()) {
-            // Такой доход уже есть — не добавляем
-            cursor.close();
-            return false;
-        }
-        cursor.close();
-
-        ContentValues contentValues2 = new ContentValues();
-        contentValues2.put(COLUMN_NAME, name);
-        contentValues2.put(COLUMN_INCOME, value);
-        contentValues2.put(COLUMN_INCOMEDAY, day);
-        contentValues2.put(COLUMN_ONCEINCOME, once);
-        contentValues2.put(COLUMN_REPEAT, repeat);
-        contentValues2.put(COLUMN_COUNT, 0);
-
-        // Получаем текущую дату
-        Calendar today = Calendar.getInstance();
-        int currentYear = today.get(Calendar.YEAR);
-        int currentMonth = today.get(Calendar.MONTH) + 1; // Calendar.MONTH начинается с 0
-        int currentDay = today.get(Calendar.DAY_OF_MONTH);
-
-        // Определяем месяц для установки COLUMN_NEXT
-        int targetMonth = (currentDay > day) ? (currentMonth + 1) : currentMonth;
-        int targetYear = currentYear;
-
-        // Если месяц стал 13 (т.е. следующий год), исправляем
-        if (targetMonth > 12) {
-            targetMonth = 1;
-            targetYear++;
-        }
-
-        // Определяем количество дней в целевом месяце
-        Calendar targetDate = Calendar.getInstance();
-        targetDate.set(targetYear, targetMonth - 1, 1); // Устанавливаем 1 число нужного месяца
-        int maxDaysInMonth = targetDate.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-        // Если указанное число превышает число дней в месяце, ставим последний день
-        int finalDay = Math.min(day, maxDaysInMonth);
-
-        // Форматируем дату в строку "dd-MM-yyyy"
-        String nextDate = String.format("%02d-%02d-%04d", finalDay, targetMonth, targetYear);
-
-        // Записываем в базу
-        contentValues2.put(COLUMN_NEXT, nextDate);
-
-        long result = db.insert(TABLE_INCOME, null, contentValues2);
-
-        if (result == -1) {
-            System.out.println("Ошибка вставки в базу данных!");
-        }
-
-        return result != -1;
-    }
 
 
 
@@ -722,55 +687,62 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
         return result != 1;
     }
 
-    public boolean addMonthlySpent(String name, double spent, int day , int repeat, int category_id) {
+    public boolean addMonthlySpent(String name, double spent, int day, int repeat, int category_id, int offset) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues contentValues2 = new ContentValues();
-        contentValues2.put(COLUMN_NAME, name);
-        contentValues2.put(COLUMN_SPENT, spent);
-        contentValues2.put(COLUMN_SPENTDAY, day);
-        contentValues2.put(COLUMN_CATEGORY, category_id);
-        contentValues2.put(COLUMN_COUNT, 0);
-        contentValues2.put(COLUMN_REPEAT, repeat);
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_NAME, name);
+        contentValues.put(COLUMN_SPENT, spent);
+        contentValues.put(COLUMN_SPENTDAY, day);
+        contentValues.put(COLUMN_CATEGORY, category_id);
+        contentValues.put(COLUMN_COUNT, 0);
+        contentValues.put(COLUMN_REPEAT, repeat);
 
-        // Получаем текущую дату
         Calendar today = Calendar.getInstance();
-        int currentYear = today.get(Calendar.YEAR);
-        int currentMonth = today.get(Calendar.MONTH) + 1; // Calendar.MONTH начинается с 0
-        int currentDay = today.get(Calendar.DAY_OF_MONTH);
 
-        // Определяем месяц для установки COLUMN_NEXT
-        int targetMonth = (currentDay > day) ? (currentMonth + 1) : currentMonth;
-        int targetYear = currentYear;
+        // Начальная дата траты с учётом смещения
+        Calendar spentDate = Calendar.getInstance();
+        spentDate.add(Calendar.MONTH, offset);
+        spentDate.set(Calendar.DAY_OF_MONTH, Math.min(day, spentDate.getActualMaximum(Calendar.DAY_OF_MONTH)));
 
-        // Если месяц стал 13 (т.е. следующий год), исправляем
-        if (targetMonth > 12) {
-            targetMonth = 1;
-            targetYear++;
+        if (repeat > 0) {
+            while (!spentDate.after(today)) {
+                int spentDay = spentDate.get(Calendar.DAY_OF_MONTH);
+                int spentOffset = spentDate.get(Calendar.MONTH) - today.get(Calendar.MONTH)
+                        + 12 * (spentDate.get(Calendar.YEAR) - today.get(Calendar.YEAR));
+
+                databaseHelper.insertData(spentDay, name, spent, spentOffset, true, category_id);
+                addSpent(spent);
+                spentDate.add(Calendar.DAY_OF_MONTH, repeat);
+            }
+        } else {
+            while (!spentDate.after(today)) {
+                int spentDay = spentDate.get(Calendar.DAY_OF_MONTH);
+                int spentOffset = spentDate.get(Calendar.MONTH) - today.get(Calendar.MONTH)
+                        + 12 * (spentDate.get(Calendar.YEAR) - today.get(Calendar.YEAR));
+
+                databaseHelper.insertData(spentDay, name, spent, spentOffset, true, category_id);
+                addSpent(spent);
+
+                spentDate.add(Calendar.MONTH, 1);
+                int maxDayInMonth = spentDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+                spentDate.set(Calendar.DAY_OF_MONTH, Math.min(day, maxDayInMonth));
+            }
         }
 
-        // Определяем количество дней в целевом месяце
-        Calendar targetDate = Calendar.getInstance();
-        targetDate.set(targetYear, targetMonth - 1, 1); // Устанавливаем 1 число нужного месяца
-        int maxDaysInMonth = targetDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+        // Следующая дата траты
+        String nextDate = String.format("%02d-%02d-%04d",
+                spentDate.get(Calendar.DAY_OF_MONTH),
+                spentDate.get(Calendar.MONTH) + 1,
+                spentDate.get(Calendar.YEAR)
+        );
 
-        // Если указанный день превышает количество дней в месяце, ставим последний день
-        int finalDay = Math.min(day, maxDaysInMonth);
+        contentValues.put(COLUMN_NEXT, nextDate);
 
-        // Форматируем дату в строку "dd-MM-yyyy"
-        String nextDate = String.format("%02d-%02d-%04d", finalDay, targetMonth, targetYear);
-
-        // Записываем в базу
-        contentValues2.put(COLUMN_NEXT, nextDate);
-
-        long result = db.insert(TABLE_MONTHLY_SPENT, null, contentValues2);
-
-        if (result == -1) {
-            System.out.println("Ошибка вставки в базу данных!");
-        }
-
+        long result = db.insert(TABLE_MONTHLY_SPENT, null, contentValues);
         return result != -1;
     }
+
 
 
     public boolean changeDate(String name, int date, int count , boolean isincome) {
