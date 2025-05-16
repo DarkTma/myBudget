@@ -44,7 +44,6 @@ import java.util.Locale;
 public class SpentAdapter extends BaseAdapter {
     private Context context;
     private List<SpentItem> incomeList;
-    private boolean isMonthly;
     private int selectedPosition = -1;
 
 
@@ -82,15 +81,15 @@ public class SpentAdapter extends BaseAdapter {
         TextView tvAmount = convertView.findViewById(R.id.tvSpentAmount);
         TextView tvDate = convertView.findViewById(R.id.tvSpentDate);
         ImageButton btnedit = convertView.findViewById(R.id.btnEditSpent);
+        ImageButton btncheck = convertView.findViewById(R.id.btnCheckSpent);
         ImageButton btndelete = convertView.findViewById(R.id.btnDeleteSpent);
 
         btnedit.setFocusable(false);
         btndelete.setFocusable(false);
 
 
-        convertView.setOnLongClickListener(v -> {
+        btncheck.setOnClickListener(v -> {
             showPaymentDialog(context, spent);
-            return true;
         });
 
         tvName.setText(spent.getName());

@@ -82,6 +82,7 @@ public class IncomeAdapter extends BaseAdapter {
         TextView monthly = convertView.findViewById(R.id.monthly);
         ImageButton btnedit = convertView.findViewById(R.id.btnEditIncome);
         ImageButton btndelete = convertView.findViewById(R.id.btnDeleteIncome);
+        ImageButton btncheck = convertView.findViewById(R.id.btnCheckIncome);
 
         btnedit.setFocusable(false);
         btndelete.setFocusable(false);
@@ -130,9 +131,8 @@ public class IncomeAdapter extends BaseAdapter {
         }
 
 
-        convertView.setOnLongClickListener(v -> {
+        btncheck.setOnClickListener(v -> {
             showPaymentDialog(context, income);
-            return true; // true означает, что событие обработано
         });
 
         btnedit.setOnClickListener(view -> {
