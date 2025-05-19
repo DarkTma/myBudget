@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:fillViewport="true">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -28,98 +28,172 @@
 
             <!-- Контейнер для доходов и расходов -->
 
-            <TextView
-                android:id="@+id/tvBudget"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
-                android:layout_marginStart="70dp"
-                android:layout_marginTop="10dp"
-                android:gravity="start"
-                android:text="dsafdd"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
-
-            <FrameLayout
-                android:id="@+id/notification_container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentTop="true" >
-
-                <!-- Твоя иконка уведомлений -->
-                <ImageButton
-                    android:id="@+id/notifications"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_notifications"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="10dp" />
-
-                <!-- Красный кружок с числом -->
-                <TextView
-                    android:id="@+id/notification_badge"
-                    android:layout_width="18dp"
-                    android:layout_height="18dp"
-                    android:layout_gravity="end|top"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="10dp"
-                    android:background="@drawable/badge_background"
-                    android:textColor="#FFFFFF"
-                    android:gravity="center"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    android:padding="2dp" />
-            </FrameLayout>
-
-
-
-
-            <ImageButton
-                android:id="@+id/buttonHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/notification_container"
-                android:layout_alignParentEnd="true"
-                android:layout_margin="12dp"
-                android:layout_marginTop="-38dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="История"
-                android:src="@drawable/baseline_history_24" />
-
-
-            <LinearLayout
-                android:id="@+id/statsContainer"
-                android:layout_marginLeft="61dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_marginTop="50dp"
-                android:orientation="vertical"
-                android:padding="10dp">
-
-
-                <TextView
-                    android:id="@+id/tvSpent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="Расход: 0"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/buttonContainer"
+            <!-- Контейнер для бюджета и статистики -->
+            <RelativeLayout
+                android:background="@drawable/list_item_background"
+                android:id="@+id/budgetStatsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_below="@id/statsContainer"
-                android:layout_marginTop="10dp"
-                android:padding="8dp"/>
+                android:layout_below="@id/btnOpenMenu"
+                android:layout_marginTop="16dp"
+                android:padding="10dp">
+
+                <!-- tvBudget: слева вверху -->
+                <TextView
+                    android:id="@+id/tvBudget"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Бюджет: 0"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginTop="0dp" />
+
+                <FrameLayout
+                    android:id="@+id/notification_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentTop="true">
+
+                    <!-- Иконка уведомлений -->
+                    <ImageButton
+                        android:id="@+id/notifications"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+
+                        android:src="@drawable/ic_notifications"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:layout_marginEnd="10dp" />
+
+                    <!-- Красный бейдж -->
+                    <TextView
+                        android:id="@+id/notification_badge"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_gravity="end|top"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/badge_background"
+                        android:textColor="#FFFFFF"
+                        android:gravity="center"
+                        android:textSize="8sp"
+                        android:visibility="gone"
+                        android:padding="2dp" />
+                </FrameLayout>
+
+                <!-- Доход: под расходом -->
+                <LinearLayout
+                    android:id="@+id/rowIncome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="16dp"
+                    android:layout_below="@id/tvBudget"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/green_circle" />
+
+                    <TextView
+                        android:id="@+id/tvIncome"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Доход: 0"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+
+                <!-- Расход: справа отступ сверху -->
+                <LinearLayout
+                    android:id="@+id/rowSpent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="16dp"
+                    android:layout_below="@id/rowIncome"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/red_circle" />
+
+                    <TextView
+                        android:id="@+id/tvSpent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Расход: 0"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+
+                <!-- Сбережения: под доходом -->
+                <LinearLayout
+                    android:id="@+id/rowSavings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="16dp"
+                    android:layout_below="@id/rowPlaning"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/blue_circle" />
+
+                    <TextView
+                        android:id="@+id/tvSavings"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Накопления: 0"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Сбережения: под доходом -->
+                <LinearLayout
+                    android:id="@+id/rowPlaning"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="16dp"
+                    android:layout_below="@id/rowSpent"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <View
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/gray_circle" />
+
+                    <TextView
+                        android:id="@+id/tvPlans"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Запланировано: 0"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+            </RelativeLayout>
+
 
             <!-- ListView для элементов -->
             <ListView
@@ -130,6 +204,7 @@
                 android:background="@drawable/list_item_background"
                 android:divider="@color/primary"
                 android:dividerHeight="1dp"
+                android:layout_marginTop="20dp"
                 android:padding="8dp" />
 
             <!-- Кнопка для расширения списка -->
@@ -142,53 +217,23 @@
                 android:textSize="8dp"
                 android:textColor="@color/white"
                 android:padding="10dp"
-                android:layout_below="@id/listView"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="10dp"/>
-
-            <TextView
-                android:id="@+id/tvSavingsInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/btnExpandList"
-                android:layout_marginStart="16dp"
                 android:layout_marginTop="10dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/savings_background"
-                android:gravity="center"
-                android:padding="12dp"
-                android:text="Накопления: 0 ₽"
-                android:textColor="@color/primary"
-                android:textSize="16sp" />
+                android:layout_gravity="center_horizontal" />
 
-            <TextView
-                android:id="@+id/tvPlans"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tvSavingsInfo"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/plans_background"
-                android:gravity="center"
-                android:padding="12dp"
-                android:text="Накопления: 0 ₽"
-                android:textColor="@color/dark_gray"
-                android:textSize="16sp" />
+
 
 
             <ImageButton
                 android:id="@+id/buttonScan"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:layout_below="@+id/tvPlans"
                 android:layout_marginTop="30dp"
-                android:layout_centerHorizontal="true"
+                android:layout_gravity="center_horizontal"
                 android:scaleType="centerInside"
                 android:src="@drawable/scan" />
 
 
-        </RelativeLayout>
+        </LinearLayout>
     </ScrollView>
 
     <FrameLayout
@@ -322,6 +367,19 @@
             android:gravity="center_vertical"
             android:paddingStart="12dp"
             android:layout_marginTop="10dp" />
+
+        <Button
+            android:id="@+id/buttonHistory"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="История"
+            android:background="@drawable/btn_menu_dark"
+            android:textColor="@android:color/white"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:layout_marginTop="10dp"
+            />
+
 
         <Button
             android:id="@+id/btnConf"

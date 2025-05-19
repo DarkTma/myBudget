@@ -58,7 +58,7 @@ public class StartActivity extends AppCompatActivity {
     public Button monthlySpents;
     public Button lastMonths;
     public Button geminiAnalizbtn;
-    public TextView budgetText , savingsText , planText;
+    public TextView budgetText , savingsText , planText,incomeText;
     public CursData curs;
 
 
@@ -85,7 +85,8 @@ public class StartActivity extends AppCompatActivity {
         lastMonths = findViewById(R.id.btnLastMonths);
         ImageButton btnScan = findViewById(R.id.buttonScan);
         geminiAnalizbtn = findViewById(R.id.btnGeminiGo);
-        savingsText = findViewById(R.id.tvSavingsInfo);
+        savingsText = findViewById(R.id.tvSavings);
+        incomeText = findViewById(R.id.tvIncome);
         planText = findViewById(R.id.tvPlans);
 
 
@@ -139,7 +140,7 @@ public class StartActivity extends AppCompatActivity {
         });
 
 
-        ImageButton buttonHistory = findViewById(R.id.buttonHistory);
+        Button buttonHistory = findViewById(R.id.buttonHistory);
         buttonHistory.setOnClickListener(v -> {
             Intent intent = new Intent(StartActivity.this, NotesActivity.class);
             startActivity(intent);
@@ -211,13 +212,18 @@ public class StartActivity extends AppCompatActivity {
 
         double savingsAmount = databaseHelper.getGoalsCurrentAmount();
         String resultS = String.format("%.2f %s", savingsAmount * curs.rate , curs.symbol);
-        savingsText.setText("Накопления: " + resultS);
+        savingsText.setText("накопления: " + resultS);
 
         double plansAmount = -1 * databaseHelper.getSumOfNotDoneSpentsOfMonth();
         double convertedAmount = plansAmount * curs.rate;
         String sign = convertedAmount >= 0 ? "+" : "";
         String resultP = String.format("%s%.2f %s", sign, convertedAmount, curs.symbol);
         planText.setText("запланировано: " + resultP);
+
+        double income = -1 * databaseHelper.getCurrentIncomesTotal();
+        double convertedIncome = -1 * income * curs.rate;
+        String resultI = String.format("%.2f %s", convertedIncome, curs.symbol);
+        incomeText.setText("доход: " + resultI);
 
 
 

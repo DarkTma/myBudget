@@ -787,7 +787,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public Cursor getDoneSpentsCursor(int start, int end) {
         String tableName = currentMonthTable;
-        SQLiteDatabase db = this.getReadableDatabase(); // Лучше getReadableDatabase(), мы ничего не пишем.
+        SQLiteDatabase db = this.getReadableDatabase();
 
         String query = "SELECT day, name, spent FROM " + tableName +
                 " WHERE isdone = 1 AND day BETWEEN ? AND ?";
