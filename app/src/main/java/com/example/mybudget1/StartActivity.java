@@ -36,6 +36,8 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -48,12 +50,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class StartActivity extends AppCompatActivity {
-    private LinearLayout menuLayout;
-    private Button btnOpenMenu, btnExpandList;
-    private ListView listView;
     private WeekItemAdapter adapter;
     private List<String> dataList;
-    private boolean isExpanded = false;
     private TextView spentText;
     public Button monthlySpents;
     public Button lastMonths;
@@ -73,37 +71,14 @@ public class StartActivity extends AppCompatActivity {
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
         DatabaseHelper2 databaseIncome = new DatabaseHelper2(this);
 
-
-        // Инициализация элементов
-        menuLayout = findViewById(R.id.menuLayout);
-        btnOpenMenu = findViewById(R.id.btnOpenMenu);
-        btnExpandList = findViewById(R.id.btnExpandList);
         spentText = findViewById(R.id.tvSpent);
-        listView = findViewById(R.id.listView);
         monthlySpents = findViewById(R.id.btnMonthlySpents);
         budgetText = findViewById(R.id.tvBudget);
         lastMonths = findViewById(R.id.btnLastMonths);
-        ImageButton btnScan = findViewById(R.id.buttonScan);
         geminiAnalizbtn = findViewById(R.id.btnGeminiGo);
         savingsText = findViewById(R.id.tvSavings);
         incomeText = findViewById(R.id.tvIncome);
         planText = findViewById(R.id.tvPlans);
-
-
-
-        geminiAnalizbtn.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, GeminiChatActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        Button btnConf = findViewById(R.id.btnConf);
-        btnConf.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, PrivacyPolicyActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
 
         curs = CursHelper.getCursData(databaseIncome.getCurs());
 
@@ -125,86 +100,12 @@ public class StartActivity extends AppCompatActivity {
         deleteOldNotifications();
         showNotifCount();
 
-        Button btnGoalGo = findViewById(R.id.btnGoalGo);
-        btnGoalGo.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, GoalActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
         ImageButton btnNotif = findViewById(R.id.notifications);
         btnNotif.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, ReminderListActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-
-        Button buttonHistory = findViewById(R.id.buttonHistory);
-        buttonHistory.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, NotesActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        //закрытие менюшки
-        LinearLayout menuLayout = findViewById(R.id.menuLayout);
-        View dimLayer = findViewById(R.id.dimLayer);
-
-        lastMonths.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, MonthListActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        monthlySpents.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, SpentActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        dimLayer.setOnClickListener(v -> {
-            menuLayout.setVisibility(View.GONE);
-            dimLayer.setVisibility(View.GONE);
-        });
-
-        Button btnGrafGo = findViewById(R.id.btnGrafGo);
-        btnGrafGo.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, GraphActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        Button btnMaketsGo = findViewById(R.id.btnMaketGo);
-        btnMaketsGo.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, MaketListActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        Button btnIncomeActivityGo = findViewById(R.id.btnincomeData);
-        btnIncomeActivityGo.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, IncomeActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        Button btnCategoriesGo = findViewById(R.id.btnCategories);
-        btnCategoriesGo.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, CategoriesActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        Button btnCursGo = findViewById(R.id.btnCurs);
-        btnCursGo.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, CurrencyActivity.class);
-            startActivity(intent);
-            finish();
+            startActivity(new Intent(this, ReminderListActivity.class));
         });
 
         checkMonth();
-
 
         double spent = databaseHelper.checkAllSpents(0);
         String result = String.format("%.2f %s", spent * curs.rate , curs.symbol);
@@ -225,122 +126,78 @@ public class StartActivity extends AppCompatActivity {
         String resultI = String.format("%.2f %s", convertedIncome, curs.symbol);
         incomeText.setText("доход: " + resultI);
 
-
-
-
         //int budget = databaseIncome.controlBudget(income , spent);
         refreshBudgetText();
         refreshIncomesDatas();
 
 
-        // Данные для ListView
-        List<WeekItem> dataList = new ArrayList<>();
-        Calendar calendar = Calendar.getInstance();
-        int getCurrentDay = calendar.get(Calendar.DAY_OF_MONTH);
-        int currentDayIndex = getCurrentDay;
-        int prevDay = currentDayIndex - 1;
-        int nextDay = currentDayIndex + 1;
+        RecyclerView recyclerView = findViewById(R.id.cardRecyclerView);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
 
-        String prevDayName = DayAdapter.getDayName(prevDay);
-        String currentDayName = DayAdapter.getDayName(currentDayIndex);
-        String nextDayName = DayAdapter.getDayName(nextDay);
+        List<CardItem> cardItems = new ArrayList<>();
+        cardItems.add(new CardItem(R.drawable.category, "Категории"));
+        cardItems.add(new CardItem(R.drawable.income, "Доходы"));
+        cardItems.add(new CardItem(R.drawable.oborot, "Оборот"));
+        cardItems.add(new CardItem(R.drawable.spents, "Регулярные расходы"));
+        cardItems.add(new CardItem(R.drawable.data, "Данные по месеам"));
+        cardItems.add(new CardItem(R.drawable.currencies, "Валюты"));
+        cardItems.add(new CardItem(R.drawable.maket, "Шаблоны"));
+        cardItems.add(new CardItem(R.drawable.graf, "Графики"));
+        cardItems.add(new CardItem(R.drawable.savings, "Накопления"));
+        cardItems.add(new CardItem(R.drawable.ic_logo, "Асистент"));
+        cardItems.add(new CardItem(R.drawable.history, "История"));
+        cardItems.add(new CardItem(R.drawable.settings, "Настройки"));
+        cardItems.add(new CardItem(R.drawable.scan, "Сканнер"));
 
-
-
-        double prevDaySpent = databaseHelper.getDoneSpents(prevDay, prevDay);
-        double prevDayMustDo = databaseHelper.getAllSpents(prevDay, prevDay);
-        double todaySpent = databaseHelper.getDoneSpents(currentDayIndex, currentDayIndex);
-        double todayMustDo = databaseHelper.getAllSpents(currentDayIndex, currentDayIndex);
-        double nextDaySpent = databaseHelper.getDoneSpents(nextDay, nextDay);
-        double nextDayMustDo = databaseHelper.getAllSpents(nextDay, nextDay);
-
-
-
-        adapter = new WeekItemAdapter(this, dataList);
-        listView.setAdapter(adapter);
-
-        // Открыть меню
-        btnOpenMenu.setOnClickListener(v -> {
-            menuLayout.setVisibility(View.VISIBLE);
-            dimLayer.setVisibility(View.VISIBLE);
-        });
-
-        btnScan.setOnClickListener(v -> {
-            Intent intent = new Intent(StartActivity.this, ScanReceiptActivity.class);
-            startActivity(intent);
-            finish();
-        });
-
-        DecimalFormat df = new DecimalFormat("0.##");
-
-        dataList.add(new WeekItem(prevDayName , "потрачено: " + df.format(prevDaySpent  * curs.rate) + curs.symbol, "из: " + df.format(prevDayMustDo  * curs.rate) + curs.symbol));
-        dataList.add(new WeekItem(currentDayName + " (сегодня)", "потрачено: " + df.format(todaySpent * curs.rate) + curs.symbol, "из: " + df.format(todayMustDo  * curs.rate) + curs.symbol));
-        dataList.add(new WeekItem(nextDayName, "потрачено: " + df.format(nextDaySpent * curs.rate) + curs.symbol, "из: " + df.format(nextDayMustDo * curs.rate) + curs.symbol));
-
-        // Расширение списка
-        btnExpandList.setOnClickListener(v -> {
-            if (isExpanded) {
-                while (dataList.size() > 0) {
-                    dataList.remove(dataList.size() - 1);
-                }
-                dataList.add(new WeekItem(prevDayName , "потрачено: " + df.format(prevDaySpent  * curs.rate) + curs.symbol, "из: " + df.format(prevDayMustDo  * curs.rate) + curs.symbol));
-                dataList.add(new WeekItem(currentDayName + " (сегодня)", "потрачено: " + df.format(todaySpent * curs.rate) + curs.symbol, "из: " + df.format(todayMustDo  * curs.rate) + curs.symbol));
-                dataList.add(new WeekItem(nextDayName, "потрачено: " + df.format(nextDaySpent * curs.rate) + curs.symbol, "из: " + df.format(nextDayMustDo * curs.rate) + curs.symbol));
-
-                isExpanded = false;
-                btnExpandList.setText("Расширить список");
-                listView.getLayoutParams().height -= 700; // Увеличиваем высоту
-            } else {
-                while (dataList.size() > 0) {
-                    dataList.remove(dataList.size() - 1);
-                }
-                int day = DayAdapter.getStartOfWeek();
-                String[] weekDays = {"понедельник", "вторник", "среда", "четверг" , "пятница", "суббота", "воскресение"};
-                for (int i = 0; i < 7; i++) {
-                    dataList.add(new WeekItem(weekDays[i] , "потрачено: " + df.format(databaseHelper.getDoneSpents(day+i, day+i) * curs.rate) + curs.symbol,
-                            "из: " + df.format(databaseHelper.getAllSpents(day+i, day+i) * curs.rate) + curs.symbol));
-                }
-                listView.getLayoutParams().height += 700; // Возвращаем высоту
-                isExpanded = true;
-                btnExpandList.setText("сократить список");
-            }
-            adapter.notifyDataSetChanged();
-        });
-
-
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Получаем выбранный элемент списка
-                WeekItem selectedItem = (WeekItem) parent.getItemAtPosition(position);
-
-                // Создаем Intent для перехода на новую активность
-                Intent intent = new Intent(StartActivity.this, MainActivity.class);
-                if (!isExpanded) {
-//                    int moneday = DayAdapter.getStartOfWeek();
-//                    int choosenDay = DayAdapter.findDayOfMonth(moneday, selectedItem.getDayName());
-                    Calendar calendar = Calendar.getInstance();
-                    int getCurrentDay = calendar.get(Calendar.DAY_OF_MONTH);
-                    int currentDayIndex = getCurrentDay;
-                    int choosenDay = currentDayIndex;
-                    if (position == 0){
-                        choosenDay -= 1;
-                    }else if(position == 2){
-                        choosenDay += 1;
-                    }
-                    intent.putExtra("day", choosenDay);
-                    intent.putExtra("isexpented", "false");
-                }else {
-                    intent.putExtra("day", position);
-                    intent.putExtra("isexpented", "true");
-                }
-
-                // Запускаем новую активность
-                startActivity(intent);
-                finish();
+        CardAdapter adapter = new CardAdapter(cardItems, item -> {
+            switch (item.getText()) {
+                case "Категории":
+                    startActivity(new Intent(this, CategoriesActivity.class));
+                    break;
+                case "Доходы":
+                    startActivity(new Intent(this, IncomeActivity.class));
+                    break;
+                case "Оборот":
+                    startActivity(new Intent(this, DayActivity.class));
+                    break;
+                case "Регулярные расходы":
+                    startActivity(new Intent(this, SpentActivity.class));
+                    break;
+                case "Данные по месеам":
+                    startActivity(new Intent(this, MonthListActivity.class));
+                    break;
+                case "Валюты":
+                    startActivity(new Intent(this, CurrencyActivity.class));
+                    break;
+                case "Шаблоны":
+                    startActivity(new Intent(this, MaketListActivity.class));
+                    break;
+                case "Графики":
+                    startActivity(new Intent(this, GraphActivity.class));
+                    break;
+                case "Накопления":
+                    startActivity(new Intent(this, GoalActivity.class));
+                    break;
+                case "Асистент":
+                    startActivity(new Intent(this, GeminiChatActivity.class));
+                    break;
+                case "История":
+                    startActivity(new Intent(this, NotesActivity.class));
+                    break;
+                case "Настройки":
+                    startActivity(new Intent(this, PrivacyPolicyActivity.class));
+                    break;
+                case "Сканнер":
+                    startActivity(new Intent(this, ScanReceiptActivity.class));
+                    break;
+                default:
+                    break;
             }
         });
+
+        recyclerView.setAdapter(adapter);
+
+
     }
 
     private void deleteOldNotifications() {
@@ -466,7 +323,7 @@ public class StartActivity extends AppCompatActivity {
             budgetText.setTextColor(Color.RED);
         }
         String result = String.format("%.2f %s", converted, curs.symbol);
-        budgetText.setText("баланс:" + result);
+        budgetText.setText("Bаланс: " + result);
     }
 
 

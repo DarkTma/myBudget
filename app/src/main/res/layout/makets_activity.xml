@@ -15,6 +15,17 @@
         android:scaleType="centerInside"
         android:src="@drawable/arrow" />
 
+    <Button
+        android:id="@+id/btnOpenMenu"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/btn_light_blue"
+        android:text="☰"
+        android:textColor="@android:color/white"
+        android:textSize="20sp" />
+
     <TextView
         android:id="@+id/tvMaketsTitle"
         android:layout_width="wrap_content"
@@ -32,7 +43,7 @@
         android:layout_height="0dp"
         android:layout_below="@id/tvMaketsTitle"
         android:layout_above="@+id/btnAddMaket"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/list_item_background"
         android:layout_marginBottom="8dp"/>
 
@@ -46,4 +57,8 @@
         android:text="Добавить шаблон"
         android:background="@drawable/button_selector_blue"
         android:textColor="@android:color/white"/>
+
+    <include
+        layout="@layout/menu_layout" />
+
 </RelativeLayout>

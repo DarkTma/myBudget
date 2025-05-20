@@ -1,8 +1,8 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid android:color="#333333" /> <!-- Темный фон для спиннера -->
-    <corners android:radius="8dp" /> <!-- Скругленные углы -->
+<!--    <corners android:radius="8dp" /> &lt;!&ndash; Скругленные углы &ndash;&gt;-->
     <stroke
-        android:color="@android:color/holo_blue_light"
+        android:color="@color/primary"
         android:width="2dp" />
     <padding
         android:left="10dp"

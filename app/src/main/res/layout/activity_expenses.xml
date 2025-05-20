@@ -19,11 +19,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/btnOpenMenu"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/btn_light_blue"
+        android:text="☰"
+        android:layout_marginTop="10dp"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- Поле для поиска -->
     <SearchView
         android:id="@+id/searchView"
         android:layout_width="0dp"
         android:layout_height="60dp"
+        android:layout_marginTop="16dp"
         android:queryHint="Поиск по дате или имени"
         android:background="@drawable/edit_text_style"
         app:layout_constraintStart_toStartOf="parent"
@@ -43,5 +57,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <include
+        layout="@layout/menu_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

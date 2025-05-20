@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#252525"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:layout_weight="1"
+    android:layout_margin="5dp"
+    android:clipToPadding="false">
+
+    <ImageView
+        android:id="@+id/cardIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_logo"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:id="@+id/cardText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Название"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:layout_marginVertical="8dp"
+        android:gravity="center"/>
+</LinearLayout>

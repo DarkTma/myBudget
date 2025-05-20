@@ -16,21 +16,9 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Кнопка для открытия меню -->
-            <Button
-                android:id="@+id/btnOpenMenu"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:text="☰"
-                android:textSize="20sp"
-                android:background="@drawable/btn_light_blue"
-                android:textColor="@android:color/white" />
-
-            <!-- Контейнер для доходов и расходов -->
-
             <!-- Контейнер для бюджета и статистики -->
             <RelativeLayout
-                android:background="@drawable/list_item_background"
+                android:background="@drawable/main_budget_background"
                 android:id="@+id/budgetStatsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -195,203 +183,19 @@
             </RelativeLayout>
 
 
-            <!-- ListView для элементов -->
-            <ListView
-                android:id="@+id/listView"
+
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/cardRecyclerView"
                 android:layout_width="match_parent"
-                android:layout_height="198dp"
-                android:layout_below="@id/buttonContainer"
-                android:background="@drawable/list_item_background"
-                android:divider="@color/primary"
-                android:dividerHeight="1dp"
+                android:layout_height="match_parent"
                 android:layout_marginTop="20dp"
-                android:padding="8dp" />
-
-            <!-- Кнопка для расширения списка -->
-            <Button
-                android:id="@+id/btnExpandList"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Расширить список"
-                android:background="@drawable/button_selector_blue"
-                android:textSize="8dp"
-                android:textColor="@color/white"
-                android:padding="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_gravity="center_horizontal" />
-
-
-
-
-            <ImageButton
-                android:id="@+id/buttonScan"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="30dp"
-                android:layout_gravity="center_horizontal"
-                android:scaleType="centerInside"
-                android:src="@drawable/scan" />
+                android:padding="8dp"
+                android:clipToPadding="false"
+                android:scrollbars="vertical"/>
 
 
         </LinearLayout>
     </ScrollView>
-
-    <FrameLayout
-        android:id="@+id/dimLayer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        android:background="#99000000"
-        android:clickable="true"/>
-
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/menuLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:background="@color/my_darkbg"
-        android:orientation="vertical"
-        android:visibility="gone"
-        android:elevation="10dp"
-        android:padding="16dp"
-        android:gravity="center_horizontal">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Меню"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:gravity="center"
-            android:paddingBottom="16dp" />
-
-        <Button
-            android:id="@+id/btnincomeData"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Доходы"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-
-        <Button
-            android:id="@+id/btnLastMonths"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Данные по месецам"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp"
-            android:tint="@android:color/white" />
-
-        <Button
-            android:id="@+id/btnMonthlySpents"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="регулярные расходы"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-
-        <Button
-            android:id="@+id/btnCategories"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Категории"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-
-        <Button
-            android:id="@+id/btnCurs"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Валюты"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-
-        <Button
-            android:id="@+id/btnMaketGo"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Шаблоны"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp"
-            android:tint="@android:color/white"
-            />
-
-        <Button
-            android:id="@+id/btnGrafGo"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Графики"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-
-        <Button
-            android:id="@+id/btnGoalGo"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Накопления"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-
-        <Button
-            android:id="@+id/btnGeminiGo"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="Асистент myBudget"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-
-        <Button
-            android:id="@+id/buttonHistory"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="История"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp"
-            />
-
-
-        <Button
-            android:id="@+id/btnConf"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:text="настройки"
-            android:background="@drawable/btn_menu_dark"
-            android:textColor="@android:color/white"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:layout_marginTop="10dp" />
-    </LinearLayout>
-
-
 </RelativeLayout>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <!--    <corners android:radius="16dp"/>  &lt;!&ndash; Закругленные углы &ndash;&gt;-->
+    <solid android:color="@color/my_darkl"/> <!-- Темный фон элемента -->
+    <stroke android:width="2dp" android:color="@color/primary"/> <!-- Тонкая граница my_cyan -->
+</shape>

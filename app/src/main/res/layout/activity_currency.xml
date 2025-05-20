@@ -23,6 +23,19 @@
         android:layout_marginTop="8dp"
         android:layout_marginStart="8dp" />
 
+    <Button
+        android:id="@+id/btnOpenMenu"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/btn_light_blue"
+        android:text="☰"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- Заголовок -->
     <TextView
         android:id="@+id/deftext"
@@ -121,5 +134,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp" />
+
+    <include
+        android:id="@+id/menu_include"
+        layout="@layout/menu_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

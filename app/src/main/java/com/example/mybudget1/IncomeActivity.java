@@ -49,6 +49,7 @@ public class IncomeActivity extends AppCompatActivity {
     private ImageButton btnBack;
     private TextView incomeText;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +61,22 @@ public class IncomeActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.buttonBackFromIncome);
         btnAddIncome = findViewById(R.id.btnAddIncome);
         incomeText = findViewById(R.id.tvIncome);
+
+        MenuHelper.setupMenu(this);
+
+        Button btnOpenMenu = findViewById(R.id.btnOpenMenu);
+        View dimLayer = findViewById(R.id.dimLayer);
+        LinearLayout menuLayout = findViewById(R.id.menuLayout);
+
+        btnOpenMenu.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.VISIBLE);
+            dimLayer.setVisibility(View.VISIBLE);
+        });
+
+        dimLayer.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.GONE);
+            dimLayer.setVisibility(View.GONE);
+        });
 
         refreshIncomeText();
         refreshList();

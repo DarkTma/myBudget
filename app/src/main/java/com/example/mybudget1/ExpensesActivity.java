@@ -1,9 +1,13 @@
 package com.example.mybudget1;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,6 +31,7 @@ public class ExpensesActivity extends AppCompatActivity {
     private SearchView searchView;
     private ImageButton buttonBackFromExpenses;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +47,22 @@ public class ExpensesActivity extends AppCompatActivity {
         buttonBackFromExpenses.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(ExpensesActivity.this, CategoriesActivity.class);
             startActivity(intentGoBack);
+        });
+
+        MenuHelper.setupMenu(this);
+
+        Button btnOpenMenu = findViewById(R.id.btnOpenMenu);
+        View dimLayer = findViewById(R.id.dimLayer);
+        LinearLayout menuLayout = findViewById(R.id.menuLayout);
+
+        btnOpenMenu.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.VISIBLE);
+            dimLayer.setVisibility(View.VISIBLE);
+        });
+
+        dimLayer.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.GONE);
+            dimLayer.setVisibility(View.GONE);
         });
 
         // Получаем category_id из Intent

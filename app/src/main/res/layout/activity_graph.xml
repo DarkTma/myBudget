@@ -7,14 +7,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Назад -->
-    <ImageButton
-        android:id="@+id/buttonBackFromGraf"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:scaleType="centerInside"
-        android:src="@drawable/arrow" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp">
+
+        <!-- Назад -->
+        <ImageButton
+            android:id="@+id/buttonBackFromGraf"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="start"
+            android:background="?android:attr/selectableItemBackground"
+            android:scaleType="centerInside"
+            android:src="@drawable/arrow" />
+
+    </LinearLayout>
+
 
     <!-- Спиннер для типа графика (день/месяц) -->
     <Spinner
@@ -70,5 +81,6 @@
             android:layout_margin="16dp"
             android:visibility="gone" />
     </FrameLayout>
+
 
 </LinearLayout>

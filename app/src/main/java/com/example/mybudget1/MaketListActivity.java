@@ -72,6 +72,22 @@ public class MaketListActivity extends AppCompatActivity {
 
         });
 
+        MenuHelper.setupMenu(this);
+
+        Button btnOpenMenu = findViewById(R.id.btnOpenMenu);
+        View dimLayer = findViewById(R.id.dimLayer);
+        LinearLayout menuLayout = findViewById(R.id.menuLayout);
+
+        btnOpenMenu.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.VISIBLE);
+            dimLayer.setVisibility(View.VISIBLE);
+        });
+
+        dimLayer.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.GONE);
+            dimLayer.setVisibility(View.GONE);
+        });
+
         databaseHelper = new DatabaseHelper(this);
         maketRecyclerView = findViewById(R.id.recyclerViewMakets);
         maketRecyclerView.setLayoutManager(new LinearLayoutManager(this));

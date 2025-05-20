@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="#2A2A2A" /> <!-- Фоновый цвет -->
-    <corners android:radius="16dp" /> <!-- Скругленные углы -->
+<!--    <corners android:radius="16dp" /> &lt;!&ndash; Скругленные углы &ndash;&gt;-->
     <stroke
         android:color="@color/my_orange"
         android:width="2dp" /> <!-- Толщина границы -->

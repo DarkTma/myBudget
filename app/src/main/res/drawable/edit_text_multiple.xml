@@ -4,5 +4,5 @@
 
     <solid android:color="@color/my_darkw" /> <!-- Тёмный фон -->
     <stroke android:width="2dp" android:color="@color/my_cyan" /> <!-- Обводка -->
-    <corners android:radius="10dp" /> <!-- Скруглённые углы -->
+<!--    <corners android:radius="10dp" /> &lt;!&ndash; Скруглённые углы &ndash;&gt;-->
 </shape>

@@ -9,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -64,6 +65,21 @@ public class CurrencyActivity extends AppCompatActivity {
         TextView deftext = findViewById(R.id.deftext);
         deftext.setText("основная валута: " + currencySymbols.get(databaseIncome.getDefaultCurrency()));
 
+        MenuHelper.setupMenu(this);
+
+        Button btnOpenMenu = findViewById(R.id.btnOpenMenu);
+        View dimLayer = findViewById(R.id.dimLayer);
+        LinearLayout menuLayout = findViewById(R.id.menuLayout);
+
+        btnOpenMenu.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.VISIBLE);
+            dimLayer.setVisibility(View.VISIBLE);
+        });
+
+        dimLayer.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.GONE);
+            dimLayer.setVisibility(View.GONE);
+        });
 
         btnBack.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(CurrencyActivity.this, StartActivity.class);

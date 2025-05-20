@@ -101,8 +101,9 @@ public class MainActivity extends AppCompatActivity {
             int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
             if (day > maxDay){
                 Toast.makeText(this, "этот день не в этом месяце ,  пожалуйста передите в ручную", Toast.LENGTH_SHORT).show();
-                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
-                startActivity(intent2);
+//                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
+//                startActivity(intent2);
+                day = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
             }
             choosenDay = day;
         } else {
@@ -111,13 +112,15 @@ public class MainActivity extends AppCompatActivity {
             int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
             if (choosenDay <= 0){
                 Toast.makeText(this, "этот день не в этом месяце ,  пожалуйста передите в ручную", Toast.LENGTH_SHORT).show();
-                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
-                startActivity(intent2);
+//                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
+//                startActivity(intent2);
+                choosenDay = 1;
             }
             if (choosenDay > maxDay){
                 Toast.makeText(this, "этот день не в этом месяце ,  пожалуйста передите в ручную", Toast.LENGTH_SHORT).show();
-                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
-                startActivity(intent2);
+//                Intent intent2 = new Intent(MainActivity.this , StartActivity.class);
+//                startActivity(intent2);
+                choosenDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
             }
         }
 
@@ -144,6 +147,23 @@ public class MainActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> {
             Intent intentGoBack = new Intent(MainActivity.this, StartActivity.class);
             startActivity(intentGoBack);
+        });
+
+        MenuHelper.setupMenu(this);
+
+        Button btnOpenMenu = findViewById(R.id.btnOpenMenu);
+        View dimLayer = findViewById(R.id.dimLayer);
+        LinearLayout menuLayout = findViewById(R.id.menuLayout);
+
+        btnOpenMenu.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.VISIBLE);
+            dimLayer.setVisibility(View.VISIBLE);
+        });
+
+        // Закрытие по клику на слой
+        dimLayer.setOnClickListener(v -> {
+            menuLayout.setVisibility(View.GONE);
+            dimLayer.setVisibility(View.GONE);
         });
 
         btnHelpMain = findViewById(R.id.btnHelpMain);

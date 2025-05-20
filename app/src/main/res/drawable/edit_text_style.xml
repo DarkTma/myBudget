@@ -4,6 +4,6 @@
 
     <solid android:color="@color/my_darkw"/> <!-- Белый фон -->
     <stroke android:width="2dp" android:color="@color/my_cyan"/> <!-- Зелёная обводка -->
-    <corners android:radius="10dp"/> <!-- Скруглённые углы -->
+<!--    <corners android:radius="10dp"/> &lt;!&ndash; Скруглённые углы &ndash;&gt;-->
     <padding android:left="16dp" android:top="12dp" android:right="16dp" android:bottom="12dp"/>
 </shape>
