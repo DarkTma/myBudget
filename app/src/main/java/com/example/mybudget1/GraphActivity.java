@@ -294,6 +294,39 @@ public class GraphActivity extends AppCompatActivity {
 
 
 
+//    private void showMonthlyChart() {
+//        SQLiteDatabase db = databaseHelper.getWritableDatabase();
+//        List<MonthData> monthDataList = databaseHelper.getMonthData(db);
+//
+//        // Сортируем по году и месяцу
+//        Collections.sort(monthDataList, new Comparator<MonthData>() {
+//            @Override
+//            public int compare(MonthData o1, MonthData o2) {
+//                String[] o1Parts = o1.getMonthName().split("_");
+//                String[] o2Parts = o2.getMonthName().split("_");
+//
+//                int yearComparison = Integer.compare(Integer.parseInt(o1Parts[1]), Integer.parseInt(o2Parts[1]));
+//                if (yearComparison == 0) {
+//                    // Если года одинаковые, сортируем по месяцу
+//                    return Integer.compare(Integer.parseInt(o1Parts[2]), Integer.parseInt(o2Parts[2]));
+//                }
+//                return yearComparison;
+//            }
+//        });
+//
+//        List<BarEntry> entries = new ArrayList<>();
+//        List<String> labels = new ArrayList<>();
+//
+//        for (int i = 0; i < monthDataList.size(); i++) {
+//            MonthData data = monthDataList.get(i);
+//            entries.add(new BarEntry(i, (float) data.getSpent()));
+//            String name = getName(data.getMonthName().split("_")[2]) + "  " + data.getMonthName().split("_")[1];
+//            labels.add(name);
+//        }
+//
+//        drawChart(entries, labels, "Траты по месяцам", false, monthDataList);
+//    }
+
     private void showMonthlyChart() {
         SQLiteDatabase db = databaseHelper.getWritableDatabase();
         List<MonthData> monthDataList = databaseHelper.getMonthData(db);
@@ -307,25 +340,43 @@ public class GraphActivity extends AppCompatActivity {
 
                 int yearComparison = Integer.compare(Integer.parseInt(o1Parts[1]), Integer.parseInt(o2Parts[1]));
                 if (yearComparison == 0) {
-                    // Если года одинаковые, сортируем по месяцу
                     return Integer.compare(Integer.parseInt(o1Parts[2]), Integer.parseInt(o2Parts[2]));
                 }
                 return yearComparison;
             }
         });
 
-        List<BarEntry> entries = new ArrayList<>();
+        List<BarEntry> expenseEntries = new ArrayList<>();
+        List<BarEntry> incomeEntries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
 
         for (int i = 0; i < monthDataList.size(); i++) {
             MonthData data = monthDataList.get(i);
-            entries.add(new BarEntry(i, (float) data.getSpent()));
-            String name = getName(data.getMonthName().split("_")[2]) + "  " + data.getMonthName().split("_")[1];
+            expenseEntries.add(new BarEntry(i, (float) data.getSpent()));
+            incomeEntries.add(new BarEntry(i, (float) data.getIncome()));
+            String name = getName(data.getMonthName().split("_")[2]) + " " + data.getMonthName().split("_")[1];
             labels.add(name);
         }
 
-        drawChart(entries, labels, "Траты по месяцам", false, monthDataList);
+        BarDataSet expenseDataSet = new BarDataSet(expenseEntries, "Траты");
+        expenseDataSet.setColor(Color.RED);
+
+        BarDataSet incomeDataSet = new BarDataSet(incomeEntries, "Доходы");
+        incomeDataSet.setColor(Color.GREEN);
+
+        BarData barData = new BarData(expenseDataSet, incomeDataSet);
+        float groupSpace = 0.2f;
+        float barSpace = 0.05f;
+        float barWidth = 0.35f;
+
+        barData.setBarWidth(barWidth); // ширина одного столбика
+        barData.groupBars(0, groupSpace, barSpace); // группировка
+
+        // Вызов метода отрисовки
+        drawChart(expenseEntries, labels, "рассходы", false, monthDataList);
+
     }
+
 
 
     private void showDayChart() {
@@ -349,30 +400,133 @@ public class GraphActivity extends AppCompatActivity {
 
     }
 
+//    private void drawChart(List<BarEntry> entries, List<String> labels, String labelText, boolean days, @Nullable List<MonthData> monthDataList) {
+//        barChart.fitScreen(); // Сброс зума и позиции
+//
+//        String currencySymbol = CursHelper.getCursData(databaseIncome.getCurs()).symbol;
+//        double rate = CursHelper.getCursData(databaseIncome.getCurs()).rate ;
+//
+//        // Переводим значения, умножив на курс
+//        for (int i = 0; i < entries.size(); i++) {
+//            BarEntry entry = entries.get(i);
+//            entry.setY(entry.getY() * (float) rate);  // Умножаем на курс
+//        }
+//
+//        BarDataSet dataSet = new BarDataSet(entries, labelText);
+//        dataSet.setColor(getResources().getColor(R.color.primary));
+//        dataSet.setValueTextColor(Color.WHITE);
+//        dataSet.setValueTextSize(12f);
+//
+//        dataSet.setValueFormatter(new CurrencyValueFormatter(currencySymbol, rate));
+//
+//        BarData barData = new BarData(dataSet);
+//        barData.setBarWidth(0.5f);
+//
+//        barChart.setData(barData);
+//        barChart.setFitBars(true);
+//        barChart.setDrawGridBackground(false);
+//        barChart.getDescription().setEnabled(false);
+//
+//        // X Axis
+//        XAxis xAxis = barChart.getXAxis();
+//        xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
+//        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+//        xAxis.setTextColor(Color.YELLOW);
+//        xAxis.setGranularity(1f);
+//        xAxis.setLabelCount(7);
+//        xAxis.setDrawGridLines(false);
+//
+//        if (!days) {
+//            xAxis.setLabelRotationAngle(-45f); // Повернуть текст на 45 градусов
+//            barChart.setVisibleXRangeMaximum(4); // Показываем до 4 месяцев на экране
+//        } else {
+//            barChart.setVisibleXRangeMaximum(7); // Показываем 7 дней на экране
+//            xAxis.setLabelRotationAngle(0f); // По дням — обычное выравнивание
+//        }
+//
+//        // Y Axis
+//        barChart.getAxisLeft().setTextColor(Color.WHITE);
+//        barChart.getAxisRight().setEnabled(false);
+//
+//        // Legend
+//        Legend legend = barChart.getLegend();
+//        legend.setTextColor(Color.WHITE);
+//
+//        // Разрешаем скролл и зум
+//        barChart.setScaleEnabled(true);
+//        barChart.setDragEnabled(true);
+//        barChart.setVisibleXRangeMaximum(7);
+//
+//        if (days){
+//            int today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+//            barChart.moveViewToX(today - 3);
+//        } else if (monthDataList != null) {
+//            Calendar cal = Calendar.getInstance();
+//            int year = cal.get(Calendar.YEAR);
+//            int month = cal.get(Calendar.MONTH) + 1;
+//            String currentMonthKey = "month_" + year + "_" + (month < 10 ? "0" + month : month);
+//
+//            for (int i = 0; i < monthDataList.size(); i++) {
+//                if (monthDataList.get(i).getMonthName().equals(currentMonthKey)) {
+//                    barChart.moveViewToX(i);
+//                    break;
+//                }
+//            }
+//        }
+//        barChart.setExtraBottomOffset(50f);
+//        barChart.invalidate();
+//    }
+
     private void drawChart(List<BarEntry> entries, List<String> labels, String labelText, boolean days, @Nullable List<MonthData> monthDataList) {
         barChart.fitScreen(); // Сброс зума и позиции
 
         String currencySymbol = CursHelper.getCursData(databaseIncome.getCurs()).symbol;
-        double rate = CursHelper.getCursData(databaseIncome.getCurs()).rate ;
+        double rate = CursHelper.getCursData(databaseIncome.getCurs()).rate;
 
-        // Переводим значения, умножив на курс
+        // Переводим значения расходов, умножив на курс
         for (int i = 0; i < entries.size(); i++) {
             BarEntry entry = entries.get(i);
-            entry.setY(entry.getY() * (float) rate);  // Умножаем на курс
+            entry.setY(entry.getY() * (float) rate);
         }
 
-        BarDataSet dataSet = new BarDataSet(entries, labelText);
-        dataSet.setColor(getResources().getColor(R.color.primary));
-        dataSet.setValueTextColor(Color.WHITE);
-        dataSet.setValueTextSize(12f);
+        BarDataSet expenseDataSet = new BarDataSet(entries, labelText);
+        expenseDataSet.setColor(getResources().getColor(R.color.primary));
+        expenseDataSet.setValueTextColor(Color.WHITE);
+        expenseDataSet.setValueTextSize(12f);
+        expenseDataSet.setValueFormatter(new CurrencyValueFormatter(currencySymbol, rate));
 
-        dataSet.setValueFormatter(new CurrencyValueFormatter(currencySymbol, rate));
+        BarData barData;
 
-        BarData barData = new BarData(dataSet);
-        barData.setBarWidth(0.5f);
+        if (!days && monthDataList != null) {
+            // Создаём столбики доходов
+            List<BarEntry> incomeEntries = new ArrayList<>();
+            for (int i = 0; i < monthDataList.size(); i++) {
+                float incomeValue = (float) (monthDataList.get(i).getIncome() * rate);
+                incomeEntries.add(new BarEntry(i, incomeValue));
+            }
+
+            BarDataSet incomeDataSet = new BarDataSet(incomeEntries, "Доходы");
+            incomeDataSet.setColor(getResources().getColor(R.color.my_dark_green));
+            incomeDataSet.setValueTextColor(Color.WHITE);
+            incomeDataSet.setValueTextSize(12f);
+            incomeDataSet.setValueFormatter(new CurrencyValueFormatter(currencySymbol, rate));
+
+            barData = new BarData(expenseDataSet, incomeDataSet);
+
+            float groupSpace = 0.2f;
+            float barSpace = 0.05f;
+            float barWidth = 0.35f;
+
+            barData.setBarWidth(barWidth);
+            barData.groupBars(0f, groupSpace, barSpace); // Группировка
+            barChart.setFitBars(false);
+        } else {
+            barData = new BarData(expenseDataSet);
+            barData.setBarWidth(0.5f);
+            barChart.setFitBars(true);
+        }
 
         barChart.setData(barData);
-        barChart.setFitBars(true);
         barChart.setDrawGridBackground(false);
         barChart.getDescription().setEnabled(false);
 
@@ -386,11 +540,13 @@ public class GraphActivity extends AppCompatActivity {
         xAxis.setDrawGridLines(false);
 
         if (!days) {
-            xAxis.setLabelRotationAngle(-45f); // Повернуть текст на 45 градусов
-            barChart.setVisibleXRangeMaximum(4); // Показываем до 4 месяцев на экране
+            xAxis.setLabelRotationAngle(-45f);
+            barChart.setVisibleXRangeMaximum(4);
+            xAxis.setCenterAxisLabels(true); // нужно для группировки
         } else {
-            barChart.setVisibleXRangeMaximum(7); // Показываем 7 дней на экране
-            xAxis.setLabelRotationAngle(0f); // По дням — обычное выравнивание
+            barChart.setVisibleXRangeMaximum(7);
+            xAxis.setLabelRotationAngle(0f);
+            xAxis.setCenterAxisLabels(false);
         }
 
         // Y Axis
@@ -406,7 +562,7 @@ public class GraphActivity extends AppCompatActivity {
         barChart.setDragEnabled(true);
         barChart.setVisibleXRangeMaximum(7);
 
-        if (days){
+        if (days) {
             int today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             barChart.moveViewToX(today - 3);
         } else if (monthDataList != null) {
@@ -422,9 +578,11 @@ public class GraphActivity extends AppCompatActivity {
                 }
             }
         }
+
         barChart.setExtraBottomOffset(50f);
         barChart.invalidate();
     }
+
 
     private String formatPrice(double value) {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();
@@ -447,7 +605,7 @@ public class GraphActivity extends AppCompatActivity {
     public static Map<Integer, Integer> loadCategoryColors(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("category_colors", Context.MODE_PRIVATE);
         Map<Integer, Integer> map = new HashMap<>();
-        for (int i = 0; i < 100; i++) { // например 100 категорий максимум
+        for (int i = 0; i < 100; i++) {
             if (prefs.contains("color_" + i)) {
                 map.put(i, prefs.getInt("color_" + i, Color.GRAY));
             }

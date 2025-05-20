@@ -78,34 +78,5 @@ public class BackupHelper {
 
         activity.startActivity(Intent.createChooser(intent, "Поделиться резервной копией"));
     }
-
-
-
-    public boolean restoreAllDatabases() {
-        try {
-            File backupDir = new File(context.getExternalFilesDir(null), "Backup");
-
-            for (String dbName : dbNames) {
-                File backupFile = new File(backupDir, dbName);
-                if (!backupFile.exists()) return false;
-
-                File dbFile = new File(context.getDatabasePath(dbName).getPath());
-
-                try (FileInputStream fis = new FileInputStream(backupFile);
-                     FileOutputStream fos = new FileOutputStream(dbFile)) {
-                    byte[] buffer = new byte[1024];
-                    int length;
-                    while ((length = fis.read(buffer)) > 0) {
-                        fos.write(buffer, 0, length);
-                    }
-                }
-            }
-
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 }
 

@@ -4,7 +4,7 @@
     <string name="action_text">"action TEXT, "</string>
     <string-array name="chart_types">
         <item>По месяцам</item>
-        <item>По дням недели</item>
+        <item>По дням</item>
     </string-array>
     <string-array name="chart_types_category">
         <item>Текуший месяц</item>
