@@ -201,7 +201,7 @@ public class GeminiChatActivity extends AppCompatActivity {
 
         if (commandText.equals("Анализируй текущий месяц")) {
             getGeminiResponse(generateFriendlyPrompt(getFormatedMonthString()));
-        }else if(commandText.startsWith("Вот данные о расходах по категории")){
+        }else if(commandText.startsWith("Вот мои расходы по категории")){
             getGeminiResponse(commandText);
         }else if(commandText.startsWith("Вот данные о завершённых действиях")){
             getGeminiResponse(commandText);

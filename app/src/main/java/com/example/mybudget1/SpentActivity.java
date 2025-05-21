@@ -94,7 +94,9 @@ public class SpentActivity extends AppCompatActivity {
         btnAddSpent.setOnClickListener(v -> {
             final int[] selectedCategoryId = {0};
             final int[] selectedDay = new int[1];
+            selectedDay[0] = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             final int[] selectedOffset = new int[1];
+            selectedOffset[0] = 0;
 
             TextView customTitle = new TextView(this);
             customTitle.setText("Добавить трату");

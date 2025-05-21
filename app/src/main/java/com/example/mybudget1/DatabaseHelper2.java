@@ -107,42 +107,45 @@ public class DatabaseHelper2 extends SQLiteOpenHelper {
 
     public boolean setIncome(double value, String name, int day, boolean once, int offset) {
         SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            // Удаляем предыдущую запись дохода с тем же именем
+            db.delete(TABLE_INCOME, COLUMN_NAME + " = ?", new String[]{name});
 
-        // Удаляем предыдущую запись дохода с тем же именем
-        db.delete(TABLE_INCOME, COLUMN_NAME + " = ?", new String[]{name});
+            // Получаем сегодняшнюю дату и целевую дату дохода
+            Calendar today = Calendar.getInstance();
 
-        // Получаем сегодняшнюю дату и целевую дату дохода
-        Calendar today = Calendar.getInstance();
+            Calendar incomeDate = Calendar.getInstance();
+            incomeDate.add(Calendar.MONTH, offset);
+            int maxDay = incomeDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+            incomeDate.set(Calendar.DAY_OF_MONTH, Math.min(day, maxDay));
 
-        Calendar incomeDate = Calendar.getInstance();
-        incomeDate.add(Calendar.MONTH, offset);
-        int maxDay = incomeDate.getActualMaximum(Calendar.DAY_OF_MONTH);
-        incomeDate.set(Calendar.DAY_OF_MONTH, Math.min(day, maxDay));
+            // Формат даты
+            String formattedDate = String.format("%02d-%02d-%04d",
+                    incomeDate.get(Calendar.DAY_OF_MONTH),
+                    incomeDate.get(Calendar.MONTH) + 1,
+                    incomeDate.get(Calendar.YEAR)
+            );
 
-        // Формат даты
-        String formattedDate = String.format("%02d-%02d-%04d",
-                incomeDate.get(Calendar.DAY_OF_MONTH),
-                incomeDate.get(Calendar.MONTH) + 1,
-                incomeDate.get(Calendar.YEAR)
-        );
+            if (!incomeDate.after(today)) {
+                return databaseHelper.insertData(incomeDate.get(Calendar.DAY_OF_MONTH), name, -1 * value, 0, true);
+            } else {
+                // Если в будущем — сохраняем как планируемый доход
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(COLUMN_NAME, name);
+                contentValues.put(COLUMN_INCOME, value);
+                contentValues.put(COLUMN_INCOMEDAY, day);
+                contentValues.put(COLUMN_ONCEINCOME, once);
+                contentValues.put(COLUMN_COUNT, 0);
+                contentValues.put(COLUMN_NEXT, formattedDate);
 
-        if (!incomeDate.after(today)) {
-            // Если дата в прошлом или сегодня — просто вставляем как разовое начисление
-            return databaseHelper.insertData(incomeDate.get(Calendar.DAY_OF_MONTH), name, -1 * value, 0, true);
-        } else {
-            // Если в будущем — сохраняем как планируемый доход
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(COLUMN_NAME, name);
-            contentValues.put(COLUMN_INCOME, value);
-            contentValues.put(COLUMN_INCOMEDAY, day);
-            contentValues.put(COLUMN_ONCEINCOME, once);
-            contentValues.put(COLUMN_COUNT, 0);
-            contentValues.put(COLUMN_NEXT, formattedDate);
-
-            long result = db.insert(TABLE_INCOME, null, contentValues);
-            return result != -1;
+                long result = db.insert(TABLE_INCOME, null, contentValues);
+                return result != -1;
+            }
+        } finally {
+            db.close();  // обязательно закрываем базу
         }
     }
+
 
 
 

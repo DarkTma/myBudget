@@ -33,12 +33,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+
+import java.io.File;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -58,6 +64,7 @@ public class StartActivity extends AppCompatActivity {
     public Button geminiAnalizbtn;
     public TextView budgetText , savingsText , planText,incomeText;
     public CursData curs;
+    private ActivityResultLauncher<Intent> authPermissionLauncher;
 
 
 
@@ -81,6 +88,19 @@ public class StartActivity extends AppCompatActivity {
         planText = findViewById(R.id.tvPlans);
 
         curs = CursHelper.getCursData(databaseIncome.getCurs());
+
+
+        authPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Toast.makeText(this, "Разрешение получено, повторите операцию", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Разрешение не получено", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
 
         Intent intenterr = getIntent();
         String err = intenterr.getStringExtra("error");
@@ -130,6 +150,9 @@ public class StartActivity extends AppCompatActivity {
         refreshBudgetText();
         refreshIncomesDatas();
 
+        File dbFile = this.getDatabasePath("expenses.db");
+        long lastModified = dbFile.lastModified();
+        Log.d("DBCheck", "Last modified: " + new Date(lastModified).toString());
 
         RecyclerView recyclerView = findViewById(R.id.cardRecyclerView);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
@@ -139,12 +162,12 @@ public class StartActivity extends AppCompatActivity {
         cardItems.add(new CardItem(R.drawable.income, "Доходы"));
         cardItems.add(new CardItem(R.drawable.oborot, "Оборот"));
         cardItems.add(new CardItem(R.drawable.spents, "Регулярные расходы"));
-        cardItems.add(new CardItem(R.drawable.data, "Данные по месеам"));
+        cardItems.add(new CardItem(R.drawable.data, "Данные по месецам"));
         cardItems.add(new CardItem(R.drawable.currencies, "Валюты"));
         cardItems.add(new CardItem(R.drawable.maket, "Шаблоны"));
         cardItems.add(new CardItem(R.drawable.graf, "Графики"));
         cardItems.add(new CardItem(R.drawable.savings, "Накопления"));
-        cardItems.add(new CardItem(R.drawable.ic_logo, "Асистент"));
+        cardItems.add(new CardItem(R.drawable.asistent, "Асистент"));
         cardItems.add(new CardItem(R.drawable.history, "История"));
         cardItems.add(new CardItem(R.drawable.settings, "Настройки"));
         cardItems.add(new CardItem(R.drawable.scan, "Сканнер"));
@@ -163,7 +186,7 @@ public class StartActivity extends AppCompatActivity {
                 case "Регулярные расходы":
                     startActivity(new Intent(this, SpentActivity.class));
                     break;
-                case "Данные по месеам":
+                case "Данные по месецам":
                     startActivity(new Intent(this, MonthListActivity.class));
                     break;
                 case "Валюты":
@@ -370,6 +393,23 @@ public class StartActivity extends AppCompatActivity {
             databaseIncome.setLastActivity();
         } else if(newDay){
             databaseIncome.setLastActivity();
+
+            SharedPreferences prefs = this.getSharedPreferences("backup_prefs", Context.MODE_PRIVATE);
+            String savedEmail = prefs.getString("GOOGLE_ACCOUNT_EMAIL", null);
+
+// Получаем аккаунт, если пользователь уже авторизован
+            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+            BackupHelper backupHelper = new BackupHelper(this);
+            File backupFile = backupHelper.createBackupZipFile();
+
+            if (savedEmail != null && account != null && savedEmail.equals(account.getEmail())) {
+                DriveHelper driveHelper = new DriveHelper(StartActivity.this, account,authPermissionLauncher);
+                driveHelper.uploadBackupFile(backupFile);
+            } else {
+                Log.d("AutoBackup", "Аккаунт не совпадает или не найден, автосохранение не выполнено");
+            }
+
+
             refreshBudget();
             remembring();
         }

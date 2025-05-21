@@ -539,17 +539,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(COLUMN_DAY, day);
-        contentValues.put(COLUMN_NAME, name);
-        contentValues.put(COLUMN_SPENT, spent);
-        contentValues.put(COLUMN_CATEGORY, category);
-        contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_DAY, day);
+            contentValues.put(COLUMN_NAME, name);
+            contentValues.put(COLUMN_SPENT, spent);
+            contentValues.put(COLUMN_CATEGORY, category);
+            contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
 
-        long result = db.insert(tableName, null, contentValues);
+            long result = db.insert(tableName, null, contentValues);
 
-        return result != -1;
+            return result != -1;
+        } finally {
+            db.close();
+        }
     }
+
 
 
     public boolean insertData(int day, String name, double spent, int offset, boolean isDone) {
@@ -565,16 +570,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(COLUMN_DAY, day);
-        contentValues.put(COLUMN_NAME, name);
-        contentValues.put(COLUMN_SPENT, spent);
-        contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_DAY, day);
+            contentValues.put(COLUMN_NAME, name);
+            contentValues.put(COLUMN_SPENT, spent);
+            contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
 
-        long result = db.insert(tableName, null, contentValues);
+            long result = db.insert(tableName, null, contentValues);
 
-        return result != -1;
+            return result != -1;
+        } finally {
+            db.close();
+        }
     }
+
 
 
     public boolean insertData(int day, String name, double spent, int offset, boolean isDone, int category, String descr) {
@@ -590,19 +600,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(COLUMN_DAY, day);
-        contentValues.put(COLUMN_NAME, name);
-        contentValues.put(COLUMN_SPENT, spent);
-        contentValues.put(COLUMN_CATEGORY, category);
-        contentValues.put(COLUMN_DESCR, descr);
-        contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(COLUMN_DAY, day);
+            contentValues.put(COLUMN_NAME, name);
+            contentValues.put(COLUMN_SPENT, spent);
+            contentValues.put(COLUMN_CATEGORY, category);
+            contentValues.put(COLUMN_DESCR, descr);
+            contentValues.put(COLUMN_DONE, isDone ? 1 : 0);
 
-        long result = db.insert(tableName, null, contentValues);
+            long result = db.insert(tableName, null, contentValues);
 
-        return result != -1;
+            return result != -1;
+        } finally {
+            db.close();
+        }
     }
 
+
+    public void checkpoint() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.rawQuery("PRAGMA wal_checkpoint(FULL);", null);
+        db.close();
+    }
 
     // Метод для получения данных
     public Cursor getData(int day, int offset) {

@@ -16,6 +16,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    packagingOptions {
+        resources {
+            pickFirsts.add("META-INF/DEPENDENCIES")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -51,6 +57,12 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.15.1")
     implementation("com.github.yalantis:ucrop:2.2.6")
     implementation("androidx.biometric:biometric:1.2.0-alpha04")
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+// https://mvnrepository.com/artifact/com.google.api-client/google-api-client
+    implementation("com.google.api-client:google-api-client-android:1.34.0")
+    implementation("com.google.api-client:google-api-client-gson:1.34.0")
+    // https://mvnrepository.com/artifact/com.google.apis/google-api-services-drive
+    implementation("com.google.apis:google-api-services-drive:v3-rev197-1.25.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

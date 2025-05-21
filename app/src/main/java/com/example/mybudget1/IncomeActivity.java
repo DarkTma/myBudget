@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.Html;
 import android.text.InputType;
@@ -39,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class IncomeActivity extends AppCompatActivity {
 
@@ -81,10 +85,14 @@ public class IncomeActivity extends AppCompatActivity {
         refreshIncomeText();
         refreshList();
 
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
         btnAddIncome.setOnClickListener(v -> {
             final int[] selectedDay = new int[1];
+            selectedDay[0] = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             final int[] selectedOffset = new int[1];
-
+            selectedOffset[0] = 0;
             TextView customTitle = new TextView(this);
             customTitle.setText("Добавить доход");
             customTitle.setTextSize(20);
@@ -364,11 +372,15 @@ public class IncomeActivity extends AppCompatActivity {
                             }
 
                             double incomeText = Double.parseDouble(income.getText().toString());
+                            int dayText;
 
-                            int dayText = selectedDay[0];
+                            if (selectedDay != null) {
+                                dayText = selectedDay[0];
+                            } else {
+                                dayText = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+                            }
+
                             int offset = selectedOffset[0];
-
-
                             boolean once = checkBox.isChecked();
 
                             // Получаем выбранную валюту из Spinner
@@ -376,50 +388,43 @@ public class IncomeActivity extends AppCompatActivity {
                             double finalIncome = 0;
 
                             switch (selectedCurrency) {
-                                case "֏": // Армянский драм
-                                    finalIncome = incomeText / CursHelper.getToDram();
-                                    break;
-                                case "$": // Доллар США
-                                    finalIncome = incomeText / CursHelper.getToDollar();
-                                    break;
-                                case "₽": // Российский рубль
-                                    finalIncome = incomeText / CursHelper.getToRub();
-                                    break;
-                                case "元": // Китайский юань
-                                    finalIncome = incomeText / CursHelper.getToJuan();
-                                    break;
-                                case "€": // Евро
-                                    finalIncome = incomeText / CursHelper.getToEur();
-                                    break;
-                                case "¥": // Японская иена
-                                    finalIncome = incomeText / CursHelper.getToJen();
-                                    break;
-                                case "₾": // Грузинский лари
-                                    finalIncome = incomeText / CursHelper.getToLari();
-                                    break;
-                                default:
-                                    finalIncome = incomeText;
-                                    break;
+                                case "֏": finalIncome = incomeText / CursHelper.getToDram(); break;
+                                case "$": finalIncome = incomeText / CursHelper.getToDollar(); break;
+                                case "₽": finalIncome = incomeText / CursHelper.getToRub(); break;
+                                case "元": finalIncome = incomeText / CursHelper.getToJuan(); break;
+                                case "€": finalIncome = incomeText / CursHelper.getToEur(); break;
+                                case "¥": finalIncome = incomeText / CursHelper.getToJen(); break;
+                                case "₾": finalIncome = incomeText / CursHelper.getToLari(); break;
+                                default: finalIncome = incomeText; break;
                             }
-
                             finalIncome = Math.round(finalIncome * 10000.0) / 10000.0;
 
+                            // Запускаем сохранение в фоне
+                            double finalIncome1 = finalIncome;
+                            String finalNameText = nameText;
+                            int finalCustomRepeatDays = customRepeatDays;
+                            executor.execute(() -> {
+                                if (once) {
+                                    databaseIncome.setIncome(finalIncome1, finalNameText, dayText, once, finalCustomRepeatDays, offset);
+                                } else {
+                                    databaseIncome.setIncome(finalIncome1, finalNameText, dayText, once, offset);
+                                }
 
-                            if (once){
-                                databaseIncome.setIncome(finalIncome, nameText, dayText, once, customRepeatDays,offset);
-                            } else {
-                                databaseIncome.setIncome(finalIncome, nameText, dayText, once,offset);
-                            }
-                            CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
-                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
-                            String currentDate = sdf.format(new Date());
-                            DatabaseHelper databaseHelper = new DatabaseHelper(this);
-                            databaseHelper.saveNote(currentDate, "добавлен новый доход: " + nameText + " - " + finalIncome + curs.symbol, "Income", "add" );
+                                CursData curs = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
+                                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                                String currentDate = sdf.format(new Date());
+                                DatabaseHelper databaseHelper = new DatabaseHelper(this);
+                                databaseHelper.saveNote(currentDate, "добавлен новый доход: " + finalNameText + " - " + finalIncome1 + curs.symbol, "Income", "add");
 
-                            dialog.dismiss();
+                                // Обновляем UI в главном потоке
+                                handler.post(() -> {
+                                    dialog.dismiss();
+                                    refreshIncomeText();
+                                    refreshList();
+                                    Toast.makeText(this, "Доход добавлен", Toast.LENGTH_SHORT).show();
+                                });
+                            });
 
-                            refreshIncomeText();
-                            refreshList();
                         } else {
                             Toast.makeText(this, "Вы не добавили доход", Toast.LENGTH_SHORT).show();
                             dialog.dismiss();
@@ -439,7 +444,7 @@ public class IncomeActivity extends AppCompatActivity {
         });
 
 
-        // Заполняем список тестовыми данными
+       databaseIncome.close();
 
     }
 

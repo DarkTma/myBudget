@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -570,7 +571,21 @@ public class MainActivity extends AppCompatActivity {
                         // Вставляем данные в базу
                         DatabaseHelper databaseHelper = new DatabaseHelper(mainActivity);
                         int id = fileHelper.getCategoryIdByName(categories.get(selectedCategoryId[0]));
-                        databaseHelper.insertData(dayData, nameData, finalAmount, offset[0], isDone, id); // Вставляем с id категории
+                        File dbFile = mainActivity.getDatabasePath("expenses.db"); // подставь своё имя базы
+                        Log.d("DBCheck", "Before insert: path=" + dbFile.getAbsolutePath() + ", size=" + dbFile.length());
+
+// Вызов записи
+                        databaseHelper.insertData(dayData, nameData, finalAmount, offset[0], isDone, id);
+                        databaseHelper.checkpoint();
+                        dbFile = mainActivity.getDatabasePath("expenses.db");
+
+                        File walFile = new File(dbFile.getParent(), "expenses.db-wal");
+                        File shmFile = new File(dbFile.getParent(), "expenses.db-shm");
+
+                        Log.d("DBCheck", "WAL size: " + (walFile.exists() ? walFile.length() : "no wal"));
+                        Log.d("DBCheck", "SHM size: " + (shmFile.exists() ? shmFile.length() : "no shm"));
+// Лог размера базы после записи
+                        Log.d("DBCheck", "After insert: size=" + dbFile.length()); // Вставляем с id категории
 
                         CursData cursd = CursHelper.getCursData(databaseIncome.getDefaultCurrency());
                         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
@@ -616,6 +631,12 @@ public class MainActivity extends AppCompatActivity {
         Calendar calendar = Calendar.getInstance();
         return calendar.get(Calendar.DAY_OF_MONTH);
     }
+
+    public void logDatabasePath() {
+        File dbFile = this.getDatabasePath("expenses.db");
+        Log.d("DBPath", "Database path: " + dbFile.getAbsolutePath());
+    }
+
 
 
 }

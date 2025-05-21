@@ -48,20 +48,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="@drawable/button_selector_blue"
-            android:text="создать резервную копию"
+            android:text="Привязать Google-аккаунт"
             android:paddingHorizontal="15dp"
             />
 
-        <Button
-            android:id="@+id/restore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/button_selector_blue"
-            android:text="загрузить резервную копию"
-            android:paddingHorizontal="15dp"
-            android:layout_marginVertical="10dp"
-            />
 
         <TextView
             android:id="@+id/title"
@@ -69,29 +59,42 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
+            android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
         <TextView
             android:id="@+id/privacy_text"
-            android:text="Приложение 'MyBudget' бережно относится к вашим данным. Вся введенная вами информация (доходы, расходы, изображения чеков и целей) хранится исключительно локально на вашем устройстве в базе данных SQLite и не передается на внешние серверы или третьим лицам. Данные удаляются при удалении приложения.\n\nДля получения более подробной информации, пожалуйста, ознакомьтесь с полной Политикой Конфиденциальности:"
-            android:textColor="@android:color/white"
+            android:text="Приложение MyBudget сохраняет все ваши данные локально на устройстве и не передаёт их на внешние серверы.
+
+Привязка Google-аккаунта необязательна и используется только для резервного копирования базы данных в ваш Google Drive. Мы не имеем доступа к другим вашим файлам и не передаём данные третьим лицам."            android:textColor="@android:color/white"
             android:textSize="16sp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/privacy_link"
-            android:text="Открыть Политику Конфиденциальности (PDF)"
+            android:text="Открыть полную Политику Конфиденциальности (PDF)"
             android:textColor="#64B5F6"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:layout_marginTop="16dp"
             android:autoLink="web"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true" />
+
+        <Button
+            android:id="@+id/signout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/button_selector_blue"
+            android:text="отвязать аккаунт"
+            android:paddingHorizontal="25dp"
+            android:layout_marginVertical="10dp"
+            />
 
         <Button
             android:id="@+id/zbros"
